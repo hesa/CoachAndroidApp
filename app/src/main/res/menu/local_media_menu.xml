@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_training"
+        android:orderInCategory="100"
+        android:title="Go back to training mode"
+        />
+
+    <item
+        android:id="@+id/menu_media"
+        android:orderInCategory="100"
+        android:title="Filters > ">
+
+        <menu>
+        <item
+            android:id="@+id/menu_all_media"
+            android:orderInCategory="200"
+            android:title="All media" />
+
+        <item
+            android:id="@+id/menu_new_media"
+            android:orderInCategory="400"
+            android:title="Only new media" />
+
+        <item
+            android:id="@+id/menu_deletable_media"
+            android:orderInCategory="400"
+            android:title="Only deletable media" />
+        </menu>
+    </item>
+
+
+</menu>

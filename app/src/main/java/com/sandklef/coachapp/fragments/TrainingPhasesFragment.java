@@ -1,7 +1,6 @@
 package com.sandklef.coachapp.fragments;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,15 +12,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.sandklef.coachapp.activities.MainActivity;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.Storage;
 
 import coachassistant.sandklef.com.coachapp.R;
 
 
-public class TraningPhasesFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class TrainingPhasesFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,7 +32,7 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
     private String mParam2;
 
     private TrainingPhasesFragmentListener mListener;
-    private final static String LOG_TAG = TraningPhasesFragment.class.getSimpleName();
+    private final static String LOG_TAG = TrainingPhasesFragment.class.getSimpleName();
 
     /**
      * The fragment's ListView/GridView.
@@ -47,10 +46,10 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
     private ListAdapter mAdapter;
 
     // TODO: Rename and change types of parameters
-    public static TraningPhasesFragment newInstance() {
+    public static TrainingPhasesFragment newInstance() {
         Log.d(LOG_TAG, LOG_TAG + "()");
 
-        TraningPhasesFragment fragment = new TraningPhasesFragment();
+        TrainingPhasesFragment fragment = new TrainingPhasesFragment();
         Bundle args = new Bundle();
 /*        args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -63,7 +62,7 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public TraningPhasesFragment() {
+    public TrainingPhasesFragment() {
         Log.d(LOG_TAG, LOG_TAG+"()");
     }
 
@@ -76,10 +75,10 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        mAdapter = new ArrayAdapter<Member>(getActivity(),
+        mAdapter = new ArrayAdapter<TrainingPhase>(getActivity(),
                 android.R.layout.simple_list_item_1,
                 android.R.id.text1,
-                MainActivity.getStorage().getMembers()  );
+                Storage.getInstance().getTrainingPhases()  );
     }
 
     @Override
@@ -89,11 +88,13 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
-        // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+        if (mListView!=null) {
+            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
+            // Set OnItemClickListener so we can be notified on item clicks
+            mListView.setOnItemClickListener(this);
+        }
         return view;
     }
 
@@ -117,9 +118,12 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
+            TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int) id);
+            Log.d(LOG_TAG, " member clicked: " + tp.getUuid() + "  " + tp);
+
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onTrainingphasesFragmentInteraction(id);
+            mListener.onTrainingphasesFragmentInteraction(tp);
         }
     }
 
@@ -148,7 +152,7 @@ public class TraningPhasesFragment extends Fragment implements AbsListView.OnIte
      */
     public interface TrainingPhasesFragmentListener {
         // TODO: Update argument type and name
-        public void onTrainingphasesFragmentInteraction(long id);
+        public void onTrainingphasesFragmentInteraction(TrainingPhase tp);
     }
 
 }

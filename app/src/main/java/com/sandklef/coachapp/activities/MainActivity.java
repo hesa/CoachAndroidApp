@@ -1,24 +1,21 @@
 package com.sandklef.coachapp.activities;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.net.Uri;
 import android.os.StrictMode;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.sandklef.coachapp.fragments.MemberFragment;
 import com.sandklef.coachapp.fragments.TeamFragment;
-import com.sandklef.coachapp.fragments.TraningPhasesFragment;
+import com.sandklef.coachapp.fragments.TrainingPhasesFragment;
 import com.sandklef.coachapp.json.JsonParser;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.model.Team;
+import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.util.Locale;
@@ -27,15 +24,18 @@ import coachassistant.sandklef.com.coachapp.R;
 // AppCompatActivity
 public class MainActivity extends AppCompatActivity implements
         com.sandklef.coachapp.fragments.TeamFragment.TeamFragmentListener,
-        com.sandklef.coachapp.fragments.TraningPhasesFragment.TrainingPhasesFragmentListener {
+        TrainingPhasesFragment.TrainingPhasesFragmentListener{
 
     public final static int TEAM_FRAGMENT_POSITION = 0;
     public final static int TP_FRAGMENT_POSITION = 1;
+    public final static int MM_FRAGMENT_POSITION = 2;
 /*    public final static int TEAM_FRAGMENT_POSITION = 1;
     public final static int PERFORM_FRAGMENT_POSITION = 3;
 */
-    private TeamFragment teamFragment;
-    private TraningPhasesFragment tpFragment;
+    private TeamFragment          teamFragment;
+    private TrainingPhasesFragment tpFragment;
+    private MemberFragment mmFragment;
+
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private final static String LOG_TAG = MainActivity.class.getSimpleName();
@@ -75,10 +75,10 @@ public class MainActivity extends AppCompatActivity implements
 
         storage = Storage.newInstance(getApplicationContext());
 
-        /*
+
         JsonParser jsp = new JsonParser("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", getApplicationContext());
         jsp.update();
-*/
+
         for (Member m: storage.getMembers()) {
             Log.d(LOG_TAG, " * " + m);
         }
@@ -114,8 +114,12 @@ public class MainActivity extends AppCompatActivity implements
                     return (android.support.v4.app.Fragment) teamFragment;
                 case MainActivity.TP_FRAGMENT_POSITION:
                     Log.d(LOG_TAG, "MainActivity, create mainfragment" + position);
-                    tpFragment = TraningPhasesFragment.newInstance();
+                    tpFragment = TrainingPhasesFragment.newInstance();
                     return (android.support.v4.app.Fragment) tpFragment;
+                case MainActivity.MM_FRAGMENT_POSITION:
+                    Log.d(LOG_TAG, "MainActivity, create mm fragment" + position);
+                    mmFragment = MemberFragment.newInstance();
+                    return (android.support.v4.app.Fragment) mmFragment;
                 default:
                     return null;
 
@@ -126,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 2;
+            return 3;
         }
 
         @Override
@@ -137,16 +141,18 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void onTeamFragmentInteraction(long id) {
-        Log.d(LOG_TAG, "onTrainingphasesFragmentInteraction " + id + " => " + storage.getMembers().get((int) id));
-        mViewPager.setCurrentItem(TP_FRAGMENT_POSITION, true);
-        mSectionsPagerAdapter.notifyDataSetChanged();
-    }
-    public void onTrainingphasesFragmentInteraction(long id) {
-        Log.d(LOG_TAG, "onTrainingphasesFragmentInteraction " + id + " => " + storage.getMembers().get((int) id));
-        mViewPager.setCurrentItem(TEAM_FRAGMENT_POSITION, true);
-        mSectionsPagerAdapter.notifyDataSetChanged();
+    public void onTeamFragmentInteraction(Team t) {
     }
 
+    public void onTrainingphasesFragmentInteraction(TrainingPhase tp) {
+/*        Log.d(LOG_TAG, "onTrainingphasesFragmentInteraction " + id + " => " + storage.getTrainingPhases().get((int) id));
+        mViewPager.setCurrentItem(MM_FRAGMENT_POSITION, true);
+        mSectionsPagerAdapter.notifyDataSetChanged();
+        */
+    }
+
+    public void onMemberMediaInteraction(Member m) {
+
+    }
 
 }
