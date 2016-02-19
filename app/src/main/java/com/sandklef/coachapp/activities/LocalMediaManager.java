@@ -25,10 +25,14 @@ import android.widget.Toast;
 
 import com.sandklef.coachapp.filters.BaseFilter;
 import com.sandklef.coachapp.filters.MediaFilter;
+import com.sandklef.coachapp.json.JsonParser;
+import com.sandklef.coachapp.json.JsonSender;
+import com.sandklef.coachapp.json.JsonSenderException;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Base;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
@@ -40,7 +44,7 @@ import coachassistant.sandklef.com.coachapp.R;
 
 public class LocalMediaManager extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
-    private final static String LOG_TAG = Member.class.getSimpleName();
+    private final static String LOG_TAG = LocalMediaManager.class.getSimpleName();
 
     /**
      * The fragment's ListView/GridView.
@@ -91,14 +95,14 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         }
     }
 
-    private static final String CONTEXT_MENU_EDIT    = "Edit";
-    private static final String CONTEXT_MENU_WATCH   = "Watch";
-    private static final String CONTEXT_MENU_DELETE  = "Delete";
-    private static final String CONTEXT_MENU_UPLOAD  = "Upload";
+    private static final String CONTEXT_MENU_EDIT = "Edit";
+    private static final String CONTEXT_MENU_WATCH = "Watch";
+    private static final String CONTEXT_MENU_DELETE = "Delete";
+    private static final String CONTEXT_MENU_CREATE = "Create ";
+    private static final String CONTEXT_MENU_UPLOAD = "Upload";
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
-    {
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
         AdapterView.AdapterContextMenuInfo info =
@@ -109,40 +113,89 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         Log.d(LOG_TAG, "  Add context for v: " + v);
         Log.d(LOG_TAG, "   * " + v.getId());
         Log.d(LOG_TAG, "   * " + selectedWordId);
+
         menu.setHeaderTitle("Select");
         menu.add(0, v.getId(), 0, CONTEXT_MENU_EDIT);
         menu.add(0, v.getId(), 0, CONTEXT_MENU_DELETE);
         menu.add(0, v.getId(), 0, CONTEXT_MENU_WATCH);
+/*        if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_NEW) {
+            menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
+        }
+        */
+        // TODO: make context menu change on state of media
+        menu.add(0, v.getId(), 0, CONTEXT_MENU_CREATE);
+        menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
+
 //        menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
+        if (selectedWordId == 0) {
+            menu.add(0, v.getId(), 0, "0:e elementet");
+        }
+
+        Log.d(LOG_TAG, "You chose video: " +
+                media.get((int) selectedWordId).getUuid());
     }
 
 
     @Override
-    public boolean onContextItemSelected(MenuItem item){
-        if(item.getTitle()==CONTEXT_MENU_EDIT){
-            Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_EDIT, Toast.LENGTH_LONG).show();
-        } else if(item.getTitle()==CONTEXT_MENU_DELETE){
-            Toast.makeText(getApplicationContext(), "Choice: "  + CONTEXT_MENU_DELETE, Toast.LENGTH_LONG).show();
-        } else if(item.getTitle()==CONTEXT_MENU_WATCH){
-            Toast.makeText(getApplicationContext(), "Choice: "  + CONTEXT_MENU_WATCH, Toast.LENGTH_LONG).show();
-            AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-            int position = acmi.position;
-            String file = media.get(position).fileName();
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        int position = acmi.position;
 
-            Log.d(LOG_TAG, "   video item: " + media.get(position).fileName() + ", " + media.get(position).getUuid() + ", " + media.get(position).getClubUuid() + ", ");
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(new File(media.get(position).fileName())), "video/*");
-            startActivity(intent);
-        }else{
-            return false;
+        Media m = media.get(position);
+        JsonSender.AsyncBundle bundle;
+
+        switch (item.getTitle().toString()) {
+            case CONTEXT_MENU_EDIT:
+                Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_EDIT, Toast.LENGTH_LONG).show();
+                break;
+            case CONTEXT_MENU_DELETE:
+                Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_DELETE, Toast.LENGTH_LONG).show();
+                break;
+            case CONTEXT_MENU_WATCH:
+                Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_WATCH, Toast.LENGTH_LONG).show();
+                String file = m.fileName();
+
+                Log.d(LOG_TAG, "   video item: " + m.fileName() + ", " + m.getUuid() + ", " + m.getClubUuid() + ", ");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(new File(m.fileName())), "video/*");
+                startActivity(intent);
+                break;
+            case CONTEXT_MENU_CREATE:
+                Log.d(LOG_TAG, "Create media (file): " + m.fileName());
+                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+                //js.createVideoOnServer(m);
+                bundle =
+                        new JsonSender.AsyncBundle(JsonSender.MODE_CREATE, 0, m);
+                JsonSender jsend =
+                        new JsonSender(LocalStorage.getInstance().getCurrentClub(),
+                                getApplicationContext());
+                jsend.execute(bundle);
+                break;
+            case CONTEXT_MENU_UPLOAD:
+                Log.d(LOG_TAG, "Upload media (file): " + media.get(position).fileName());
+                bundle =
+                        new JsonSender.AsyncBundle(JsonSender.MODE_UPLOAD, 0, m);
+                JsonSender js2 = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+                js2.execute(bundle);
+
+/*                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+                try {
+                    String uuid = js.createVideoOnServer(media.get(position));
+
+                } catch (JsonSenderException jse) {
+                    Log.d(LOG_TAG, "Failed to create file");
+                }*/
+
+            default:
+                return false;
         }
         return true;
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Media m = media.get((int) id);
-            Log.d(LOG_TAG, " media clicked: " + m.getUuid() + "  " + m);
+        Media m = media.get((int) id);
+        Log.d(LOG_TAG, " media clicked: " + m.getUuid() + "  " + m);
     }
 
     @Override
@@ -159,8 +212,9 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
 
     private void filteredUpdatedList(MediaFilter mf) {
         Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
-        media = mf .apply(Storage.getInstance().getMedia());
+        media = mf.apply(Storage.getInstance().getMedia());
         Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
+
         ArrayAdapter<Media> ma = ((ArrayAdapter) mAdapter);
         ma.clear();
         ma.addAll(media);
@@ -184,6 +238,12 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
             case R.id.menu_new_media:
                 filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_NEW));
                 return true;
+            case R.id.menu_created_media:
+                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_CREATED));
+                return true;
+            case R.id.menu_uploaded_media:
+                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_UPLOADED));
+                return true;
             default:
                 Log.d(LOG_TAG, "  doin nada");
                 return true;
@@ -197,28 +257,26 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         private int id;
         private List<Media> media;
 
-        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media)
-        {
-            super(context, textViewResourceId, media );
+        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media) {
+            super(context, textViewResourceId, media);
             mContext = context;
             id = textViewResourceId;
-            this.media = media ;
+            this.media = media;
         }
 
         @Override
-        public View getView(int position, View v, ViewGroup parent)
-        {
-            View mView = v ;
+        public View getView(int position, View v, ViewGroup parent) {
+            View mView = v;
 
-            if(mView == null){
-                LayoutInflater vi = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            if (mView == null) {
+                LayoutInflater vi = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 mView = vi.inflate(id, null);
             }
 
-            TextView text       = (TextView) mView.findViewById(R.id.media_list_text);
+            TextView text = (TextView) mView.findViewById(R.id.media_list_text);
 
-            if( media.size() > position && media.get(position) != null ) {
-                text.setText(media.get(position).toString() );
+            if (media.size() > position && media.get(position) != null) {
+                text.setText(media.get(position).toString());
             }
             return mView;
         }

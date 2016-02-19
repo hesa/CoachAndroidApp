@@ -1,19 +1,21 @@
 package com.sandklef.coachapp.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.app.FragmentManager;
+import android.widget.Toast;
 
 import com.sandklef.coachapp.activities.MainActivity;
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
@@ -41,16 +43,16 @@ public class TopFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
     private final static String LOG_TAG = TopFragment.class.getSimpleName();
+    private final static String VIDEO_FILE_DATE_FORMAT  = "yyyyMMdd-HHmmss";
+    private final static String VIDEO_FILE_TYPE_SUFFIX  = ".mp4";
+    private final static int    VIDEO_FILE_DEFAULT_TIME = 5000;
 
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private MemberFragment mmFragment;
 
     private MainActivity.SectionsPagerAdapter mSectionsPagerAdapter;
 
+    private int currentBottomIndex;
 
     private ViewPager mTopViewPager;
     private ViewPager mBottomViewPager;
@@ -69,6 +71,8 @@ public class TopFragment extends Fragment {
     public static int TOP_FRAGMENT_VIDEO_INDEX = 1;
     public static int TOP_FRAGMENT_LAST_INDEX = 2;
 
+    private int maxPage = 0;
+    private double lastX;
 
     public static TopFragment newInstance() {
         TopFragment fragment = new TopFragment();
@@ -76,6 +80,10 @@ public class TopFragment extends Fragment {
         Log.d(LOG_TAG, "  newInstance()");
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public int getCurrentBottomFragmentIndex() {
+        return currentBottomIndex;
     }
 
     public TopFragment() {
@@ -90,9 +98,13 @@ public class TopFragment extends Fragment {
     }
 
     public void onTeamFragmentInteraction(Team t) {
-        Log.d(LOG_TAG, "onTrainingphasesFragmentInteraction " + t);
-        LocalStorage.getInstance().setCurrentTeam(t.getUuid());
-        showTrainingPhases();
+        Log.d(LOG_TAG, "onTrainingphasesFragmentInteraction " + t + "  team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
+        if (t != null) {
+            LocalStorage.getInstance().setCurrentTeam(t.getUuid());
+            showTrainingPhases();
+        } else {
+            Log.d(LOG_TAG, "You must chose a team first");
+        }
     }
 
     public void onTrainingphasesFragmentInteraction(TrainingPhase tp) {
@@ -101,14 +113,13 @@ public class TopFragment extends Fragment {
         showMember();
     }
 
-
     private boolean recordVideo() {
-        DateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
+        DateFormat df = new SimpleDateFormat(VIDEO_FILE_DATE_FORMAT);
         Date today = Calendar.getInstance().getTime();
         String mediaDate = df.format(today);
 
-        String newFileName = LocalMediaStorage.getMediaFileNamePrefix() +
-                "/new/" + mediaDate + ".mp4";
+        String newFileName = LocalStorage.getInstance().getNewMediaDir() + "/" +
+                mediaDate + VIDEO_FILE_TYPE_SUFFIX;
 
         File newFile = new File(newFileName);
         String dirName = newFile.getParent();
@@ -116,7 +127,8 @@ public class TopFragment extends Fragment {
         Log.d(LOG_TAG, "  Dir:  " + dir.getPath());
         boolean created = dir.mkdirs();
 
-        topPagerAdapter.getSimpleVideoFragment().getVideoCapture().startRecording(newFile,5*1000);
+        Log.d(LOG_TAG, "RECORD TO NEW FILE: " + newFile);
+        topPagerAdapter.getSimpleVideoFragment().getVideoCapture().startRecording(newFile, VIDEO_FILE_DEFAULT_TIME);
         return true;
     }
 
@@ -140,7 +152,7 @@ public class TopFragment extends Fragment {
     }
 
     public void showTrainingPhases() {
-        Log.d(LOG_TAG, "showTrainingPhases()");
+        Log.d(LOG_TAG, "showTrainingPhases()    team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
         setBottomFragmentIndex(BOTTOM_FRAGMENT_TRAININGPHASE_INDEX);
     }
 
@@ -165,6 +177,11 @@ public class TopFragment extends Fragment {
     }
 
     public void setBottomFragmentIndex(int index) {
+        currentBottomIndex = index;
+        if (index==0) {
+            LocalStorage.getInstance().setCurrentTeam("");
+        }
+        Log.d(LOG_TAG, "setBottomFragmentIndex(" + index + ")    team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
         mBottomViewPager.setCurrentItem(index, true);
         bottomPagerAdapter.notifyDataSetChanged();
     }
@@ -182,27 +199,67 @@ public class TopFragment extends Fragment {
         Log.d(LOG_TAG, "  onCreateView()  vp: " + R.id.bottom_pager);
         Log.d(LOG_TAG, "  onCreateView()  vp: " + mBottomViewPager);
 
-        bottomPagerAdapter = new BottomFragmentAdapter(getChildFragmentManager());
+        bottomPagerAdapter = new BottomFragmentAdapter(getChildFragmentManager(), root, this);
         topPagerAdapter = new TopFragmentAdapter(getChildFragmentManager());
 
         mBottomViewPager.setAdapter(bottomPagerAdapter);
-        mTopViewPager.setAdapter(topPagerAdapter);
+        mBottomViewPager.setOffscreenPageLimit(5);
 
-        setSwipeListener(mBottomViewPager, bottomPagerAdapter);
 
-        return root;
+            mTopViewPager.setAdapter(topPagerAdapter);
+            mTopViewPager.setOffscreenPageLimit(5);
+
+            setSwipeListener(mBottomViewPager, bottomPagerAdapter);
+
+            return root;
+        }
+
+    public void unSetTeam() {
+   //     ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(0);
+        maxPage=0;
+        LocalStorage.getInstance().setCurrentTeam("");
+    }
+
+    public void unSetTrainingPhase() {
+       // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(1);
+        maxPage=1;
+        LocalStorage.getInstance().setCurrentTrainingPhase("");
+    }
+
+    public void unSetMember() {
+       // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(2);
+        maxPage=2;
+        LocalStorage.getInstance().setCurrentMember("");
     }
 
     private void setSwipeListener(final ViewPager bottomPager, final BottomFragmentAdapter bottomAdapter) {
         bottomPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(final int i, final float v, final int i2) {
+            public void onPageScrolled(int position, float positionOffset,
+                                       int positionOffsetPixels) {
+                Log.d(LOG_TAG, "  onPageScrolled " + position + "( '"
+                        + LocalStorage.getInstance().getCurrentTeam() + "'  '"
+                        + LocalStorage.getInstance().getCurrentTrainingPhase() + "'  '"
+                        + LocalStorage.getInstance().getCurrentMember() + ") ");
+
             }
 
             @Override
             public void onPageSelected(final int i) {
                 Fragment fragment = (Fragment) bottomAdapter.instantiateItem(bottomPager, i);
-                Log.d(LOG_TAG, "  onPageSelected " + i);
+                Log.d(LOG_TAG, "  onPageSelected " + i + "( '"
+                        + LocalStorage.getInstance().getCurrentTeam() + "'  '"
+                        + LocalStorage.getInstance().getCurrentTrainingPhase() + "'  '"
+                        + LocalStorage.getInstance().getCurrentMember() + ") ");
+
+
+                if      (i==BOTTOM_FRAGMENT_TEAM_INDEX)          { unSetTeam(); }
+                else if (i==BOTTOM_FRAGMENT_TRAININGPHASE_INDEX) { unSetTrainingPhase(); }
+                else if (i==BOTTOM_FRAGMENT_MEMBER_INDEX)        { unSetMember(); }
+
                 if (i == BOTTOM_FRAGMENT_MEMBER_INDEX) {
                     showVideo();
                 } else {
@@ -227,15 +284,15 @@ public class TopFragment extends Fragment {
 
     @Override
     public void onAttach(Activity activity) {
-    //    Log.d(LOG_TAG, "  ---> onAttach()");
+        //    Log.d(LOG_TAG, "  ---> onAttach()");
         super.onAttach(activity);
         //Log.d(LOG_TAG, "  --- onAttach()");
         try {
-      //      Log.d(LOG_TAG, "  --- onAttach() 1");
+            //      Log.d(LOG_TAG, "  --- onAttach() 1");
             mListener = (OnFragmentInteractionListener) activity;
-        //    Log.d(LOG_TAG, "  --- onAttach() 2");
+            //    Log.d(LOG_TAG, "  --- onAttach() 2");
         } catch (ClassCastException e) {
-          //  Log.d(LOG_TAG, "  --- onAttach() exception: " + e);
+            //  Log.d(LOG_TAG, "  --- onAttach() exception: " + e);
 
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -243,6 +300,7 @@ public class TopFragment extends Fragment {
         //Log.d(LOG_TAG, "  <--- onAttach()");
 
     }
+
 
     @Override
     public void onDetach() {
@@ -267,24 +325,60 @@ public class TopFragment extends Fragment {
 
     public static class BottomFragmentAdapter extends FragmentPagerAdapter {
         private final static String LOG_TAG = BottomFragmentAdapter.class.getSimpleName();
+        private int currentItemPosition;
+        private View rootView;
+        private Fragment f;
 
-
-        public BottomFragmentAdapter(FragmentManager fm) {
+        public BottomFragmentAdapter(FragmentManager fm, View root, Fragment f) {
             super(fm);
+            this.f = f;
+            rootView = root;
+            currentItemPosition = 0;
         }
 
         @Override
         public int getCount() {
-          //  Log.d(LOG_TAG, "  getCount()");
+//            Log.d(LOG_TAG, "  getCount()   team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
+
+  //          Log.d(LOG_TAG, "  getCount()  position: " + currentItemPosition + "  max: " + BOTTOM_FRAGMENT_LAST_INDEX);
+/*
+            */
             return BOTTOM_FRAGMENT_LAST_INDEX;
+        }
+
+        private void toastMessage(int id) {
+            Context context = rootView.getContext();
+            String text = f.getActivity().getString(id);
+            toastMessage(text);
+        }
+
+        private void toastMessage(String text) {
+            Context context = rootView.getContext();
+            int duration = Toast.LENGTH_SHORT;
+            Log.d(LOG_TAG, text);
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+
         }
 
         @Override
         public Fragment getItem(int position) {
             Bundle args = new Bundle();
 //            args.putInt(ChildFragment.POSITION_KEY, position);
-            Log.d(LOG_TAG, "  getItem(" + position + ")");
-            if (position == 0) {
+
+            String teamIdx = LocalStorage.getInstance().getCurrentTeam();
+
+
+/*            if (teamIdx.equals("")) {
+                toastMessage(R.string.MUST_CHOSE_TEAM);
+                return TeamFragment.newInstance();
+            }
+*/
+
+            Log.d(LOG_TAG, "  getItem(" + position + ")   team: '" + teamIdx + "'  " + (teamIdx.length()==0));
+
+            if (position == 0  ) {
                 return TeamFragment.newInstance();
             } else if (position == 1) {
                 return TrainingPhasesFragment.newInstance();
@@ -310,7 +404,7 @@ public class TopFragment extends Fragment {
 
         @Override
         public int getCount() {
-         //   Log.d(LOG_TAG, "  getCount()");
+            //   Log.d(LOG_TAG, "  getCount()");
             return TOP_FRAGMENT_LAST_INDEX;
         }
 

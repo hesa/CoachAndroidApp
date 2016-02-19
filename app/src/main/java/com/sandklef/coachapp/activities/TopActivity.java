@@ -4,20 +4,22 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.StrictMode;
+/*
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 
 import com.sandklef.coachapp.fragments.Camera2Fragment;
+*/
 import com.sandklef.coachapp.fragments.MemberFragment;
 import com.sandklef.coachapp.fragments.SimpleVideoFragment;
 import com.sandklef.coachapp.fragments.TeamFragment;
 import com.sandklef.coachapp.fragments.TopFragment;
 import com.sandklef.coachapp.fragments.TrainingPhasesFragment;
-import com.sandklef.coachapp.fragments.UserFragment;
+//import com.sandklef.coachapp.fragments.UserFragment;
 import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.json.JsonParser;
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Club;
+//import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
@@ -30,11 +32,15 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+
+/*
+import android.view.View;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -43,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+*/
 
 import coachassistant.sandklef.com.coachapp.R;
 
@@ -65,9 +72,15 @@ public class TopActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
 
         Storage.newInstance(getApplicationContext());
+        LocalStorage.newInstance(getApplicationContext());
+
+        // TEMP Settings  TODO: Make this flexible
+        //Club c11 = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
+        LocalStorage.getInstance().setServerUrl("http://192.168.1.118:3000/0.0.0/");
+        LocalStorage.getInstance().setCurrentClub("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141");
+
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
 
         String tag = "com.sandklef.coachapp.fragments.TopFragment";
         FragmentManager fm = getSupportFragmentManager();
@@ -81,31 +94,33 @@ public class TopActivity extends AppCompatActivity implements
         }
 
         topFragment = (TopFragment) fragment;
-        Storage.newInstance(getApplicationContext());
-        LocalStorage.newInstance(getApplicationContext());
 
-        Log.d(LOG_TAG, "CurrentMember:  " + LocalStorage.getInstance().getCurrentMember());
-        Club c = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
-
-        LocalStorage.getInstance().setCurrentClub(c.getUuid());
-
-        JsonParser jsp = new JsonParser(c.getUuid(), getApplicationContext());
-        jsp.update();
-
-
-        List<Media> media = Storage.getInstance().getMedia();
-        Log.d(LOG_TAG, "Media list: " + media.size());
-        for (Media m: media) {
-            Log.d(LOG_TAG, " * media: " + m);
-        }
-
+        updateFromServer();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(getTitle());
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+        }
+
+    }
+
+    public void updateFromServer() {
+        (new JsonParser(LocalStorage.getInstance().getCurrentClub(), getApplicationContext())).execute();
+    }
+
+    @Override
+    public void onBackPressed() {
+        int fragmentIndex = topFragment.getCurrentBottomFragmentIndex();
+        Log.d(LOG_TAG, "onBackPressed() " + fragmentIndex);
+
+        if (fragmentIndex != 0) {
+            fragmentIndex--;
+            topFragment.setBottomFragmentIndex(fragmentIndex);
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -209,13 +224,17 @@ public Media(String uuid,
     }
 
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
+        Log.d(LOG_TAG, "onOptionsItemSelected()");
         switch (item.getItemId()) {
             case R.id.menu_media_manager:
                 showMediamangerMode();
+                return true;
+            case android.R.id.home:
+                getSupportFragmentManager().popBackStack();
+//                NavUtils.navigateUpFromSameTask(this);
                 return true;
             default:
                 Log.d(LOG_TAG, "  doin nada");

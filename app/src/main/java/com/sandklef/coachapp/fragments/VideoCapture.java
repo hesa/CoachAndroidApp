@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.storage.LocalMediaStorage;
+import com.sandklef.coachapp.storage.LocalStorage;
 
 import java.io.File;
 import java.io.IOException;
@@ -212,9 +213,9 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
             //         Log.d(LOG_TAG, " mCamera unlock  (startRecording)");
             //       stopCamera();
 
-            String fileName; //m.fileName();
+            String fileName = m.fileName();
             // DEBUG HESA HESA HESA HESA
-            fileName = LocalMediaStorage.getMediaFileNamePrefix() + "/apa.mp4";
+//            fileName = LocalStorage.getInstance().getNewMediaDir() + "/apa.mp4";
             Log.d(LOG_TAG, "Record to file: " + fileName);
             File tempFile = new File(fileName);
 

@@ -10,6 +10,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import coachassistant.sandklef.com.coachapp.R;
@@ -79,6 +80,9 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
 
+        TextView header = new TextView(getContext());
+        header.setText("Members");
+        ((ListView) mListView).addHeaderView(header);
         return view;
     }
 

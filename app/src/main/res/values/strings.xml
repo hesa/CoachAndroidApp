@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">CoachApp</string>
 
-<!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="request_permission">This sample needs camera permission.</string>
@@ -17,7 +16,25 @@
 
         ]]>
     </string>
-    <string name="title_activity_dummy_video">DummyVideo</string>
     <string name="title_activity_local_media_manager">LocalMediaManager</string>
+    <string name="MUST_CHOSE_TEAM">You must chose a team before you can continue</string>
+    <string name="NEW_MEDIA_DIR">/new</string>;
+    <string name="DELETABLE_MEDIA_DIR">/deletable</string>;
+
+<!--
+    <string name="PATH_SEPARATOR">/"</string>
+    <string name="CLUB_PATH">clubs</string>
+    <string name="VIDEO_URL_PATH">videos</string>
+    <string name="UUID_PATH">uuid</string>
+    <string name="UPLOAD_PATH">upload</string>
+    <string name="COMPOSITE_PATH">composite</string>
+    <string name="DOWNLOAD_PATH">download</string>
+    <string name="CONTENT_STATUS">Content-Type</string>
+    <string name="SERVER_VIDEO_SUFFIX">.webm</string>
+
+    <string name="HTTP_POST">POST"</string>
+    <string name="HTTP_GET">GET"</string>
+-->
+
 
 </resources>

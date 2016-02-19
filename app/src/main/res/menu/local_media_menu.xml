@@ -5,8 +5,7 @@
     <item
         android:id="@+id/menu_training"
         android:orderInCategory="100"
-        android:title="Go back to training mode"
-        />
+        android:title="Go back to training mode" />
 
     <item
         android:id="@+id/menu_media"
@@ -14,21 +13,34 @@
         android:title="Filters > ">
 
         <menu>
-        <item
-            android:id="@+id/menu_all_media"
-            android:orderInCategory="200"
-            android:title="All media" />
+            <item
+                android:id="@+id/menu_all_media"
+                android:orderInCategory="200"
+                android:title="All media" />
 
-        <item
-            android:id="@+id/menu_new_media"
-            android:orderInCategory="400"
-            android:title="Only new media" />
+            <item
+                android:id="@+id/menu_new_media"
+                android:orderInCategory="400"
+                android:title="Only new media" />
 
-        <item
-            android:id="@+id/menu_deletable_media"
-            android:orderInCategory="400"
-            android:title="Only deletable media" />
+            <item
+                android:id="@+id/menu_created_media"
+                android:orderInCategory="400"
+                android:title="Only server created media" />
+
+            <item
+                android:id="@+id/menu_uploaded_media"
+                android:orderInCategory="400"
+                android:title="Only uploaded media" />
+
+            <item
+                android:id="@+id/menu_deletable_media"
+                android:orderInCategory="400"
+                android:title="Only deletable media" />
+
+
         </menu>
+
     </item>
 
 
