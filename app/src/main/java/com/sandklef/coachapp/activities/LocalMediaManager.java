@@ -1,13 +1,9 @@
 package com.sandklef.coachapp.activities;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
@@ -23,20 +19,16 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sandklef.coachapp.filters.BaseFilter;
-import com.sandklef.coachapp.filters.MediaFilter;
-import com.sandklef.coachapp.json.JsonParser;
+import com.sandklef.coachapp.filters.BaseFilterEngine;
+import com.sandklef.coachapp.filters.MediaFilterEngine;
+import com.sandklef.coachapp.filters.MediaStatusNameFilter;
 import com.sandklef.coachapp.json.JsonSender;
-import com.sandklef.coachapp.json.JsonSenderException;
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Base;
 import com.sandklef.coachapp.model.Media;
-import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
@@ -65,7 +57,7 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_local_media_manager);
 
-        Storage.newInstance(this);
+        Storage.newInstance(LocalStorage.getInstance().getCurrentClub(), this);
 
         media = Storage.getInstance().getMedia();
 
@@ -95,11 +87,12 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         }
     }
 
-    private static final String CONTEXT_MENU_EDIT = "Edit";
-    private static final String CONTEXT_MENU_WATCH = "Watch";
-    private static final String CONTEXT_MENU_DELETE = "Delete";
-    private static final String CONTEXT_MENU_CREATE = "Create ";
-    private static final String CONTEXT_MENU_UPLOAD = "Upload";
+    private static final String CONTEXT_MENU_EDIT     = "Edit";
+    private static final String CONTEXT_MENU_WATCH    = "Watch";
+    private static final String CONTEXT_MENU_DELETE   = "Delete";
+    private static final String CONTEXT_MENU_CREATE   = "Create ";
+    private static final String CONTEXT_MENU_UPLOAD   = "Upload";
+    private static final String CONTEXT_MENU_DOWNLOAD = "Download";
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -118,14 +111,13 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         menu.add(0, v.getId(), 0, CONTEXT_MENU_EDIT);
         menu.add(0, v.getId(), 0, CONTEXT_MENU_DELETE);
         menu.add(0, v.getId(), 0, CONTEXT_MENU_WATCH);
-/*        if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_NEW) {
+        if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_NEW) {
+            menu.add(0, v.getId(), 0, CONTEXT_MENU_CREATE);
+        } else if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_CREATED) {
             menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
-        }
-        */
-        // TODO: make context menu change on state of media
-        menu.add(0, v.getId(), 0, CONTEXT_MENU_CREATE);
-        menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
-
+        } else if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_UPLOADED) {
+            menu.add(0, v.getId(), 0, CONTEXT_MENU_DOWNLOAD);
+        } else 
 //        menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
         if (selectedWordId == 0) {
             menu.add(0, v.getId(), 0, "0:e elementet");
@@ -143,7 +135,7 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
 
         Media m = media.get(position);
         JsonSender.AsyncBundle bundle;
-
+        JsonSender jsend;
         switch (item.getTitle().toString()) {
             case CONTEXT_MENU_EDIT:
                 Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_EDIT, Toast.LENGTH_LONG).show();
@@ -166,7 +158,7 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
                 //js.createVideoOnServer(m);
                 bundle =
                         new JsonSender.AsyncBundle(JsonSender.MODE_CREATE, 0, m);
-                JsonSender jsend =
+                jsend =
                         new JsonSender(LocalStorage.getInstance().getCurrentClub(),
                                 getApplicationContext());
                 jsend.execute(bundle);
@@ -175,10 +167,18 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
                 Log.d(LOG_TAG, "Upload media (file): " + media.get(position).fileName());
                 bundle =
                         new JsonSender.AsyncBundle(JsonSender.MODE_UPLOAD, 0, m);
-                JsonSender js2 = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
-                js2.execute(bundle);
+                jsend
+                        = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+                jsend.execute(bundle);
+            case CONTEXT_MENU_DOWNLOAD:
+                Log.d(LOG_TAG, "Download media (file): " + media.get(position).fileName());
+                bundle = 
+                        new JsonSender.AsyncBundle(JsonSender.MODE_DOWNLOAD, 0, m);
+                jsend = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+                jsend.execute(bundle);
 
-/*                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+
+    /*                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
                 try {
                     String uuid = js.createVideoOnServer(media.get(position));
 
@@ -210,9 +210,10 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         startActivity(intent);
     }
 
-    private void filteredUpdatedList(MediaFilter mf) {
+    private void filteredUpdatedList(MediaStatusNameFilter mf) {
         Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
-        media = mf.apply(Storage.getInstance().getMedia());
+        media = MediaFilterEngine.apply(Storage.getInstance().getMedia(),
+                mf);
         Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
 
         ArrayAdapter<Media> ma = ((ArrayAdapter) mAdapter);
@@ -230,19 +231,20 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
                 showTrainingMode();
                 return true;
             case R.id.menu_deletable_media:
-                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DELETABLE));
+                filteredUpdatedList(MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DELETABLE));
+
                 return true;
             case R.id.menu_all_media:
-                filteredUpdatedList(new MediaFilter());
+                filteredUpdatedList(new MediaStatusNameFilter());
                 return true;
             case R.id.menu_new_media:
-                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_NEW));
+                filteredUpdatedList(MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_NEW));
                 return true;
             case R.id.menu_created_media:
-                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_CREATED));
+                filteredUpdatedList(MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_CREATED));
                 return true;
             case R.id.menu_uploaded_media:
-                filteredUpdatedList(MediaFilter.newMediaFilterStatus(Media.MEDIA_STATUS_UPLOADED));
+                filteredUpdatedList(MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_UPLOADED));
                 return true;
             default:
                 Log.d(LOG_TAG, "  doin nada");
