@@ -12,12 +12,13 @@
         android:orderInCategory="100"
         android:title="Filters > ">
 
+<!--
         <menu>
+-->
             <item
                 android:id="@+id/menu_all_media"
                 android:orderInCategory="200"
                 android:title="All media" />
-
             <item
                 android:id="@+id/menu_new_media"
                 android:orderInCategory="400"
@@ -38,8 +39,9 @@
                 android:orderInCategory="400"
                 android:title="Only deletable media" />
 
-
+<!--
         </menu>
+-->
 
     </item>
 

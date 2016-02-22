@@ -18,6 +18,7 @@
             android:layout_gravity="center" />
 
         <TextView
+            android:id="@+id/user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
@@ -25,6 +26,7 @@
             android:layout_gravity="center"/>
 
         <TextView
+            android:id="@+id/club_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bolzano Sports Club"

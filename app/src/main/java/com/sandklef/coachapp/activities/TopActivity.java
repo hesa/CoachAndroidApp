@@ -1,6 +1,7 @@
 package com.sandklef.coachapp.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.StrictMode;
@@ -10,6 +11,9 @@ import android.support.v4.app.FragmentActivity;
 
 import com.sandklef.coachapp.fragments.Camera2Fragment;
 */
+import com.sandklef.coachapp.filters.MediaFilter;
+import com.sandklef.coachapp.filters.MediaFilterEngine;
+import com.sandklef.coachapp.filters.MediaStatusNameFilter;
 import com.sandklef.coachapp.fragments.MemberFragment;
 import com.sandklef.coachapp.fragments.SimpleVideoFragment;
 import com.sandklef.coachapp.fragments.TeamFragment;
@@ -20,6 +24,7 @@ import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.json.JsonParser;
 import com.sandklef.coachapp.misc.Log;
 //import com.sandklef.coachapp.model.Club;
+import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
@@ -36,8 +41,11 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 /*
 import android.view.View;
@@ -64,20 +72,44 @@ public class TopActivity extends AppCompatActivity implements
     private final static String LOG_TAG = TopActivity.class.getSimpleName();
     private static Storage storage;
     private TopFragment topFragment;
-    private Toolbar toolbar;
-
+    private Toolbar     toolbar;
+    private Club        currentClub;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Storage.newInstance(getApplicationContext());
-        LocalStorage.newInstance(getApplicationContext());
+        // TEMP Settings  TODO: Make this flexible,
+        // Should be received via the bundle instead
+//        Club c11 = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
+        currentClub = new Club("c04b2bdd-9fef-4123-b4cb-e122081e1868", "AHK");
+//        currentClub = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
 
-        // TEMP Settings  TODO: Make this flexible
-        //Club c11 = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
-        LocalStorage.getInstance().setServerUrl("http://192.168.1.118:3000/0.0.0/");
-        LocalStorage.getInstance().setCurrentClub("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141");
+
+        Storage.newInstance(currentClub.getUuid(), getApplicationContext());
+        LocalStorage.newInstance(getApplicationContext());
+        LocalStorage.getInstance().setServerUrl("http://172.17.42.1:3000/0.0.0/");
+        LocalStorage.getInstance().setCurrentClub(currentClub.getUuid());
+
+
+        // TEST
+        Log.d(LOG_TAG, "Media new:");
+        for (Media media: MediaFilterEngine.apply(Storage.getInstance().getMedia(), MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_NEW))){
+            Log.d(LOG_TAG, " * " + media.toString());
+        }
+        Log.d(LOG_TAG, "Media created:");
+        for (Media media: MediaFilterEngine.apply(Storage.getInstance().getMedia(), MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_CREATED))){
+            Log.d(LOG_TAG, " * " + media.toString());
+        }
+        Log.d(LOG_TAG, "Media uploaded:");
+        for (Media media: MediaFilterEngine.apply(Storage.getInstance().getMedia(), MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_UPLOADED))){
+            Log.d(LOG_TAG, " * " + media.toString());
+        }
+        Log.d(LOG_TAG, "Media downloaded:");
+        for (Media media: MediaFilterEngine.apply(Storage.getInstance().getMedia(), MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DOWNLOADED))){
+            Log.d(LOG_TAG, " * " + media.toString());
+        }
+
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -104,7 +136,16 @@ public class TopActivity extends AppCompatActivity implements
             getSupportActionBar().setHomeButtonEnabled(true);
         }
 
+        // TODO: make better ... simply do it
+        Log.d(LOG_TAG, "Setting club info");
+        Log.d(LOG_TAG, "Setting club info: " + currentClub);
+        Log.d(LOG_TAG, "Setting club info: " + currentClub.getUuid());
+        Log.d(LOG_TAG, "Setting club info: " + currentClub.getName());
+
+    //    ((TextView)findViewById(R.id.club_name)).setText(currentClub.getName());
     }
+
+
 
     public void updateFromServer() {
         (new JsonParser(LocalStorage.getInstance().getCurrentClub(), getApplicationContext())).execute();

@@ -7,6 +7,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.storage.LocalStorage;
 
 import coachassistant.sandklef.com.coachapp.R;
 
@@ -23,6 +27,9 @@ public class UserFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+
+    private final static String LOG_TAG = UserFragment.class.getSimpleName();
+
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -55,7 +62,15 @@ public class UserFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_user, container, false);
+        View root = inflater.inflate(R.layout.fragment_user, container, false);
+
+        Log.d(LOG_TAG, "setting club info");
+        Log.d(LOG_TAG, "setting club info: " + LocalStorage.getInstance().getCurrentClub());
+        Log.d(LOG_TAG, "setting club info: " + root.findViewById(R.id.club_name));
+
+        ((TextView) root.findViewById(R.id.club_name)).setText(LocalStorage.getInstance().getCurrentClub());
+
+        return root;
     }
 
 

@@ -12,9 +12,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.app.FragmentManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sandklef.coachapp.activities.MainActivity;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
@@ -43,14 +43,12 @@ public class TopFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
     private final static String LOG_TAG = TopFragment.class.getSimpleName();
-    private final static String VIDEO_FILE_DATE_FORMAT  = "yyyyMMdd-HHmmss";
-    private final static String VIDEO_FILE_TYPE_SUFFIX  = ".mp4";
-    private final static int    VIDEO_FILE_DEFAULT_TIME = 5000;
+    private final static String VIDEO_FILE_DATE_FORMAT = "yyyyMMdd-HHmmss";
+    private final static String VIDEO_FILE_TYPE_SUFFIX = ".mp4";
+    private final static int VIDEO_FILE_DEFAULT_TIME = 5000;
 
 
-    private MemberFragment mmFragment;
-
-    private MainActivity.SectionsPagerAdapter mSectionsPagerAdapter;
+//    private MainActivity.SectionsPagerAdapter mSectionsPagerAdapter;
 
     private int currentBottomIndex;
 
@@ -61,6 +59,7 @@ public class TopFragment extends Fragment {
     private TopFragmentAdapter topPagerAdapter;
 
     private OnFragmentInteractionListener mListener;
+
 
     public static int BOTTOM_FRAGMENT_TEAM_INDEX = 0;
     public static int BOTTOM_FRAGMENT_TRAININGPHASE_INDEX = 1;
@@ -178,12 +177,15 @@ public class TopFragment extends Fragment {
 
     public void setBottomFragmentIndex(int index) {
         currentBottomIndex = index;
-        if (index==0) {
+        if (index == 0) {
             LocalStorage.getInstance().setCurrentTeam("");
+        } else if (index == 1) {
+            LocalStorage.getInstance().setCurrentTrainingPhase("");
         }
         Log.d(LOG_TAG, "setBottomFragmentIndex(" + index + ")    team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
         mBottomViewPager.setCurrentItem(index, true);
         bottomPagerAdapter.notifyDataSetChanged();
+        bottomPagerAdapter.updateMemberFragment();
     }
 
     @Override
@@ -206,32 +208,32 @@ public class TopFragment extends Fragment {
         mBottomViewPager.setOffscreenPageLimit(5);
 
 
-            mTopViewPager.setAdapter(topPagerAdapter);
-            mTopViewPager.setOffscreenPageLimit(5);
+        mTopViewPager.setAdapter(topPagerAdapter);
+        mTopViewPager.setOffscreenPageLimit(5);
 
-            setSwipeListener(mBottomViewPager, bottomPagerAdapter);
+        setSwipeListener(mBottomViewPager, bottomPagerAdapter);
 
-            return root;
-        }
+        return root;
+    }
 
     public void unSetTeam() {
-   //     ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
-        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(0);
-        maxPage=0;
+        //     ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager) mBottomViewPager).setPagingMax(0);
+        maxPage = 0;
         LocalStorage.getInstance().setCurrentTeam("");
     }
 
     public void unSetTrainingPhase() {
-       // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
-        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(1);
-        maxPage=1;
+        // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager) mBottomViewPager).setPagingMax(1);
+        maxPage = 1;
         LocalStorage.getInstance().setCurrentTrainingPhase("");
     }
 
     public void unSetMember() {
-       // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
-        ((AdaptedSwipeViewPager)mBottomViewPager).setPagingMax(2);
-        maxPage=2;
+        // ((AdaptedSwipeViewPager)mBottomViewPager).setPagingEnabled(true);
+        ((AdaptedSwipeViewPager) mBottomViewPager).setPagingMax(2);
+        maxPage = 2;
         LocalStorage.getInstance().setCurrentMember("");
     }
 
@@ -256,9 +258,13 @@ public class TopFragment extends Fragment {
                         + LocalStorage.getInstance().getCurrentMember() + ") ");
 
 
-                if      (i==BOTTOM_FRAGMENT_TEAM_INDEX)          { unSetTeam(); }
-                else if (i==BOTTOM_FRAGMENT_TRAININGPHASE_INDEX) { unSetTrainingPhase(); }
-                else if (i==BOTTOM_FRAGMENT_MEMBER_INDEX)        { unSetMember(); }
+                if (i == BOTTOM_FRAGMENT_TEAM_INDEX) {
+                    unSetTeam();
+                } else if (i == BOTTOM_FRAGMENT_TRAININGPHASE_INDEX) {
+                    unSetTrainingPhase();
+                } else if (i == BOTTOM_FRAGMENT_MEMBER_INDEX) {
+                    unSetMember();
+                }
 
                 if (i == BOTTOM_FRAGMENT_MEMBER_INDEX) {
                     showVideo();
@@ -328,6 +334,8 @@ public class TopFragment extends Fragment {
         private int currentItemPosition;
         private View rootView;
         private Fragment f;
+        private MemberFragment mFragment;
+
 
         public BottomFragmentAdapter(FragmentManager fm, View root, Fragment f) {
             super(fm);
@@ -336,11 +344,17 @@ public class TopFragment extends Fragment {
             currentItemPosition = 0;
         }
 
+
+        public void updateMemberFragment() {
+            mFragment.updateMemberList();
+        }
+
+
         @Override
         public int getCount() {
 //            Log.d(LOG_TAG, "  getCount()   team: '" + LocalStorage.getInstance().getCurrentTeam() + "'");
 
-  //          Log.d(LOG_TAG, "  getCount()  position: " + currentItemPosition + "  max: " + BOTTOM_FRAGMENT_LAST_INDEX);
+            //          Log.d(LOG_TAG, "  getCount()  position: " + currentItemPosition + "  max: " + BOTTOM_FRAGMENT_LAST_INDEX);
 /*
             */
             return BOTTOM_FRAGMENT_LAST_INDEX;
@@ -376,16 +390,18 @@ public class TopFragment extends Fragment {
             }
 */
 
-            Log.d(LOG_TAG, "  getItem(" + position + ")   team: '" + teamIdx + "'  " + (teamIdx.length()==0));
+            Log.d(LOG_TAG, "  getItem(" + position + ")   team: '" + teamIdx + "'  " + (teamIdx.length() == 0));
 
-            if (position == 0  ) {
+            if (position == 0) {
                 return TeamFragment.newInstance();
             } else if (position == 1) {
                 return TrainingPhasesFragment.newInstance();
             } else {
-                return MemberFragment.newInstance();
+                mFragment = MemberFragment.newInstance();
+                return mFragment;
             }
         }
+
 
         @Override
         public CharSequence getPageTitle(int position) {

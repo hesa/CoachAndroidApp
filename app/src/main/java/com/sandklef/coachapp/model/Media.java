@@ -3,6 +3,7 @@ package com.sandklef.coachapp.model;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
@@ -50,7 +51,7 @@ public class Media extends Base {
                  String memberUuid) {
         super(uuid, name, clubUuid);
 
-        Log.d(LOG_TAG, "Constructing ned Media from file: " + file);
+//        Log.d(LOG_TAG, "Constructing ned Media from file: " + file);
         this.file = file;
         this.status = status;
         this.date = date;
@@ -128,10 +129,8 @@ public class Media extends Base {
                 + " " + getDate()
                 + " " + getStatus();
 */
-        DateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
-        Date date = new Date(getDate());
         Member member = Storage.getInstance().getMemberUUid(getMember());
-        String result = df.format(date);
+        String result = CADateFormat.getDateString(getDate());
         if (member!=null) { result = result + " (" + member.getName() + ") " + getUuid() + " [" + statusToString(getStatus()) + "]";}
         return result;//+ super.toString() + "-" + file  ;
     }

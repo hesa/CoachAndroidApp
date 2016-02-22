@@ -19,6 +19,7 @@
     <string name="title_activity_local_media_manager">LocalMediaManager</string>
     <string name="MUST_CHOSE_TEAM">You must chose a team before you can continue</string>
     <string name="NEW_MEDIA_DIR">/new</string>;
+    <string name="DOWNLOAD_MEDIA_DIR">/downloaded</string>;
     <string name="DELETABLE_MEDIA_DIR">/deletable</string>;
 
 <!--

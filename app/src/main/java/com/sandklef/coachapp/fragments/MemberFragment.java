@@ -1,9 +1,13 @@
 package com.sandklef.coachapp.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -15,14 +19,28 @@ import android.widget.TextView;
 
 import coachassistant.sandklef.com.coachapp.R;
 
+import com.sandklef.coachapp.filters.MediaFilterEngine;
+import com.sandklef.coachapp.filters.MediaMemberFilter;
+import com.sandklef.coachapp.filters.MediaStatusNameFilter;
+import com.sandklef.coachapp.filters.MemberFilter;
+import com.sandklef.coachapp.filters.MemberFilterEngine;
+import com.sandklef.coachapp.filters.MemberTeamFilter;
+import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+
+import java.io.File;
+import java.util.List;
 
 public class MemberFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     private MemberInteractionListener mListener;
     private final static String LOG_TAG = Member.class.getSimpleName();
+
+    private List<Media> contextMedia;
 
     /**
      * The fragment's ListView/GridView.
@@ -63,9 +81,32 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 */
+
+        Log.d(LOG_TAG, " Looking for members using team: " + LocalStorage.getInstance().getCurrentTeam());
+
+        List<Member> members =
+                MemberFilterEngine.apply(
+                        Storage.getInstance().getMembers(),
+                        MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
+
         // TODO: Change Adapter to display your content
         mAdapter = new ArrayAdapter<Member>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, Storage.getInstance().getMembers());
+                android.R.layout.simple_list_item_1, android.R.id.text1, members);
+    }
+
+
+    public void updateMemberList() {
+        Log.d(LOG_TAG, " updateMemberList() for team: " + LocalStorage.getInstance().getCurrentTeam());
+
+        ArrayAdapter<Member> ma = ((ArrayAdapter) mAdapter);
+        ma.clear();
+        List<Member> members =
+                MemberFilterEngine.apply(
+                        Storage.getInstance().getMembers(),
+                        MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
+
+        ma.addAll(members);
+        ma.notifyDataSetChanged();
     }
 
     @Override
@@ -83,6 +124,9 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
         TextView header = new TextView(getContext());
         header.setText("Members");
         ((ListView) mListView).addHeaderView(header);
+
+        registerForContextMenu(mListView);
+
         return view;
     }
 
@@ -108,10 +152,56 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            Member m = Storage.getInstance().getMembers().get((int)id);
+            Member m = Storage.getInstance().getMembers().get((int) id);
             Log.d(LOG_TAG, " member clicked: " + m.getUuid() + "  " + m);
             mListener.onMemberInteraction(m);
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        Log.d(LOG_TAG, "  onCreateContextMenu()");
+
+        AdapterView.AdapterContextMenuInfo info =
+                (AdapterView.AdapterContextMenuInfo) menuInfo;
+        String word = ((TextView) info.targetView).getText().toString();
+        long id = info.id;
+
+        menu.setHeaderTitle("Select");
+        String memberUuid = Storage.getInstance().getMembers().get((int) id).getUuid();
+
+        contextMedia = MediaFilterEngine.apply(
+                Storage.getInstance().getMedia(),
+                MediaMemberFilter.newMediaMemberFilter(memberUuid));
+
+        for (Media media : contextMedia) {
+            Log.d(LOG_TAG, " * " + media.getUuid());
+            menu.add(0, v.getId(), 0, CADateFormat.getDateString(media.getDate()));
+        }
+    }
+
+
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        int position = acmi.position;
+
+        Log.d(LOG_TAG, "  context menu item, position: " + position);
+        Log.d(LOG_TAG, "  item:  " + item.getTitle().toString());
+
+        Media m = Storage.getInstance().getMediaDate(item.getTitle().toString());
+
+        if (m!=null) {
+            Log.d(LOG_TAG, "   video item: " + m.fileName() + ", " + m.getUuid() + ", " + m.getClubUuid() + ", ");
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(new File(m.fileName())), "video/*");
+            startActivity(intent);
+        }
+
+
+        return true;
     }
 
     /**

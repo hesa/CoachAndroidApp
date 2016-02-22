@@ -22,8 +22,11 @@ public class JsonSender extends AsyncTask<JsonSender.AsyncBundle, Void, JsonSend
 
     private final static String LOG_TAG = JsonSender.class.getSimpleName();
 
-    public static final int MODE_CREATE = 0;
-    public static final int MODE_UPLOAD = 1;
+    public static final int MODE_CREATE   = 0;
+    public static final int MODE_UPLOAD   = 1;
+    public static final int MODE_DOWNLOAD = 2;
+
+    public static final String SERVER_VIDEO_SUFFIX = ".webm";
 
 
     private String clubName;
@@ -110,9 +113,21 @@ public class JsonSender extends AsyncTask<JsonSender.AsyncBundle, Void, JsonSend
             // TODO: store errors in log?
             Log.d(LOG_TAG, " Finished uploading video to server");
             return null;
+        } else if (mode == MODE_DOWNLOAD) {
+            Media m          = bundle.getMedia();
+            String videoUuid = m.getUuid();
+            String file      = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + SERVER_VIDEO_SUFFIX;
+            boolean result   = httpAccess.downloadVideo(file, videoUuid);
+            if (result) {
+                result =    LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
+            }
+            // TODO: store errors in log?
+            Log.d(LOG_TAG, " Finished downloading video to server: " + result);
+            return null;
         }
         return new AsyncBundle(mode, 0, bundle.getMedia());
     }
+
 
 
     @Override
