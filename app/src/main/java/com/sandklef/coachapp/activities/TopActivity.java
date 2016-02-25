@@ -1,7 +1,6 @@
 package com.sandklef.coachapp.activities;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.StrictMode;
@@ -11,7 +10,6 @@ import android.support.v4.app.FragmentActivity;
 
 import com.sandklef.coachapp.fragments.Camera2Fragment;
 */
-import com.sandklef.coachapp.filters.MediaFilter;
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
 import com.sandklef.coachapp.fragments.MemberFragment;
@@ -21,7 +19,7 @@ import com.sandklef.coachapp.fragments.TopFragment;
 import com.sandklef.coachapp.fragments.TrainingPhasesFragment;
 //import com.sandklef.coachapp.fragments.UserFragment;
 import com.sandklef.coachapp.fragments.VideoCapture;
-import com.sandklef.coachapp.json.JsonParser;
+import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.misc.Log;
 //import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Club;
@@ -37,15 +35,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NavUtils;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
 
 /*
 import android.view.View;
@@ -81,14 +74,14 @@ public class TopActivity extends AppCompatActivity implements
 
         // TEMP Settings  TODO: Make this flexible,
         // Should be received via the bundle instead
-//        Club c11 = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
-        currentClub = new Club("c04b2bdd-9fef-4123-b4cb-e122081e1868", "AHK");
-//        currentClub = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
+//       // Club c11 = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
+       // currentClub = new Club("c04b2bdd-9fef-4123-b4cb-e122081e1868", "AHK");
+       currentClub = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
 
 
         Storage.newInstance(currentClub.getUuid(), getApplicationContext());
         LocalStorage.newInstance(getApplicationContext());
-        LocalStorage.getInstance().setServerUrl("http://172.17.42.1:3000/0.0.0/");
+        LocalStorage.getInstance().setServerUrl("http://192.168.1.118:3000/0.0.0/");
         LocalStorage.getInstance().setCurrentClub(currentClub.getUuid());
 
 
@@ -128,6 +121,7 @@ public class TopActivity extends AppCompatActivity implements
         topFragment = (TopFragment) fragment;
 
         updateFromServer();
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -148,7 +142,8 @@ public class TopActivity extends AppCompatActivity implements
 
 
     public void updateFromServer() {
-        (new JsonParser(LocalStorage.getInstance().getCurrentClub(), getApplicationContext())).execute();
+        Log.d(LOG_TAG, "Initiate update from server");
+        Storage.getInstance().update(getApplicationContext());
     }
 
     @Override
@@ -245,7 +240,9 @@ public Media(String uuid,
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
-        if (requestCode == VideoCapture.VIDEO_CAPTURE) {
+        if (requestCode == TrainingPhasesFragment.VIDEO_CAPTURE) {
+            Log.d(LOG_TAG, "instructional video found....");
+        } else if (requestCode == VideoCapture.VIDEO_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.d(LOG_TAG, "Video saved to: " +
                         data.getData());

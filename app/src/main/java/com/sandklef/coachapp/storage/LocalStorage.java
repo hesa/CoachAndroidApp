@@ -163,7 +163,7 @@ public class LocalStorage {
         if (! f.exists()) {
             f.mkdirs();
         }
-        return extra;
+        return f.getAbsolutePath();
     }
 
     public String getNewMediaDir() {

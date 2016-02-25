@@ -1,9 +1,16 @@
 package com.sandklef.coachapp.fragments;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -12,32 +19,38 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.sandklef.coachapp.filters.MediaFilterEngine;
+import com.sandklef.coachapp.filters.MediaMemberFilter;
+import com.sandklef.coachapp.json.JsonSettings;
+import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.TrainingPhase;
+import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+
+import java.io.File;
 
 import coachassistant.sandklef.com.coachapp.R;
 
 
 public class TrainingPhasesFragment extends Fragment implements AbsListView.OnItemClickListener {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String currentTPId = null;
 
     private TrainingPhasesFragmentListener mListener;
     private final static String LOG_TAG = TrainingPhasesFragment.class.getSimpleName();
+
+    public static final int VIDEO_CAPTURE = 102;
 
     /**
      * The fragment's ListView/GridView.
      */
     private AbsListView mListView;
+
+    private Activity activity;
 
     /**
      * The Adapter which will be used to populate the ListView/GridView with
@@ -45,7 +58,6 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
      */
     private ListAdapter mAdapter;
 
-    // TODO: Rename and change types of parameters
     public static TrainingPhasesFragment newInstance() {
         Log.d(LOG_TAG, LOG_TAG + "()");
 
@@ -63,22 +75,18 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
      * fragment (e.g. upon screen orientation changes).
      */
     public TrainingPhasesFragment() {
-        Log.d(LOG_TAG, LOG_TAG+"()");
+        Log.d(LOG_TAG, LOG_TAG + "()");
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-
         mAdapter = new ArrayAdapter<TrainingPhase>(getActivity(),
                 android.R.layout.simple_list_item_1,
                 android.R.id.text1,
-                Storage.getInstance().getTrainingPhases()  );
+                Storage.getInstance().getTrainingPhases());
+        activity = getActivity();
     }
 
     @Override
@@ -86,17 +94,22 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tp, container, false);
 
+
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
 
-        if (mListView!=null) {
+        if (mListView != null) {
             ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
             // Set OnItemClickListener so we can be notified on item clicks
             mListView.setOnItemClickListener(this);
         }
+
+        registerForContextMenu(mListView);
+
         return view;
     }
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -153,6 +166,56 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
     public interface TrainingPhasesFragmentListener {
         // TODO: Update argument type and name
         public void onTrainingphasesFragmentInteraction(TrainingPhase tp);
+    }
+
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        Log.d(LOG_TAG, "  onCreateContextMenu()");
+
+        AdapterView.AdapterContextMenuInfo info =
+                (AdapterView.AdapterContextMenuInfo) menuInfo;
+        String word = ((TextView) info.targetView).getText().toString();
+        long id = info.id;
+
+        menu.setHeaderTitle("Select");
+        currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
+
+        menu.add(0, v.getId(), 0, "Create instruction video");
+
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        int position = acmi.position;
+
+        String fileName = LocalStorage.getInstance().getNewMediaDir() + "/tp-" + currentTPId + JsonSettings.SERVER_VIDEO_SUFFIX;
+        Media m = Media.newInstructionVideo(fileName, currentTPId);
+        currentTPId = null;
+        Uri uri = Uri.fromFile(new File(fileName));
+
+
+        if (m!=null) {
+            Log.d(LOG_TAG, "   instruction video item: " + fileName);
+            Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+
+            Log.d(LOG_TAG, "  file: " + fileName + " uri: " + uri);
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+            intent.putExtra("android.intent.extra.durationLimit", 5);
+            intent.putExtra(MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
+            intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
+            intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1); // set the video image quality to high
+            // start the image capture Intent
+            //context.startActivity(intent);
+//            activity.startActivityForResult(intent, com.sandklef.coachapp.fragments.VideoCapture.VIDEO_CAPTURE);
+            ((Activity)getContext()).startActivityForResult(intent, VIDEO_CAPTURE);
+        }
+        Log.d(LOG_TAG, "  new instruction video wanted creation: " + fileName);
+
+        return true;
     }
 
 }

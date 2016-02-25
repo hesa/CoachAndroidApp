@@ -19,10 +19,9 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sandklef.coachapp.filters.BaseFilterEngine;
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
-import com.sandklef.coachapp.json.JsonSender;
+import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.storage.LocalStorage;
@@ -123,19 +122,26 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
             menu.add(0, v.getId(), 0, "0:e elementet");
         }
 
+/*
         Log.d(LOG_TAG, "You chose video: " +
                 media.get((int) selectedWordId).getUuid());
+*/
     }
 
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+
         AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         int position = acmi.position;
 
+        Log.d(LOG_TAG, "onContextItemSelected: " + position);
+
         Media m = media.get(position);
-        JsonSender.AsyncBundle bundle;
-        JsonSender jsend;
+/*
+        JsonAccess.AsyncBundle bundle;
+        JsonAccess jsend;
+*/
         switch (item.getTitle().toString()) {
             case CONTEXT_MENU_EDIT:
                 Toast.makeText(getApplicationContext(), "Choice: " + CONTEXT_MENU_EDIT, Toast.LENGTH_LONG).show();
@@ -154,35 +160,25 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
                 break;
             case CONTEXT_MENU_CREATE:
                 Log.d(LOG_TAG, "Create media (file): " + m.fileName());
-                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
-                //js.createVideoOnServer(m);
-                bundle =
-                        new JsonSender.AsyncBundle(JsonSender.MODE_CREATE, 0, m);
-                jsend =
-                        new JsonSender(LocalStorage.getInstance().getCurrentClub(),
-                                getApplicationContext());
-                jsend.execute(bundle);
+                Storage.getInstance().createMediaOnServer(getApplicationContext(), m);
                 break;
             case CONTEXT_MENU_UPLOAD:
                 Log.d(LOG_TAG, "Upload media (file): " + media.get(position).fileName());
-                bundle =
-                        new JsonSender.AsyncBundle(JsonSender.MODE_UPLOAD, 0, m);
-                jsend
-                        = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
-                jsend.execute(bundle);
+                Storage.getInstance().uploadMediaToServer(getApplicationContext(), m);
+                break;
             case CONTEXT_MENU_DOWNLOAD:
                 Log.d(LOG_TAG, "Download media (file): " + media.get(position).fileName());
-                bundle = 
-                        new JsonSender.AsyncBundle(JsonSender.MODE_DOWNLOAD, 0, m);
-                jsend = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+/*                bundle =
+                        new JsonAccess.SimpleAsyncBundle(JsonAccess.MODE_DOWNLOAD, 0, m);
+                jsend = new JsonAccess(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
                 jsend.execute(bundle);
+*/
 
-
-    /*                JsonSender js = new JsonSender(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
+    /*                JsonAccess js = new JsonAccess(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
                 try {
                     String uuid = js.createVideoOnServer(media.get(position));
 
-                } catch (JsonSenderException jse) {
+                } catch (JsonAccessException jse) {
                     Log.d(LOG_TAG, "Failed to create file");
                 }*/
 
@@ -224,7 +220,7 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(LOG_TAG, "  onOptionsItemSelected");
+        Log.d(LOG_TAG, "  onOptionsItemSelected: " + item.getItemId());
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.menu_training:

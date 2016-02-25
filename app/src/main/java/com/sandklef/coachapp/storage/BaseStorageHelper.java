@@ -6,7 +6,6 @@ import com.sandklef.coachapp.report.ReportUser;
 
 
 import java.util.ArrayList;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,35 +20,35 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     private final static String LOG_TAG = BaseStorageHelper.class.getSimpleName();
 
     // Tables
-    private static final String TEAM_TABLE = "teams";
-    private static final String MEMBER_TABLE = "members";
-    private static final String TRAININGPHASE_TABLE = "trainingphases";
-    private static final String MEDIA_TABLE = "media";
+    private static final String TEAM_TABLE               = "teams";
+    private static final String MEMBER_TABLE             = "members";
+    private static final String TRAININGPHASE_TABLE      = "trainingphases";
+    private static final String MEDIA_TABLE              = "media";
 
     // Base
-    public static final String UUID_COLUMN_NAME = "uuid";
-    public static final String NAME_COLUMN_NAME = "name";
-    public static final String CLUB_COLUMN_NAME = "club_uuid";
+    public static final String UUID_COLUMN_NAME          = "uuid";
+    public static final String NAME_COLUMN_NAME          = "name";
+    public static final String CLUB_COLUMN_NAME          = "club_uuid";
 
     // extending Base
-    public static final String TEAM_COLUMN_NAME = "team_uuid";
-    public static final String MEMBER_COLUMN_NAME = "member_uuid";
+    public static final String TEAM_COLUMN_NAME          = "team_uuid";
+    public static final String MEMBER_COLUMN_NAME        = "member_uuid";
     public static final String TRAININGPHASE_COLUMN_NAME = "trainingphase_uuid";
-    public static final String URI_COLUMN_NAME = "uri";
-    public static final String STATUS_COLUMN_NAME = "status";
-    public static final String DATE_COLUMN_NAME = "date";
+    public static final String URI_COLUMN_NAME           = "uri";
+    public static final String STATUS_COLUMN_NAME        = "status";
+    public static final String DATE_COLUMN_NAME          = "date";
 
 
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "coachassistant.db";
-    public static final String SORT_ORDER = UUID_COLUMN_NAME + " DESC";
+    public static final String SORT_ORDER    = UUID_COLUMN_NAME + " DESC";
 
 
     private Context context;
     private String currentClubUuid;
 
-    boolean isCreating = false;
-    SQLiteDatabase currentDB = null;
+    private boolean        isCreating = false;
+    private SQLiteDatabase currentDB  = null;
 
 //    private  db;
 
@@ -75,7 +74,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 null, BaseStorageHelper.DATABASE_VERSION);
         // TODO: Verify existance of club
         this.currentClubUuid = club;
-        this.context = context;
+        this.context         = context;
     }
 
     public static ContentValues buildContentValues(Base b) {
@@ -143,7 +142,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     public String[] buildProjectionArray(String[] projections) {
         ArrayList<String> projs = buildProjection(projections);
         Object[] projsOArray = projs.toArray();
-        String[] projsArray = Arrays.copyOf(projsOArray,
+        String[] projsArray  = Arrays.copyOf(projsOArray,
                 projsOArray.length, String[].class);
         return projsArray;
     }
@@ -165,7 +164,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.query(tbl,
                 buildProjectionArray(projections),
-                whereClause, new String [] {currentClubUuid}, null, null,
+                whereClause, new String[]{currentClubUuid}, null, null,
                 BaseStorageHelper.SORT_ORDER);
         if (cursor == null) {
             return null;
@@ -185,11 +184,10 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             ReportUser.warning(getContext(), "Failed to get hold of db");
             throw new DBException();
         }
-
         try {
             db.delete(table, null, null);
         } catch (android.database.sqlite.SQLiteException e) {
-            ;
+            Log.d(LOG_TAG, "storeBaseToDB: " + e.getMessage());
         }
 
     }
@@ -284,12 +282,34 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         values.put(DATE_COLUMN_NAME, m.getDate());
 
         long rowId = db.insert(MEDIA_TABLE, null, values);
-        Log.d(LOG_TAG, " * " + rowId + " inserted " + m);
+        Log.d(LOG_TAG, " * " + rowId + " inserted " + m + " (Storing media)");
         if (rowId < 0) {
             Log.e(LOG_TAG, "ERROR inserting (" + rowId + "): " + m);
         }
     }
 
+    public void storeMediaToDB(List<Media> media) {
+        Log.d(LOG_TAG, "Storing Media " + media.size());
+        SQLiteDatabase db = getWritableDatabase();
+
+        // TODO: better removal of media present on server (keep local)
+
+        for (Media m : media) {
+            ContentValues values = buildContentValues(m);
+            values.put(TEAM_COLUMN_NAME, m.getTeam());
+            values.put(URI_COLUMN_NAME, m.fileName());
+            values.put(STATUS_COLUMN_NAME, m.getStatus());
+            values.put(TRAININGPHASE_COLUMN_NAME, m.getTrainingPhase());
+            values.put(MEMBER_COLUMN_NAME, m.getMember());
+            values.put(DATE_COLUMN_NAME, m.getDate());
+
+            long rowId = db.insert(MEDIA_TABLE, null, values);
+            Log.d(LOG_TAG, " * " + rowId + " inserted " + m + " (Storing media)");
+            if (rowId < 0) {
+                Log.e(LOG_TAG, "ERROR inserting (" + rowId + "): " + m);
+            }
+        }
+    }
 
     public List<Member> getMembersFromDB() {
         String[] subProjectionArray = {TEAM_COLUMN_NAME};
@@ -386,7 +406,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 values, "  " + URI_COLUMN_NAME + " = ? ",
                 new String[]{m.fileName()});
 
-        Log.d(LOG_TAG, " * " + rows + " updated to: " + uuid);
+        Log.d(LOG_TAG, " * Updating media element " + rows + " updated to: " + uuid  + " (media)");
 
 /*
         Log.d(LOG_TAG, "Listing all Media after status update");

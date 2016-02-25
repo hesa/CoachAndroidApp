@@ -195,7 +195,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
 
         Log.d(LOG_TAG, "  file: " + f.getParent() + " " + f + " " + uri);
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri); // set the image file name
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         intent.putExtra("android.intent.extra.durationLimit", 5);
         intent.putExtra(MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
         intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);

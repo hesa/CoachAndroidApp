@@ -51,13 +51,14 @@ public class Media extends Base {
                  String memberUuid) {
         super(uuid, name, clubUuid);
 
-//        Log.d(LOG_TAG, "Constructing ned Media from file: " + file);
+        //Log.d(LOG_TAG, "--> Constructing new Media ");
         this.file = file;
         this.status = status;
         this.date = date;
         this.teamUuid = teamUuid;
         this.trainingPhaseUuid = trainingPhaseUuid;
         this.memberUuid = memberUuid;
+      //  Log.d(LOG_TAG, "<-- Constructing new Media ");
     }
 
 
@@ -65,6 +66,11 @@ public class Media extends Base {
         super(null, null, LocalStorage.getInstance().getCurrentClub());
         file = f.getAbsolutePath();
         status = MEDIA_STATUS_UNDEFINED;
+    }
+
+    public static Media newInstructionVideo(String f, String  tpUuid) {
+        return new Media(null, "", LocalStorage.getInstance().getCurrentClub(),
+                f, MEDIA_STATUS_NEW, System.currentTimeMillis(), null, tpUuid, null);
     }
 
     public void setStatus(int s) {
