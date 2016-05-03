@@ -21,10 +21,10 @@ import android.widget.Toast;
 
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
-import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
@@ -168,6 +168,8 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
                 break;
             case CONTEXT_MENU_DOWNLOAD:
                 Log.d(LOG_TAG, "Download media (file): " + media.get(position).fileName());
+                Storage.getInstance().downloadMediaFromServer(getApplicationContext(), m);
+
 /*                bundle =
                         new JsonAccess.SimpleAsyncBundle(JsonAccess.MODE_DOWNLOAD, 0, m);
                 jsend = new JsonAccess(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
@@ -201,11 +203,16 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         return true;
     }
 
-    private void showTrainingMode() {
-        Intent intent = new Intent(this, com.sandklef.coachapp.activities.TopActivity.class);
+/*    private void showTrainingMode() {
+/*        Intent intent = new Intent(this, com.sandklef.coachapp.activities.TopActivity.class);
         startActivity(intent);
-    }
 
+    }
+*/
+/*    private void showLogMessageMode() {
+        ActivitySwitcher.startLogMessageActivity(this);
+    }
+*/
     private void filteredUpdatedList(MediaStatusNameFilter mf) {
         Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
         media = MediaFilterEngine.apply(Storage.getInstance().getMedia(),
@@ -222,13 +229,23 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.d(LOG_TAG, "  onOptionsItemSelected: " + item.getItemId());
         // Handle item selection
+
+        LocalStorageSync.getInstance().syncLocalMedia();
+
+
         switch (item.getItemId()) {
             case R.id.menu_training:
-                showTrainingMode();
+                ActivitySwitcher.startTrainingActivity(this);
+                return true;
+            case R.id.menu_log:
+                ActivitySwitcher.startClubInfoActivity(this);
+//                showLogMessageMode();
+                return true;
+            case R.id.menu_info:
+                ActivitySwitcher.startClubInfoActivity(this);
                 return true;
             case R.id.menu_deletable_media:
                 filteredUpdatedList(MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DELETABLE));
-
                 return true;
             case R.id.menu_all_media:
                 filteredUpdatedList(new MediaStatusNameFilter());

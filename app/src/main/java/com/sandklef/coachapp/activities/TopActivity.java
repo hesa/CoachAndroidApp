@@ -130,13 +130,6 @@ public class TopActivity extends AppCompatActivity implements
             getSupportActionBar().setHomeButtonEnabled(true);
         }
 
-        // TODO: make better ... simply do it
-        Log.d(LOG_TAG, "Setting club info");
-        Log.d(LOG_TAG, "Setting club info: " + currentClub);
-        Log.d(LOG_TAG, "Setting club info: " + currentClub.getUuid());
-        Log.d(LOG_TAG, "Setting club info: " + currentClub.getName());
-
-    //    ((TextView)findViewById(R.id.club_name)).setText(currentClub.getName());
     }
 
 
@@ -205,24 +198,8 @@ public class TopActivity extends AppCompatActivity implements
         String team = LocalStorage.getInstance().getCurrentTeam();
         String member = LocalStorage.getInstance().getCurrentMember();
         String tp = LocalStorage.getInstance().getCurrentTrainingPhase();
-
-        /*DateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
-        Date today = Calendar.getInstance().getTime();
-        String mediaDate = df.format(today);
-        */
-
-        /*
-public Media(String uuid,
-                 String name,
-                 String clubUuid,
-                 String file,
-                 MediaStatus status,
-                 long   date,
-                 String teamUuid,
-                 String trainingPhaseUuid,
-                 String memberUuid) {
-         */
-
+        // TODO: get member name instaed of UUID
+        Storage.getInstance().log("Recorded " + member.toString());
         Media m = new Media(null,
                 "",
                 club,
@@ -256,11 +233,6 @@ public Media(String uuid,
         }
     }
 
-    private void showMediamangerMode() {
-        Intent intent = new Intent(this, com.sandklef.coachapp.activities.LocalMediaManager.class);
-        startActivity(intent);
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -268,7 +240,7 @@ public Media(String uuid,
         Log.d(LOG_TAG, "onOptionsItemSelected()");
         switch (item.getItemId()) {
             case R.id.menu_media_manager:
-                showMediamangerMode();
+                ActivitySwitcher.startLocalMediaManager(this);
                 return true;
             case android.R.id.home:
                 getSupportFragmentManager().popBackStack();

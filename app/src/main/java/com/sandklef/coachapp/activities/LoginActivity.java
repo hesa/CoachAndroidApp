@@ -3,6 +3,8 @@ package com.sandklef.coachapp.activities;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.support.v7.app.ActionBarActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -16,6 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,8 +28,15 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.sandklef.coachapp.json.JsonAccess;
+import com.sandklef.coachapp.json.JsonAccessException;
+import com.sandklef.coachapp.model.Club;
+import com.sandklef.coachapp.storage.LocalStorage;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import coachassistant.sandklef.com.coachapp.R;
 
 
@@ -35,13 +45,26 @@ import coachassistant.sandklef.com.coachapp.R;
  */
 public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<Cursor> {
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
+    /* CODE FROM TMP TOKEN CODE
+          try {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);    JsonAccess jsa = new JsonAccess();
+            String token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
+            Log.d(LOG_TAG, "Token: " + token);
+        } catch (JsonAccessException e) {
+            Log.d(LOG_TAG, "Failed to get token." + e);
+            e.printStackTrace();
+        }
+
+        currentClub = new Club(club, "IK Nord");
+        BootStrapApp.init(getApplicationContext(), currentClub);
+
+
      */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
+
+
+    private final static String LOG_TAG = LoginActivity.class.getSimpleName();
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -53,9 +76,14 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    public Context context ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.d(LOG_TAG, "onCreate()");
+
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -83,9 +111,15 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        Log.d(LOG_TAG, "init : " + this);
+        context = this;
+        Log.d(LOG_TAG, "init : " + context);
+        BootStrapApp.init(context);
     }
 
     private void populateAutoComplete() {
+        Log.d(LOG_TAG, "populateAutoComplete()");
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -96,6 +130,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
+        Log.d(LOG_TAG, "attemptLogin()");
         if (mAuthTask != null) {
             return;
         }
@@ -137,16 +172,19 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask(email, password, context);
             mAuthTask.execute((Void) null);
         }
     }
+
     private boolean isEmailValid(String email) {
+        Log.d(LOG_TAG, "isEmailValid()");
         //TODO: Replace this with your own logic
         return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
+        Log.d(LOG_TAG, "isPasswordValid()");
         //TODO: Replace this with your own logic
         return password.length() > 4;
     }
@@ -156,6 +194,8 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
+        Log.d(LOG_TAG, "showProgress()");
+
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
@@ -189,6 +229,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.d(LOG_TAG, "onCreateLoader()");
         return new CursorLoader(this,
                 // Retrieve data rows for the device user's 'profile' contact.
                 Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
@@ -197,7 +238,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                 // Select only email addresses.
                 ContactsContract.Contacts.Data.MIMETYPE +
                         " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                                                                     .CONTENT_ITEM_TYPE},
+                .CONTENT_ITEM_TYPE},
 
                 // Show primary email addresses first. Note that there won't be
                 // a primary email address if the user hasn't specified one.
@@ -206,6 +247,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.d(LOG_TAG, "onLoadFinished()");
         List<String> emails = new ArrayList<>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -218,8 +260,19 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
+        Log.d(LOG_TAG, "onLoaderReset()");
     }
+
+    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
+        Log.d(LOG_TAG, "addEmailsToAutoComplete()");
+        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(LoginActivity.this,
+                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
+
+        mEmailView.setAdapter(adapter);
+    }
+
 
     private interface ProfileQuery {
         String[] PROJECTION = {
@@ -231,60 +284,90 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(LoginActivity.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
-    }
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final String mEmail;
-        private final String mPassword;
+        private final String   mEmail;
+        private final String   mPassword;
+        private final Context  context;
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+        UserLoginTask(String email, String password, Context inContext) {
+            mEmail       = email;
+            mPassword    = password;
+            this.context = inContext.getApplicationContext();
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
+            Log.d(LOG_TAG, "doInBackground()");
             // TODO: attempt authentication against a network service.
 
+            try {
+                JsonAccess jsa = new JsonAccess();
+
+                String savedToken = LocalStorage.getInstance().getSessionToken();
+                if (savedToken!=null && !savedToken.equals("")) {
+                    Log.d(LOG_TAG, "Using saved token: " + savedToken);
+                } else {
+                    Log.d(LOG_TAG, "Not uUsing saved token: " + savedToken);
+                    String token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
+                    // TODO: Fix this asap
+                    Log.d(LOG_TAG, "Token: " + token);
+                    LocalStorage.getInstance().storeSessionToken(token);
+                    // TODO: register the new account here.
+                }
+                BootStrapApp.initClub(new Club("5c2ee920-fcfb-4e6b-82d6-3c0328e6d0f5", "IK Nord"));
+                return true;
+            } catch (JsonAccessException e) {
+                Log.d(LOG_TAG, "Failed to get token." + e);
+                e.printStackTrace();
+                return false;
+            }
+
+
+
+
+            /*
             try {
                 // Simulate network access.
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
+                Log.d(LOG_TAG, "doInBackground()  false, since timeout");
                 return false;
             }
 
             for (String credential : DUMMY_CREDENTIALS) {
                 String[] pieces = credential.split(":");
+
                 if (pieces[0].equals(mEmail)) {
                     // Account exists, return true if the password matches.
+                    Log.d(LOG_TAG, "doInBackground() return: " + pieces[1] + " " + mPassword);
+                    Log.d(LOG_TAG, "doInBackground() return: " + pieces[1].equals(mPassword));
                     return pieces[1].equals(mPassword);
                 }
             }
+*/
+            /*
+            Log.d(LOG_TAG, "doInBackground() return true");
 
             // TODO: register the new account here.
             return true;
+            */
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
+            Log.d(LOG_TAG, "onPostExecute()");
             mAuthTask = null;
             showProgress(false);
 
+            Log.d(LOG_TAG, "onPostExecute() success: " + success);
             if (success) {
-                finish();
+                //finish();
+                ActivitySwitcher.startTeamActivity(context);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
@@ -293,6 +376,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
         @Override
         protected void onCancelled() {
+            Log.d(LOG_TAG, "onCancelled()");
             mAuthTask = null;
             showProgress(false);
         }
