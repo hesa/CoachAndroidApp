@@ -31,6 +31,7 @@ import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 import java.util.List;
@@ -83,30 +84,36 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
 */
 
         Log.d(LOG_TAG, " Looking for members using team: " + LocalStorage.getInstance().getCurrentTeam());
+        try {
+            List<Member> members =
+                    MemberFilterEngine.apply(
+                            Storage.getInstance().getMembers(),
+                            MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
 
-        List<Member> members =
-                MemberFilterEngine.apply(
-                        Storage.getInstance().getMembers(),
-                        MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
-
-        // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<Member>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, members);
+            // TODO: Change Adapter to display your content
+            mAdapter = new ArrayAdapter<Member>(getActivity(),
+                    android.R.layout.simple_list_item_1, android.R.id.text1, members);
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
 
     public void updateMemberList() {
         Log.d(LOG_TAG, " updateMemberList() for team: " + LocalStorage.getInstance().getCurrentTeam());
+        try {
+            ArrayAdapter<Member> ma = ((ArrayAdapter) mAdapter);
+            ma.clear();
+            List<Member> members =
+                    MemberFilterEngine.apply(
+                            Storage.getInstance().getMembers(),
+                            MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
 
-        ArrayAdapter<Member> ma = ((ArrayAdapter) mAdapter);
-        ma.clear();
-        List<Member> members =
-                MemberFilterEngine.apply(
-                        Storage.getInstance().getMembers(),
-                        MemberTeamFilter.newMemberTeamFilter(LocalStorage.getInstance().getCurrentTeam()));
-
-        ma.addAll(members);
-        ma.notifyDataSetChanged();
+            ma.addAll(members);
+            ma.notifyDataSetChanged();
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -150,11 +157,16 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            Member m = Storage.getInstance().getMembers().get((int) id);
-            Log.d(LOG_TAG, " member clicked: " + m.getUuid() + "  " + m);
-            mListener.onMemberInteraction(m);
+
+            try {
+                // Notify the active callbacks interface (the activity, if the
+                // fragment is attached to one) that an item has been selected.
+                Member m = Storage.getInstance().getMembers().get((int) id);
+                Log.d(LOG_TAG, " member clicked: " + m.getUuid() + "  " + m);
+                mListener.onMemberInteraction(m);
+            } catch (StorageNoClubException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -168,16 +180,20 @@ public class MemberFragment extends Fragment implements AbsListView.OnItemClickL
         String word = ((TextView) info.targetView).getText().toString();
         long id = info.id;
 
-        menu.setHeaderTitle("Select");
-        String memberUuid = Storage.getInstance().getMembers().get((int) id).getUuid();
+        try {
+            menu.setHeaderTitle("Select");
+            String memberUuid = Storage.getInstance().getMembers().get((int) id).getUuid();
 
-        contextMedia = MediaFilterEngine.apply(
-                Storage.getInstance().getMedia(),
-                MediaMemberFilter.newMediaMemberFilter(memberUuid));
+            contextMedia = MediaFilterEngine.apply(
+                    Storage.getInstance().getMedia(),
+                    MediaMemberFilter.newMediaMemberFilter(memberUuid));
 
-        for (Media media : contextMedia) {
-            Log.d(LOG_TAG, " * " + media.getUuid());
-            menu.add(0, v.getId(), 0, CADateFormat.getDateString(media.getDate()));
+            for (Media media : contextMedia) {
+                Log.d(LOG_TAG, " * " + media.getUuid());
+                menu.add(0, v.getId(), 0, CADateFormat.getDateString(media.getDate()));
+            }
+        }catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
     }
 

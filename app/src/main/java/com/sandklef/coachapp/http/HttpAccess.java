@@ -40,7 +40,8 @@ public class HttpAccess {
     private static int maxBufferSize = 1 * 1024 * 1024;
 
     private String urlBase;
-    private String serverUrl;
+  //  private String serverUrl;
+    private String serverUrlShort;
     private String clubUri;
 
 
@@ -50,7 +51,17 @@ public class HttpAccess {
         }
         this.urlBase   = baseUrl;
         this.clubUri   = clubUrl;
-        this.serverUrl = urlBase + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR;
+//        this.serverUrl = urlBase ;
+    }
+
+
+    public HttpAccess(String baseUrl)throws HttpAccessException  {
+        if (baseUrl==null ) {
+            throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ")");
+        }
+        this.urlBase   = baseUrl;
+        this.clubUri   = "";
+    //    this.serverUrl = urlBase + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR ;
     }
 
 
@@ -58,10 +69,16 @@ public class HttpAccess {
                                String header,
                                String path)  throws HttpAccessException {
         HttpClient client = new DefaultHttpClient();
-        String url = serverUrl + path;
+        String url = urlBase + path;
         HttpResponse resp = null;
         String response=null;
-        Log.d(LOG_TAG, "sendHttpPost()");
+        Log.d(LOG_TAG, "sendHttpPost()  url:    " + urlBase);
+        Log.d(LOG_TAG, "sendHttpPost()  path:   " + path);
+        Log.d(LOG_TAG, "sendHttpPost()  url:    " + url);
+        Log.d(LOG_TAG, "sendHttpPost()  header: " + header);
+        try {
+            Log.d(LOG_TAG, "sendHttpPost()  data:   " + data.getContent().toString());
+        } catch (Exception e) {;}
 
         HttpPost httpPost = new HttpPost(url);
         try {
@@ -82,12 +99,15 @@ public class HttpAccess {
         return response;
     }
 
-    public String readEntireCoachServer() throws HttpAccessException {
+
+
+    private String getFromServer(String token, String path) throws HttpAccessException {
         StringBuilder builder = new StringBuilder();
         HttpClient client     = new DefaultHttpClient();
-        String url            = serverUrl+ HttpSettings.COMPOSITE_PATH;
+        String url            = urlBase + HttpSettings.API_VERSION + path;
 
         HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("X-Token", token);
         Log.d(LOG_TAG, "Server url: " + url + "  in readEntireCoachServer()");
         try {
             HttpResponse response = client.execute(httpGet);
@@ -109,17 +129,39 @@ public class HttpAccess {
         } catch (IOException e) {
             throw new HttpAccessException("readEntireCoachServer failed", e);
         }
-
         return builder.toString();
     }
+
+    public String readEntireCoachServer(String token) throws HttpAccessException {
+        return getFromServer(token, HttpSettings.PATH_SEPARATOR +
+                HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR +
+                clubUri + HttpSettings.PATH_SEPARATOR +  HttpSettings.COMPOSITE_PATH);
+    }
+
+    public String getClubs(String token) throws HttpAccessException {
+        return getFromServer(token, HttpSettings.PATH_SEPARATOR + HttpSettings.CLUB_PATH);
+    }
+
+    public String getToken(String header, String data) throws HttpAccessException{
+        HttpResponse resp = null;
+        // POST /api/login { "user": "my_email@example.com", "password": "my_password" }
+        try {
+            Log.d(LOG_TAG, "getToken(" + data + ", " + header + ")");
+            return sendHttpPost(new StringEntity(data), header, HttpSettings.PATH_SEPARATOR + HttpSettings.LOGIN_PATH);
+        } catch (UnsupportedEncodingException e) {
+            throw new HttpAccessException("Failed encoding", e);
+        }
+    }
+
+
 
 
     public String createVideo(String data, String header) throws HttpAccessException {
         HttpResponse resp = null;
-
         //$ curl --data "{ \"trainingPhaseUuid\": \"$TRAINING_PHASE_UUID\" }" --header "Content-Type: application/json" --request POST localhost:3000/0.0.0/clubs/$CLUB_UUID/videos
         try {
-            return sendHttpPost(new StringEntity(data), header, HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
+            Log.d(LOG_TAG, "createVideo(" + data + ", " + header + ")");
+            return sendHttpPost(new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
         } catch (UnsupportedEncodingException e) {
             throw new HttpAccessException("Failed encoding", e);
         }
@@ -137,7 +179,7 @@ public class HttpAccess {
 
 
         String pathToOurFile = fileName;
-        String urlServer = serverUrl + HttpSettings.VIDEO_URL_PATH +
+        String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
                 HttpSettings.UUID_PATH + videoUuid + HttpSettings.PATH_SEPARATOR +
                 HttpSettings.UPLOAD_PATH;
 
@@ -203,7 +245,7 @@ public class HttpAccess {
 //            String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + SERVER_VIDEO_SUFFIX;
             int TIMEOUT_CONNECTION = 5000;//5sec
             int TIMEOUT_SOCKET = 30000;//30sec
-            String urlServer = serverUrl + HttpSettings.VIDEO_URL_PATH +
+            String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
                     HttpSettings.UUID_PATH  + videoUuid +
                     HttpSettings.PATH_SEPARATOR + HttpSettings.DOWNLOAD_PATH ;
 

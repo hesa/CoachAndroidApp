@@ -10,9 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -25,20 +27,29 @@ public class JsonAccess  {
 
 
 
-    private Context context;
+    //    private Context context;
     private HttpAccess httpAccess;
 
     private String jsonString;
 
-    public JsonAccess(String name, Context context) throws JsonAccessException {
-        if (name == null || context == null) {
+    public JsonAccess(String club /*, Context context*/) throws JsonAccessException {
+        if (club == null /*|| context == null*/) {
             throw new JsonAccessException(
-                    "NULL pointer passed to constructor (" + name + ", " + context + ")");
+                    "NULL pointer passed to constructor (" + club + ")");
         }
-        this.context = context;
+//        this.context = context;
         try {
             this.httpAccess =
-                    new HttpAccess(LocalStorage.getInstance().getServerUrl(), name);
+                    new HttpAccess(LocalStorage.getInstance().getServerUrl(), club);
+        } catch (HttpAccessException e) {
+            throw new JsonAccessException("Could not access Http", e);
+        }
+    }
+
+    public JsonAccess() throws JsonAccessException {
+        try {
+            this.httpAccess =
+                    new HttpAccess(LocalStorage.getInstance().getServerUrl());
         } catch (HttpAccessException e) {
             throw new JsonAccessException("Could not access Http", e);
         }
@@ -52,49 +63,97 @@ public class JsonAccess  {
     }
 
 
-    public CompositeBundle update() {
+    public List<Club> getClubs(String token) throws JsonAccessException  {
+        List<Club> clubs = new ArrayList<Club>();
+        try {
+            String jsonData = httpAccess.getClubs(token);
+
+            Log.d(LOG_TAG, "data: " + jsonData);
+            JSONObject json = new JSONObject(jsonData);
+
+//            String clubJson = json.getJSONArray(JsonSettings.ITEMS_TAG);
+  //          Log.d(LOG_TAG, " clubs (json):  " + clubJson);
+
+            JSONArray clubsArray = json.getJSONArray(JsonSettings.ITEMS_TAG);
+            Log.d(LOG_TAG, " clubs (array): " + clubsArray);
+
+            for (int i = 0; i < clubsArray.length(); i++) {
+                JSONObject jo = clubsArray.getJSONObject(i);
+                String uuid = jo.getString(JsonSettings.UUID_TAG);
+                String name = jo.getString(JsonSettings.NAME_TAG);
+                Log.d(LOG_TAG, " * " + uuid + " - " + name);
+                clubs.add(new Club(uuid, name));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return clubs;
+    }
+
+    public CompositeBundle update() throws JsonAccessException {
         CompositeBundle bundle = new CompositeBundle();
-            try {
+        try {
                 /*
                  *
                  *  Get data from server
                  *
                  */
-                Log.d(LOG_TAG, "Read entire coach server");
-                jsonString = readEntireCoachServer();
-                JSONObject json = new JSONObject(jsonString);
+            Log.d(LOG_TAG, "Read entire coach server");
+            jsonString = readEntireCoachServer();
+            JSONObject json = new JSONObject(jsonString);
 
-                Log.d(LOG_TAG, " json: " + jsonString);
+            Log.d(LOG_TAG, " json: " + jsonString);
                 /*
                  *
                  *  Extract the data
                  *
                  */
 
-                bundle.members = extractMembers(json);
-                Log.d(LOG_TAG, "Members:  " + bundle.members.size() + "   " + bundle.members);
+            bundle.members = extractMembers(json);
+            Log.d(LOG_TAG, "Members:  " + bundle.members.size() + "   " + bundle.members);
 
-                bundle.teams = extractTeams(json);
-                Log.d(LOG_TAG, "Teams:  " + bundle.teams.size() + "   " + bundle.teams);
+            bundle.teams = extractTeams(json);
+            Log.d(LOG_TAG, "Teams:  " + bundle.teams.size() + "   " + bundle.teams);
 
-                bundle.media = extractVideos(json);
-                Log.d(LOG_TAG, "Media:  " + bundle.media.size() + "   " + bundle.media);
+            bundle.media = extractVideos(json);
+            Log.d(LOG_TAG, "Media:  " + bundle.media.size() + "   " + bundle.media);
 
-                bundle.tps = extractTrainingPhases(json);
-                Log.d(LOG_TAG, "TrainingPhase:  " + bundle.tps.size() + "   " + bundle.tps);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+            bundle.tps = extractTrainingPhases(json);
+            Log.d(LOG_TAG, "TrainingPhase:  " + bundle.tps.size() + "   " + bundle.tps);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new JsonAccessException("Failed receiving data from server", e);
+        }
         return bundle;
     }
 
 
     public String readEntireCoachServer() throws JsonAccessException {
         try {
-            return httpAccess.readEntireCoachServer();
+            return httpAccess.readEntireCoachServer(LocalStorage.getInstance().getSessionToken());
         } catch (HttpAccessException e) {
             throw new JsonAccessException("Failed reading composite view", e);
+        }
+    }
+
+
+    public String getToken(String user, String password)  throws JsonAccessException {
+        try {
+            // 'Content-Type: application/json'
+            String header   = "application/json";
+            String data     = "{ \"user\": \"" + user + "\", \"password\": \"" + password + "\" }";
+            String jsonData = httpAccess.getToken(header, data);
+
+            Log.d(LOG_TAG, "Token: " + jsonData);
+            JSONObject json = new JSONObject(jsonData);
+            String token    = json.getString(JsonSettings.TOKEN_TAG);
+            return new JSONObject(token).getString(JsonSettings.TOKEN_TAG);
+        } catch (HttpAccessException e) {
+            throw new JsonAccessException("Failed getting token: ", e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new JsonAccessException("Failed getting token: ", e);
         }
     }
 
@@ -149,6 +208,7 @@ public class JsonAccess  {
         }
         return teams;
     }
+
 
     public List<TrainingPhase> extractTrainingPhases(JSONObject json) {
         List<TrainingPhase> tps = new ArrayList<TrainingPhase>();
@@ -222,11 +282,19 @@ public class JsonAccess  {
 
                 Log.d(LOG_TAG, "Creating media from: " + uuid + " " + club + " " + status + " " + jsonStatusToMediaStatus(status) + " " + team + " " + tp + " " + member);
                 Log.d(LOG_TAG, "  media: " + media.size());
-                Log.d(LOG_TAG, "  date:  " + new Date(date).getTime());
+
+                Log.d(LOG_TAG, "  date:  '" + date + "'");
+
+//                "2016-02-25T23:16:24.74447Z"
+                date = date.replaceFirst("(\\d\\d[\\.,]\\d{3})\\d+", "$1");
+
+                Date d = new Date(date);
+                Log.d(LOG_TAG, "  date:  " + d);
+                Log.d(LOG_TAG, "  date:  " + d.getTime());
 
                 Media m = new Media(uuid, "", club,
                         null, jsonStatusToMediaStatus(status),
-                        new Date(date).getTime(),
+                        d.getTime(),
                         team, tp, member);
                 media.add(m);
             }

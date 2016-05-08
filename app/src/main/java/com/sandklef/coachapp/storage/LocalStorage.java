@@ -27,10 +27,17 @@ public class LocalStorage {
     private static final String CURRENT_TEAM_KEY          = "current-team";
     private static final String CURRENT_TRAININGPHASE_KEY = "current-trainingphase";
     private static final String CURRENT_MEMBER_KEY        = "current-member";
+    private static final String LATEST_USER_KEY           = "latest-user";
 
     private String urlBase;
 
     private Context c;
+
+    private static String currentClub;
+    private String currentTeam;
+    private String currentTrainingPhase;
+    private String currentMember;
+
 
 /*
     public static final String[] imageExtensions = {".png", ".jpg"};
@@ -59,28 +66,51 @@ public class LocalStorage {
     }
 
     public static LocalStorage newInstance(Context c) {
+        Log.d(LOG_TAG, "newInstance(Context (" + c + ")");
         if (localStore == null) {
             localStore = new LocalStorage(c);
         }
         return localStore;
     }
 
-    public void setKeyValueString(String key, String value) {
+    private void setKeyValueString(String key, String value) {
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(key, value);
         editor.commit();
     }
 
+    private void setKeyValueString(String key, int value) {
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(key, value);
+        editor.commit();
+    }
+
     public String getServerUrl() {
         return urlBase;
-        /*+ "/clubs/" +
-
-                LocalStorage.getInstance().getCurrentClub();
-                */
     }
 
     public void setServerUrl(String url) {
         urlBase = url;
+    }
+
+    public void storeSessionToken(String sessId) {
+        setKeyValueString(SESSION_KEY, sessId);
+    }
+
+    public void resetSessionToken() {
+        setKeyValueString(SESSION_KEY, "");
+    }
+
+    public void setLatestUser(int id) {
+        setKeyValueInt(LATEST_USER_KEY, id);
+    }
+
+    public int getLatestUser() {
+        return getKeyValueInt(LATEST_USER_KEY);
+    }
+
+    public String getSessionToken()               {
+        return getKeyValueString(SESSION_KEY);
     }
 
     public String getKeyValueString(String key) {
@@ -101,15 +131,50 @@ public class LocalStorage {
         return localStore;
     }
 
-    public void storeSessionId(String sessId) {
-        setKeyValueString(SESSION_KEY, sessId);
+
+
+/*    public void setCurrentClub(String uuid) {
+        Log.d(LOG_TAG, "Set current club uuid: " + uuid);
+        setKeyValueString(CURRENT_CLUB_KEY, uuid);
     }
 
-    public String getSessionId() {
-        return getKeyValueString(SESSION_KEY);
+    public String getCurrentClub() {
+        Log.d(LOG_TAG, "Get current club uuid: " + getKeyValueString(CURRENT_CLUB_KEY));
+        return getKeyValueString(CURRENT_CLUB_KEY);
+    }
+    */
+    public void setCurrentClub(String t) {
+        currentClub = t;
     }
 
+    public String getCurrentClub() {
+        return currentClub;
+    }
 
+    public void setCurrentTeam(String t) {
+        currentTeam = t;
+    }
+
+    public String getCurrentTeam() {
+        return currentTeam;
+    }
+
+    public void setCurrentTrainingPhase(String tp) {
+        currentTrainingPhase = tp;
+    }
+
+    public String getCurrentTrainingPhase() {
+        return currentTrainingPhase;
+    }
+
+    public void setCurrentMember(String m) {
+        currentMember = m;
+    }
+    public String getCurrentMember() {
+        return currentMember;
+    }
+
+/*
     public void setCurrentMember(String uuid) {
         setKeyValueString(CURRENT_MEMBER_KEY, uuid);
     }
@@ -128,22 +193,13 @@ public class LocalStorage {
 
     public void setCurrentTrainingPhase(String uuid) {
         setKeyValueString(CURRENT_TRAININGPHASE_KEY, uuid);
-    }
-
+   }
     public String getCurrentTrainingPhase() {
         return getKeyValueString(CURRENT_TRAININGPHASE_KEY);
     }
+*/
 
 
-    public void setCurrentClub(String uuid) {
-        Log.d(LOG_TAG, "Set current club uuid: " + uuid);
-        setKeyValueString(CURRENT_CLUB_KEY, uuid);
-    }
-
-    public String getCurrentClub() {
-        Log.d(LOG_TAG, "Get current club uuid: " + getKeyValueString(CURRENT_CLUB_KEY));
-        return getKeyValueString(CURRENT_CLUB_KEY);
-    }
 
     public String getAppDir() {
 // try {
@@ -191,5 +247,6 @@ public class LocalStorage {
         }
         return false;
     }
+
 
 }

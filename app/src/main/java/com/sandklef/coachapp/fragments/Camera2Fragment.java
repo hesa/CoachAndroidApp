@@ -82,7 +82,7 @@ public class Camera2Fragment extends Fragment implements SurfaceHolder.Callback 
     @SuppressLint({"SdCardPath", "NewApi"})
     private void initRecorder() {
 
-        Log.d(LOG_TAG, "initRecorder()  current member: " + Storage.getInstance().getCurrentMember());
+//        Log.d(LOG_TAG, "initRecorder()  current member: " + Storage.getInstance().getCurrentMember());
 
         recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 

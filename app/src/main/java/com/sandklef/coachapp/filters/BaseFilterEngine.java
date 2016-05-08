@@ -1,7 +1,6 @@
 package com.sandklef.coachapp.filters;
 
-import com.sandklef.coachapp.model.Base;
-import com.sandklef.coachapp.model.Media;
+import com.sandklef.coachapp.model.CoachAppBase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +10,9 @@ import java.util.List;
  */
 public class BaseFilterEngine {
 
-    public static List<Base> apply(List<Base> list, BaseFilter bf) {
-        List filteredList = new ArrayList<Base>();
-        for (Base b : list) {
+    public static List<CoachAppBase> apply(List<CoachAppBase> list, BaseFilter bf) {
+        List filteredList = new ArrayList<CoachAppBase>();
+        for (CoachAppBase b : list) {
             if (bf.check(b)) {
                 filteredList.add(b);
             }

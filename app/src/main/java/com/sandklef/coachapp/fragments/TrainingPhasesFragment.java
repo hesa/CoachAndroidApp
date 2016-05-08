@@ -29,6 +29,7 @@ import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 
@@ -82,11 +83,15 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mAdapter = new ArrayAdapter<TrainingPhase>(getActivity(),
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                Storage.getInstance().getTrainingPhases());
-        activity = getActivity();
+        try {
+            mAdapter = new ArrayAdapter<TrainingPhase>(getActivity(),
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    Storage.getInstance().getTrainingPhases());
+            activity = getActivity();
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -130,13 +135,17 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
-            TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int) id);
-            Log.d(LOG_TAG, " member clicked: " + tp.getUuid() + "  " + tp);
+        try {
+            if (null != mListener) {
+                TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int) id);
+                Log.d(LOG_TAG, " member clicked: " + tp.getUuid() + "  " + tp);
 
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onTrainingphasesFragmentInteraction(tp);
+                // Notify the active callbacks interface (the activity, if the
+                // fragment is attached to one) that an item has been selected.
+                mListener.onTrainingphasesFragmentInteraction(tp);
+            }
+        } catch(StorageNoClubException e){
+            e.printStackTrace();
         }
     }
 
@@ -180,9 +189,12 @@ public class TrainingPhasesFragment extends Fragment implements AbsListView.OnIt
         long id = info.id;
 
         menu.setHeaderTitle("Select");
-        currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
-
-        menu.add(0, v.getId(), 0, "Create instruction video");
+        try {
+            currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
+            menu.add(0, v.getId(), 0, "Create instruction video");
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
 
     }
 

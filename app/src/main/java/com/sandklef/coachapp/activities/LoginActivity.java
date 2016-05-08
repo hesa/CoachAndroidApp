@@ -29,12 +29,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.sandklef.coachapp.Auth.Authenticator;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.model.Club;
+import com.sandklef.coachapp.model.LocalUser;
+import com.sandklef.coachapp.model.Team;
+import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
@@ -116,6 +123,9 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
         context = this;
         Log.d(LOG_TAG, "init : " + context);
         BootStrapApp.init(context);
+
+        Log.d(LOG_TAG, "LatestUser: " + LocalStorage.getInstance().getLatestUser());
+
     }
 
     private void populateAutoComplete() {
@@ -306,20 +316,69 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             // TODO: attempt authentication against a network service.
 
             try {
-                JsonAccess jsa = new JsonAccess();
+                // For now, only one user
+                // TODO: support multiple users
+                int userId = LocalStorage.getInstance().getLatestUser();
+                Log.d(LOG_TAG, "LatestUser id: " + userId) ;
 
-                String savedToken = LocalStorage.getInstance().getSessionToken();
-                if (savedToken!=null && !savedToken.equals("")) {
-                    Log.d(LOG_TAG, "Using saved token: " + savedToken);
+                Log.d(LOG_TAG, "Storage:   " + Storage.getInstance()) ;
+
+                LocalUser lu  = Storage.getInstance().getLocalUser(userId);
+                Log.d(LOG_TAG, "LatestUser:   " + lu) ;
+
+
+                String token      = null;
+
+                if (lu!=null) {
+                    token      = lu.getToken();
+                    Log.d(LOG_TAG, "Latest User not null, token: " + token);
                 } else {
-                    Log.d(LOG_TAG, "Not uUsing saved token: " + savedToken);
-                    String token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
-                    // TODO: Fix this asap
-                    Log.d(LOG_TAG, "Token: " + token);
-                    LocalStorage.getInstance().storeSessionToken(token);
-                    // TODO: register the new account here.
+                    Log.d(LOG_TAG, "Latest User null, token still null");
                 }
-                BootStrapApp.initClub(new Club("5c2ee920-fcfb-4e6b-82d6-3c0328e6d0f5", "IK Nord"));
+
+                JsonAccess jsa    = new JsonAccess();
+
+                if (token!=null && !token.equals("")) {
+                    Log.d(LOG_TAG, "Using saved token: " + token);
+                } else {
+                    Log.d(LOG_TAG, "Not using saved token: " + token);
+//                    token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
+                    token = jsa.getToken(mEmail, mPassword);
+                    LocalStorage.getInstance().storeSessionToken(token);
+                    Log.d(LOG_TAG, "Token: " + token);
+                    if (token==null || token.equals("")){
+                        return false;
+                    }
+                }
+
+                List <Club> clubs = jsa.getClubs(token);
+                Log.d(LOG_TAG, "Clubs: " + Arrays.toString(clubs.toArray()));
+
+                List<String> clubsStrings = new ArrayList<String>();
+                for (Club c: clubs) {
+                    clubsStrings.add(c.getUuid());
+                }
+
+                Club primaryClub = clubs.get(0);
+
+                // TODO: register the new account here.
+                Storage.getInstance().storeLocalUser(new LocalUser(
+                        -1,
+                        null,
+                        mEmail,
+                        null,
+                        clubsStrings,
+                        // Always use 0th element, since we're only supporting ONE club TODO: extend to multiple
+                        primaryClub.getUuid(),
+                        token));
+
+                Log.d(LOG_TAG, " Localuser stored...");
+
+                Log.d(LOG_TAG, "Using club: " + primaryClub.getClubUuid());
+                BootStrapApp.initClub(primaryClub);
+
+                ActivitySwitcher.printDb("LoginActivity");
+
                 return true;
             } catch (JsonAccessException e) {
                 Log.d(LOG_TAG, "Failed to get token." + e);

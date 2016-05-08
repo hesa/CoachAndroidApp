@@ -1,6 +1,8 @@
 package com.sandklef.coachapp.misc;
 
 
+import com.sandklef.coachapp.storage.Storage;
+
 public class Log {
 
     static final boolean LOG = true;
@@ -30,7 +32,7 @@ public class Log {
     }
 
     public static void d(String tag, String string) {
-      // android.util.Log.d("LOG", "d: " + LOG + " " + LOG_D + " " + LOG_CONSTRUCTOR_ONLY);
+        // android.util.Log.d("LOG", "d: " + LOG + " " + LOG_D + " " + LOG_CONSTRUCTOR_ONLY);
         if (((LOG || LOG_D) && (!LOG_CONSTRUCTOR_ONLY))) android.util.Log.d(tag, string);
     }
 
@@ -41,4 +43,5 @@ public class Log {
     public static void w(String tag, String string) {
         if ((LOG || LOG_W) && (!LOG_CONSTRUCTOR_ONLY) ) android.util.Log.w(tag, string);
     }
+
 }

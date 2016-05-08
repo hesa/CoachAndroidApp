@@ -24,20 +24,19 @@ public class BootStrapApp {
         LocalStorage.newInstance(context);
         LocalStorage.getInstance().setServerUrl(url);
         LocalStorageSync.newInstance(context);
+
+        LocalStorage.getInstance().resetSessionToken();
+        Storage.newInstance(context);
         Log.d(LOG_TAG, "init, context: " + context);
     }
 
     public static void initClub(Club club) {
-        Storage.newInstance(club.getUuid(), context);
 
         //      LocalStorage.getInstance().setServerUrl("http://129.16.219.77:3000/0.0.0/");
 //        LocalStorage.getInstance().setServerUrl("http://192.168.1.111:3000/0.0.0/");
 
-        Log.d(LOG_TAG, "context: " + context);
-
+        Storage.getInstance().setClubUuid(club.getUuid());
         LocalStorage.getInstance().setCurrentClub(club.getUuid());
-        Storage.newInstance(LocalStorage.getInstance().getCurrentClub(), context);
-
     }
 
 }

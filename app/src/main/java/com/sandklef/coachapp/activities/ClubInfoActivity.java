@@ -25,6 +25,7 @@ import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -60,46 +61,49 @@ public class ClubInfoActivity extends ActionBarActivity {
 
     public void onStart() {
         super.onStart();
+        try {
+            setTextViewText(R.id.teams_info,
+                    getResources().getString(R.string.info_teams) + "  " + Storage.getInstance().getTeams().size());
 
-        setTextViewText(R.id.teams_info,
-                getResources().getString(R.string.info_teams) + "  " + Storage.getInstance().getTeams().size());
+            setTextViewText(R.id.trainingphases_info,
+                    getResources().getString(R.string.info_trainingphases) + "  " + Storage.getInstance().getTrainingPhases().size());
 
-        setTextViewText(R.id.trainingphases_info,
-                getResources().getString(R.string.info_trainingphases) + "  " + Storage.getInstance().getTrainingPhases().size());
+            setTextViewText(R.id.members_info,
+                    getResources().getString(R.string.info_members) + "  " + Storage.getInstance().getMembers().size());
 
-        setTextViewText(R.id.members_info,
-                getResources().getString(R.string.info_members) + "  " + Storage.getInstance().getMembers().size());
+            setTextViewText(R.id.local_media_info,
+                    getResources().getString(R.string.info_media_server) + "  " + Storage.getInstance().getMedia().size());
 
-        setTextViewText(R.id.local_media_info,
-                getResources().getString(R.string.info_media_server) + "  " + Storage.getInstance().getMedia().size());
+            setTextViewText(R.id.server_media_info,
+                    getResources().getString(R.string.info_media_local) + "  " +
+                            MediaFilterEngine.apply(Storage.getInstance().getMedia(),
+                                    MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DOWNLOADED)).size());
 
-        setTextViewText(R.id.server_media_info,
-                getResources().getString(R.string.info_media_local) + "  " +
-                        MediaFilterEngine.apply(Storage.getInstance().getMedia(),
-                                MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DOWNLOADED)).size());
+            setTextViewText(R.id.deletable_media_info,
+                    getResources().getString(R.string.info_media_deletable) + "  " +
+                            new File(LocalStorage.getInstance().getDeletableMediaDir()).listFiles().length);
 
-        setTextViewText(R.id.deletable_media_info,
-                getResources().getString(R.string.info_media_deletable) + "  " +
-                        new File(LocalStorage.getInstance().getDeletableMediaDir()).listFiles().length);
-        
-        setTextViewText(R.id.instructional_media_info,
-                getResources().getString(R.string.info_media_instructional) + "  " +
-                        MediaFilterEngine.apply(Storage.getInstance().getMedia(),
-                                new MediaMemberFilter()).size());
+            setTextViewText(R.id.instructional_media_info,
+                    getResources().getString(R.string.info_media_instructional) + "  " +
+                            MediaFilterEngine.apply(Storage.getInstance().getMedia(),
+                                    new MediaMemberFilter()).size());
 
 
-        List<String> teams = new ArrayList<String>();
-        for (Team t: Storage.getInstance().getTeams()) {
-            Log.d(LOG_TAG, " " + t.getName());
-            teams.add(t.getName()+ " " + Storage.getInstance().getMembersTeam(t.getUuid()).size());
+            List<String> teams = new ArrayList<String>();
+            for (Team t: Storage.getInstance().getTeams()) {
+                Log.d(LOG_TAG, " " + t.getName());
+                teams.add(t.getName()+ " " + Storage.getInstance().getMembersTeam(t.getUuid()).size());
+            }
+            Log.d(LOG_TAG, "teams : " + teams.size());
+            mAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    teams);
+            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
-        Log.d(LOG_TAG, "teams : " + teams.size());
-        mAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                teams);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
-
 
     }
 

@@ -1,9 +1,11 @@
 package com.sandklef.coachapp.fragments;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.AttributeSet;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -17,6 +19,7 @@ public class VideoPreview extends SurfaceView implements SurfaceHolder.Callback 
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
+    private Context context;
 
     public VideoPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -43,6 +46,9 @@ public class VideoPreview extends SurfaceView implements SurfaceHolder.Callback 
         } catch (IOException e) {
             Log.d(LOG_TAG, "Error setting camera preview: " + e.getMessage());
         }
+
+        setCameraDisplayOrientation();
+
     }
 
     @Override
@@ -73,10 +79,43 @@ public class VideoPreview extends SurfaceView implements SurfaceHolder.Callback 
         } catch (Exception e){
             Log.d(LOG_TAG, "Error starting camera preview: " + e.getMessage());
         }
+
     }
 
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
      }
+
+
+    public void setCameraDisplayOrientation() {
+        Log.d(LOG_TAG, "setCameraDisplay:  ");
+
+        android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
+
+
+        android.hardware.Camera.getCameraInfo(1, info);
+
+
+        int rotation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+
+        Log.d(LOG_TAG, "setCameraDisplay:  " + rotation);
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        mCamera.setDisplayOrientation(result);
+    }
 }

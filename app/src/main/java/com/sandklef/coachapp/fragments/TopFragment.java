@@ -21,6 +21,7 @@ import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalMediaStorage;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -127,7 +128,7 @@ public class TopFragment extends Fragment {
         boolean created = dir.mkdirs();
 
         Log.d(LOG_TAG, "RECORD TO NEW FILE: " + newFile);
-        topPagerAdapter.getSimpleVideoFragment().getVideoCapture().startRecording(newFile, VIDEO_FILE_DEFAULT_TIME);
+       // topPagerAdapter.getSimpleVideoFragment().getVideoCapture().startRecording(newFile, VIDEO_FILE_DEFAULT_TIME);
         return true;
     }
 

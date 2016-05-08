@@ -23,6 +23,12 @@ public class MediaMemberFilter implements MediaFilter {
 
     @Override
     public boolean check(Media m) {
+        Log.d(LOG_TAG, "check media:   member: " + m.getMember());
+        if (m.getMember()==null && uuid==null) {
+            return true;
+        } else if (uuid==null) {
+            return false;
+        }
         return (uuid.equals(m.getMember()));
     }
 

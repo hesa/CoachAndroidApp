@@ -1,4 +1,19 @@
 <resources>
+    <string name="member_list_title">members</string>
+    <string name="menu_check_log_title">Check log</string>
+    <string name="menu_info_title">Club information</string>
+    <string name="menu_local_media_manager_title">Local Media Manager</string>
+    <string name="menu_training_mode_title">Training mode</string>
+    <string name="record">Record</string>
+
+    <string name="description_info">Info</string>
+    <string name="info_media_deletable">Media to delete</string>
+    <string name="info_media_instructional">Instructional media</string>
+    <string name="info_media_local">Media (local)</string>
+    <string name="info_media_server">Media (server)</string>
+    <string name="info_members">Members</string>
+    <string name="info_teams">Teams</string>
+    <string name="info_trainingphases">Training phases</string>
     <string name="app_name">CoachApp</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -16,26 +31,51 @@
 
         ]]>
     </string>
+    <string name="stop">Stop</string>
+    <string name="team_list_header">My teams</string>
+    <string name="team_list_title">Teams</string>
     <string name="title_activity_local_media_manager">LocalMediaManager</string>
     <string name="MUST_CHOSE_TEAM">You must chose a team before you can continue</string>
     <string name="NEW_MEDIA_DIR">/new</string>;
     <string name="DOWNLOAD_MEDIA_DIR">/downloaded</string>;
     <string name="DELETABLE_MEDIA_DIR">/deletable</string>;
+    <string name="title_activity_club_info">Club Information</string>
+    <string name="title_activity_log">LogActivity</string>
+    <string name="title_activity_member">Member</string>
+    <string name="title_activity_teams">TeamsActivity</string>
+    <string name="title_activity_training_phases">TrainingPhasesActivity</string>
+    <string name="trainingphase_list_title">Training Phases</string>
+    <string name="title_activity_login">Sign in</string>
 
-<!--
-    <string name="PATH_SEPARATOR">/"</string>
-    <string name="CLUB_PATH">clubs</string>
-    <string name="VIDEO_URL_PATH">videos</string>
-    <string name="UUID_PATH">uuid</string>
-    <string name="UPLOAD_PATH">upload</string>
-    <string name="COMPOSITE_PATH">composite</string>
-    <string name="DOWNLOAD_PATH">download</string>
-    <string name="CONTENT_STATUS">Content-Type</string>
-    <string name="SERVER_VIDEO_SUFFIX">.webm</string>
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="menu_refresh_title">Refresh</string>
 
-    <string name="HTTP_POST">POST"</string>
-    <string name="HTTP_GET">GET"</string>
--->
+
+    <!--
+        <string name="PATH_SEPARATOR">/"</string>
+        <string name="CLUB_PATH">clubs</string>
+        <string name="VIDEO_URL_PATH">videos</string>
+        <string name="UUID_PATH">uuid</string>
+        <string name="UPLOAD_PATH">upload</string>
+        <string name="COMPOSITE_PATH">composite</string>
+        <string name="DOWNLOAD_PATH">download</string>
+        <string name="CONTENT_STATUS">Content-Type</string>
+        <string name="SERVER_VIDEO_SUFFIX">.webm</string>
+
+        <string name="HTTP_POST">POST"</string>
+        <string name="HTTP_GET">GET"</string>
+    -->
 
 
 </resources>

@@ -26,6 +26,7 @@ import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 import java.util.List;
@@ -56,33 +57,37 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_local_media_manager);
 
-        Storage.newInstance(LocalStorage.getInstance().getCurrentClub(), this);
+        try {
+            Storage.newInstance(this);
 
-        media = Storage.getInstance().getMedia();
+            media = Storage.getInstance().getMedia();
 
-        mAdapter = new ArrayAdapter<Media>(this,
-                android.R.layout.simple_list_item_1, android.R.id.text1, media);
+            mAdapter = new ArrayAdapter<Media>(this,
+                    android.R.layout.simple_list_item_1, android.R.id.text1, media);
 
 
-        //        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media)
+            //        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media)
 /*
         mAdapter = new MediaListAdapter(getApplicationContext(),
                 R.layout.media_list, media);
 */
-        // Set the adapter
-        mListView = (AbsListView) findViewById(R.id.local_media_list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+            // Set the adapter
+            mListView = (AbsListView) findViewById(R.id.local_media_list);
+            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
-        // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+            // Set OnItemClickListener so we can be notified on item clicks
+            mListView.setOnItemClickListener(this);
 
-        registerForContextMenu(mListView);
+            registerForContextMenu(mListView);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(getTitle());
+            toolbar = (Toolbar) findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                setSupportActionBar(toolbar);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(getTitle());
+            }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
     }
 
@@ -116,11 +121,11 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
             menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
         } else if (media.get((int) selectedWordId).getStatus() == Media.MEDIA_STATUS_UPLOADED) {
             menu.add(0, v.getId(), 0, CONTEXT_MENU_DOWNLOAD);
-        } else 
+        } else
 //        menu.add(0, v.getId(), 0, CONTEXT_MENU_UPLOAD);
-        if (selectedWordId == 0) {
-            menu.add(0, v.getId(), 0, "0:e elementet");
-        }
+            if (selectedWordId == 0) {
+                menu.add(0, v.getId(), 0, "0:e elementet");
+            }
 
 /*
         Log.d(LOG_TAG, "You chose video: " +
@@ -203,26 +208,30 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         return true;
     }
 
-/*    private void showTrainingMode() {
-/*        Intent intent = new Intent(this, com.sandklef.coachapp.activities.TopActivity.class);
-        startActivity(intent);
+    /*    private void showTrainingMode() {
+    /*        Intent intent = new Intent(this, com.sandklef.coachapp.activities.TopActivity.class);
+            startActivity(intent);
 
-    }
-*/
+        }
+    */
 /*    private void showLogMessageMode() {
         ActivitySwitcher.startLogMessageActivity(this);
     }
 */
     private void filteredUpdatedList(MediaStatusNameFilter mf) {
-        Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
-        media = MediaFilterEngine.apply(Storage.getInstance().getMedia(),
-                mf);
-        Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
+        try {
+            Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
+            media = MediaFilterEngine.apply(Storage.getInstance().getMedia(),
+                    mf);
+            Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
 
-        ArrayAdapter<Media> ma = ((ArrayAdapter) mAdapter);
-        ma.clear();
-        ma.addAll(media);
-        ma.notifyDataSetChanged();
+            ArrayAdapter<Media> ma = ((ArrayAdapter) mAdapter);
+            ma.clear();
+            ma.addAll(media);
+            ma.notifyDataSetChanged();
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

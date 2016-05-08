@@ -18,6 +18,7 @@ import java.util.List;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.json.JsonSettings;
+import com.sandklef.coachapp.report.ReportUser;
 
 /**
  * Created by hesa on 2016-02-25.
@@ -27,15 +28,15 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
     private final static String LOG_TAG = StorageRemoteWorker.class.getSimpleName();
 
     private String clubUuid;
-    private Context c;
+//    private Context c;
     private JsonAccess ja;
 
-    public StorageRemoteWorker(String clubUuid, Context c) throws StorageException {
+    public StorageRemoteWorker(String clubUuid /*, Context c*/) throws StorageException {
         try {
-            this.c = c;
+  //          this.c = c;
             this.clubUuid = clubUuid;
 
-            ja = new JsonAccess(clubUuid, c);
+            ja = new JsonAccess(clubUuid);
         } catch (JsonAccessException e) {
             throw new StorageException("Failed to create JsonAccess instance", e);
         }
@@ -50,12 +51,18 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
         if (mode == Storage.MODE_COMPOSITE) {
             Log.d(LOG_TAG, " fetching JSON data in background");
-            JsonAccess.CompositeBundle cb = ja.update();
+            try {
+                JsonAccess.CompositeBundle cb = ja.update();
 
-            Storage.getInstance().updateDB(cb.members,
-                    cb.teams,
-                    cb.media,
-                    cb.tps);
+                Storage.getInstance().updateDB(cb.members,
+                        cb.teams,
+                        cb.media,
+                        cb.tps);
+            } catch (JsonAccessException e) {
+                Log.d(LOG_TAG, "Failed getting Json data from server" + e.getMessage());
+// TODO: Fix ... make it possible to report to user
+//                ReportUser.warning(c, "Failed getting data from server");
+            }
 
         } else if (mode == Storage.MODE_CREATE) {
             try {
@@ -64,7 +71,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid));
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
-                Log.e(LOG_TAG, " Could not create video on server");
+                Log.e(LOG_TAG, " Could not create video on server" + e.getMessage());
                 return null;
             }
         } else if (mode == Storage.MODE_UPLOAD) {
@@ -73,7 +80,8 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 Log.d(LOG_TAG, " upload seems to have work with media: " + bundle.getMedia());
                 return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()));
             } catch (JsonAccessException e) {
-
+                Log.e(LOG_TAG, " Failed uploading video to server: " + e.getMessage());
+                Storage.getInstance().log("Failed downloading video from server");
             }
             // TODO: store errors in log?
             Log.e(LOG_TAG, " Finished uploading video to server");
@@ -87,7 +95,9 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
-                Log.e(LOG_TAG, " Failed downloading video from server");
+                Log.e(LOG_TAG, " Failed downloading video from server; " + e.getMessage());
+                e.printStackTrace();
+                Storage.getInstance().log("Failed downloading video from server");
                 return null;
             }
             Log.d(LOG_TAG, " Finished downloading video from server ");
@@ -123,12 +133,16 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 Storage.getInstance().updateMediaStateCreated(m, uuid);
             } else if (mode == Storage.MODE_UPLOAD) {
                 Log.d(LOG_TAG, " onPostExecute mode upload");
-                Media m     = sam.getMedia();
+                Media m = sam.getMedia();
                 boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_UPLOADED);
-            }
+            } else if (mode == Storage.MODE_DOWNLOAD) {
+                Log.d(LOG_TAG, " onPostExecute mode download");
+                Media m = sam.getMedia();
+                boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_DOWNLOADED);
 
-            // UPLOAD
-            //
+
+
+            }
 
 
         }

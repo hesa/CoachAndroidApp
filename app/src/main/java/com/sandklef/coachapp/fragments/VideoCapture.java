@@ -8,8 +8,10 @@ import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.AttributeSet;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.animation.Animation;
@@ -18,9 +20,11 @@ import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.storage.LocalMediaStorage;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback {
 
@@ -30,6 +34,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     private SurfaceHolder mHolder;
     private Camera mCamera;
     private Context context;
+    private List<Camera.Size> mSupportedPreviewSizes;
 
     private MediaRecorder mediaRecorder;
     private final int maxDurationInMs = 20000;
@@ -38,6 +43,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
 
     public static final int VIDEO_CAPTURE = 101;
 
+    private static VideoCapture vc;
 
     private enum CAMERA_MODE {
         VC_UNDEFINED,
@@ -49,6 +55,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     private CAMERA_MODE cameraMode;
+    private Camera.Size mPreviewSize;
 
     public VideoCapture(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -61,8 +68,12 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
         cameraMode = CAMERA_MODE.VC_UNDEFINED;
         this.context = context;
         Log.d(LOG_TAG, "VideoCapture(Context context, attrs)");
+        vc = this;
     }
 
+    public static VideoCapture getInstance() {
+        return vc;
+    }
 
     public void openCamera() {
         if (mCamera != null) {
@@ -71,15 +82,24 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
 //            mCamera.release();
         }
         Log.d(LOG_TAG, "openCamere()  open camera()");
-        mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-        if (mCamera == null) {
-            Log.d(LOG_TAG, "openCamere()  NULL, so open camera(0)");
-            mCamera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+        try {
+            mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+            if (mCamera == null) {
+                Log.d(LOG_TAG, "openCamere()  NULL, so open camera(0)");
+                mCamera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            }
+            mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+            for (Camera.Size str : mSupportedPreviewSizes)
+                Log.d(LOG_TAG, str.width + "/" + str.height);
+            Camera.Parameters params = mCamera.getParameters();
+            params.setRecordingHint(true);
+            mCamera.setParameters(params);
+            Log.d(LOG_TAG, "openCamere()  camera: " + mCamera);
+        } catch (RuntimeException re) {
+            Log.d(LOG_TAG, "Failed to get hold of camera");
+            re.printStackTrace();
         }
-        Camera.Parameters params = mCamera.getParameters();
-        params.setRecordingHint(true);
-        mCamera.setParameters(params);
-        Log.d(LOG_TAG, "openCamere()  camera: " + mCamera);
+
     }
 
     public void startPreview() {
@@ -106,6 +126,70 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
             // ignore: tried to stop a non-existent preview
         }
     }
+
+    public void startRecord() {
+    /*
+    Open Camera - Use the Camera.open() to get an instance of the camera object.
+    */
+        // already done
+    openCamera();
+
+/* Connect Preview - Prepare a live camera image preview by connecting a SurfaceView to the camera using Camera.setPreviewDisplay().
+Start Preview - Call Camera.startPreview() to begin displaying the live camera images.
+*/
+        // already done
+        /*
+Start Recording Video - The following steps must be completed in order to successfully record video:
+Unlock the Camera - Unlock the camera for use by MediaRecorder by calling Camera.unlock().
+*/
+        mCamera.unlock();
+
+        mediaRecorder = new MediaRecorder();
+        /*
+Configure MediaRecorder - Call in the following MediaRecorder methods in this order. For more information, see the MediaRecorder reference documentation.
+setCamera() - Set the camera to be used for video capture, use your application's current instance of Camera.
+setAudioSource() - Set the audio source, use MediaRecorder.AudioSource.CAMCORDER.
+setVideoSource() - Set the video source, use MediaRecorder.VideoSource.CAMERA.
+Set the video output format and encoding. For Android 2.2 (API Level 8) and higher, use the MediaRecorder.setProfile method, and get a profile instance using CamcorderProfile.get(). For versions of Android prior to 2.2, you must set the video output format and encoding parameters:
+setOutputFormat() - Set the output format, specify the default setting or MediaRecorder.OutputFormat.MPEG_4.
+setAudioEncoder() - Set the sound encoding type, specify the default setting or MediaRecorder.AudioEncoder.AMR_NB.
+setVideoEncoder() - Set the video encoding type, specify the default setting or MediaRecorder.VideoEncoder.MPEG_4_SP.
+setOutputFile() - Set the output file, use getOutputMediaFile(MEDIA_TYPE_VIDEO).toString() from the example method in the Saving Media Files section.
+setPreviewDisplay() - Specify the SurfaceView preview layout element for your application. Use the same object you specified for Connect Preview.
+Caution: You must call these MediaRecorder configuration methods in this order, otherwise your application will encounter errors and the recording will fail.
+*/
+
+        mediaRecorder.setCamera(mCamera);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+        mediaRecorder.setOutputFile("/mnt/sdcard/apa.mp4");
+      //  mediaRecorder.setPreviewDisplay((Surface) mHolder);
+
+        /*
+Prepare MediaRecorder - Prepare the MediaRecorder with provided configuration settings by calling MediaRecorder.prepare().
+Start MediaRecorder - Start recording video by calling MediaRecorder.start().
+*/
+        try {
+            mediaRecorder.prepare();
+        } catch (IOException e) {
+            Log.d(LOG_TAG, "IOException in VideoCapture");
+        }
+
+        Log.d(LOG_TAG, "start recording");
+        mediaRecorder.start();
+
+        Log.d(LOG_TAG, "sleep 2 secs");
+        SystemClock.sleep(2000);
+        Log.d(LOG_TAG, "slept 2 secs");
+
+        Log.d(LOG_TAG, "stop recording");
+        stopRecord();
+        startPreview();
+    }
+
 
     private void stopRecord() {
         Log.d(LOG_TAG, "stopRecord()");
@@ -161,6 +245,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
             Log.d(LOG_TAG, "Error setting camera preview: " + e.getMessage());
         }
   */
+
     }
 
     @Override
@@ -172,6 +257,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
         }
 //        stopPreview();
         startPreview();
+        setCameraDisplayOrientation();
     }
 
 
@@ -186,7 +272,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     }
 
 
-    public boolean startRecording(File f, int msecs) {
+    public boolean startRecording_OLD(File f, int msecs) {
 
         Uri uri = Uri.fromFile(f);
 
@@ -208,125 +294,134 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     }
 
 
-    public boolean startRecording_old(Media m, int msecs) {
-        try {
-            //         Log.d(LOG_TAG, " mCamera unlock  (startRecording)");
-            //       stopCamera();
+    public void setCameraDisplayOrientation() {
+        Log.d(LOG_TAG, "setCameraDisplayOrientation:  ");
 
-            String fileName = m.fileName();
-            // DEBUG HESA HESA HESA HESA
-//            fileName = LocalStorage.getInstance().getNewMediaDir() + "/apa.mp4";
-            Log.d(LOG_TAG, "Record to file: " + fileName);
-            File tempFile = new File(fileName);
+        android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
 
+        Log.d(LOG_TAG, "setCameraDisplayOrientation:  " + Camera.getNumberOfCameras());
 
-            Log.d(LOG_TAG, " startRecording --  openCamera()");
-            openCamera();
-            // Numbered comments from API description:
-            //     http://developer.android.com/guide/topics/media/camera.html#capture-video
-
-            // 1. Open Camera - Use the Camera.open() to get an instance of the camera object.
-            Log.d(LOG_TAG, " startRecording --  MediaRecorder=" + mediaRecorder);
-            if (mediaRecorder != null) {
-                Log.d(LOG_TAG, " startRecording --  MediaRecorder release");
-                mediaRecorder.release();
-            }
-            mediaRecorder = new MediaRecorder();
-            Log.d(LOG_TAG, " startRecording --  MediaRecorder=" + mediaRecorder);
-
-            // 2. Connect Preview - Prepare a live camera image preview
-            //    by connecting a SurfaceView to the camera using Camera.setPreviewDisplay().
-            Log.d(LOG_TAG, " startRecording --  set preview ...");
-            mediaRecorder.setPreviewDisplay(mHolder.getSurface());
-            mediaRecorder.setMaxFileSize(maxFileSizeInBytes);
-
-            // 3. Start Preview - Call Camera.startPreview() to begin displaying the
-            //    live camera images.
-            Log.d(LOG_TAG, " startRecording --  set camera preview...");
-            mCamera.setPreviewDisplay(mHolder);
-            mCamera.startPreview();
-
-            // 4 Start Recording Video - The following steps must be
-            //   completed in order to successfully record video:
-
-            // 4.a Unlock the Camera - Unlock the camera for use by MediaRecorder by calling Camera.unlock().
-            Log.d(LOG_TAG, " startRecording --  unlock");
-            mCamera.unlock();
-
-            // 4.b Configure MediaRecorder
-            Log.d(LOG_TAG, " startRecording --  configure mediarecorder");
-
-            mediaRecorder.setCamera(mCamera);
-
-            // Call this only before setOutputFormat().
-            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-
-            //  Call this only before setOutputFormat().
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-
-            // Call this after setAudioSource()/setVideoSource() but before prepare().
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-
-            // Call this after setOutputFormat() and before prepare().
-            mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-
-            // Call this after setOutputFormat() but before prepare()
-            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        android.hardware.Camera.getCameraInfo(0, info);
 
 
-            // Call this after setOutFormat() but before prepare()
-            mediaRecorder.setMaxDuration(msecs);
+        int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
 
-            // Must be called after setVideoSource ...
-            mediaRecorder.setVideoFrameRate(videoFramesPerSecond);
-
-            // Must be called after setVideoSource
-            Log.d(LOG_TAG, "  size: " + getWidth() + "x" + getHeight());
-            mediaRecorder.setVideoSize(getWidth(), getHeight());
-
-
-            // Call this after setOutputFormat() but before prepare
-            mediaRecorder.setOutputFile(tempFile.getPath());
-
-            // 4.c Prepare MediaRecorder
-            Log.d(LOG_TAG, " startRecording --  prepare");
-            mediaRecorder.prepare();
-
-            // 4.d Start MediaRecorder
-            Log.d(LOG_TAG, " startRecording --  start()");
-            mediaRecorder.start();
-
-            cameraMode = CAMERA_MODE.VC_RECORD;
-
-            int cnt = 5;
-            while (cnt-- > 0) {
-                Log.d(LOG_TAG, "  cnt: " + cnt);
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-            Log.d(LOG_TAG, " startRecording --  STOP CAMERA!!");
-            stopCamera();
-            cameraMode = CAMERA_MODE.VC_CLOSED;
-            startPreview();
-
-
-            return true;
-        } catch (IllegalStateException e) {
-            Log.e(LOG_TAG, e.toString());
-            e.printStackTrace();
-            stopCamera();
-            return false;
-        } catch (IOException e) {
-            Log.e(LOG_TAG, e.getMessage());
-            e.printStackTrace();
-            stopCamera();
-            return false;
+        Log.d(LOG_TAG, "setCameraDisplay:  " + rotation);
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
         }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        Camera.Parameters parameters = mCamera.getParameters();
+        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        mCamera.setParameters(parameters);
+
+        mCamera.setDisplayOrientation(result);
     }
 
+    //@Override
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec) / 4;
+        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec) / 4;
+        openCamera();
+        Log.d(LOG_TAG, "onMeassure()");
+        Log.d(LOG_TAG, "onMeassure(): preview sizes" + mSupportedPreviewSizes);
+
+        if (mSupportedPreviewSizes != null) {
+            Log.d(LOG_TAG, "onMeassure(): looking for preview size");
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+        } else {
+            Log.d(LOG_TAG, "onMeassure(): could not find preview sizes....");
+            return;
+        }
+
+        Log.d(LOG_TAG, "onMeassure():    " + mPreviewSize);
+        if (mPreviewSize==null) {
+            Log.d(LOG_TAG, "onMeassure(): could not find preview size: null");
+            return;
+        }
+
+        float ratio;
+        if (mPreviewSize.height >= mPreviewSize.width)
+            ratio = (float) mPreviewSize.height / (float) mPreviewSize.width;
+        else
+            ratio = (float) mPreviewSize.width / (float) mPreviewSize.height;
+
+        // One of these methods should be used, second method squishes preview slightly
+        setMeasuredDimension(width, (int) (width * ratio));
+//        setMeasuredDimension((int) (width * ratio), height);
+    }
+
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) h / w;
+
+        if (sizes == null)
+            return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.height / size.width;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) {
+                Log.d(LOG_TAG, " continue");
+                continue;
+            }
+
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                Log.d(LOG_TAG, " if ...");
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        if (optimalSize == null) {
+            Log.d(LOG_TAG, " after ...");
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+
+        /*
+        int i=0;
+
+        for (Camera.Size size : sizes) {
+            Log.d(LOG_TAG, "Find via list: " + i + " " + sizes.size() +  " " + size.width + "x" + size.height) ;
+            if (i++>(sizes.size()-3)) {
+                Log.d(LOG_TAG, "Find via list: return: " + size.width + "x" + size.height) ;
+                return size;
+            }
+        }
+*/
+        return optimalSize;
+    }
 }

@@ -2,7 +2,7 @@ package com.sandklef.coachapp.model;
 
 import java.util.ArrayList;
 
-public class TrainingPhase extends Base {
+public class TrainingPhase extends CoachAppBase {
 
     public TrainingPhase(String uuid,
                          String name,

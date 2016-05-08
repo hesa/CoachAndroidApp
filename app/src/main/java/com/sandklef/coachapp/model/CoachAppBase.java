@@ -3,22 +3,20 @@ package com.sandklef.coachapp.model;
 import java.util.ArrayList;
 import com.sandklef.coachapp.storage.*;
 
-public class Base {
+public class CoachAppBase {
 
     private String uuid;
     private String name;
     private String clubUuid;
 
-    
-    public Base(String uuid,
-                String name,
-                String clubUuid) {
+
+    public CoachAppBase(String uuid,
+                        String name,
+                        String clubUuid) {
         this.uuid     = uuid;
         this.clubUuid = clubUuid;
         this.name     = name;
     }
-
-
 
     public String getUuid() {
         return uuid;

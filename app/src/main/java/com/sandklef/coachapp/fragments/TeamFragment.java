@@ -19,6 +19,7 @@ import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.util.ArrayList;
 
@@ -54,15 +55,19 @@ public class TeamFragment extends Fragment implements AbsListView.OnItemClickLis
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(LOG_TAG, " teams: " + getActivity());
-        Log.d(LOG_TAG, " teams: " + Storage.getInstance().getTeams());
-        Log.d(LOG_TAG, " teams: " + Storage.getInstance().getTeams());
+        try {
+            Log.d(LOG_TAG, " teams: " + getActivity());
+            Log.d(LOG_TAG, " teams: " + Storage.getInstance().getTeams());
+            Log.d(LOG_TAG, " teams: " + Storage.getInstance().getTeams());
 
 //        adapter = new ArrayAdapter<String>(getActivity().getApplicationContext(), android.R.layout.simple_spinner_item, arrayList);
-        mAdapter = new ArrayAdapter<Team>(getActivity(),
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                Storage.getInstance().getTeams()  );
+            mAdapter = new ArrayAdapter<Team>(getActivity(),
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    Storage.getInstance().getTeams()  );
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -115,9 +120,13 @@ public class TeamFragment extends Fragment implements AbsListView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
-            Team t= Storage.getInstance().getTeams().get((int)id);
-            Log.d(LOG_TAG, " member clicked: " + t.getUuid() + "  " + t);
-            mListener.onTeamFragmentInteraction(t);
+            try {
+                Team t= Storage.getInstance().getTeams().get((int)id);
+                Log.d(LOG_TAG, " member clicked: " + t.getUuid() + "  " + t);
+                mListener.onTeamFragmentInteraction(t);
+            } catch (StorageNoClubException e) {
+                e.printStackTrace();
+            }
         }
     }
 

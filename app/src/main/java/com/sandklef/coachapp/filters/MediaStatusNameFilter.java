@@ -2,7 +2,7 @@ package com.sandklef.coachapp.filters;
 
 
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Base;
+import com.sandklef.coachapp.model.CoachAppBase;
 import com.sandklef.coachapp.model.Media;
 
 public class MediaStatusNameFilter implements MediaFilter {

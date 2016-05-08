@@ -8,7 +8,12 @@ import android.provider.MediaStore;
 
 import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.model.Team;
+import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -118,6 +123,50 @@ public class ActivitySwitcher {
         //context.startActivity(intent);
         a.startActivityForResult(intent, VideoCapture.VIDEO_CAPTURE);
         return true;
+    }
+
+
+    public static void printDbFull() {
+        printDbImpl(true, "");
+    }
+
+    public static void printDb() {
+        printDbImpl(false, "");
+    }
+
+    public static void printDbFull(String s) {
+        printDbImpl(true, s);
+    }
+
+    public static void printDb(String s) {
+        printDbImpl(false, s);
+    }
+
+    private static void printDbImpl(boolean full, String prefix) {
+        try {
+            Log.d(LOG_TAG, prefix + "Teams:         " + Storage.getInstance().getTeams().size());
+            if (full) {
+                for (Team t : Storage.getInstance().getTeams()) {
+                    Log.d(LOG_TAG, " * " + t);
+                }
+            }
+            Log.d(LOG_TAG, prefix + "Trainingphases:" + Storage.getInstance().getTrainingPhases().size());
+            if (full) {
+                for (TrainingPhase t : Storage.getInstance().getTrainingPhases()) {
+                    Log.d(LOG_TAG, " * " + t);
+                }
+            }
+            Log.d(LOG_TAG, prefix + "Members:      " + Storage.getInstance().getMembers().size());
+            if (full) {
+                for (Member m : Storage.getInstance().getMembers()) {
+                    Log.d(LOG_TAG, " * " + m);
+                }
+            }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }

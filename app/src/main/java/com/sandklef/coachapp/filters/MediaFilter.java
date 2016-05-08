@@ -1,6 +1,5 @@
 package com.sandklef.coachapp.filters;
 
-import com.sandklef.coachapp.model.Base;
 import com.sandklef.coachapp.model.Media;
 
 /**

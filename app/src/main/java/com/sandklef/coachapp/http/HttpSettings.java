@@ -8,11 +8,13 @@ public class HttpSettings {
     public static final String PATH_SEPARATOR = "/";
     public static final String CLUB_PATH      = "clubs"  + PATH_SEPARATOR;
     public static final String VIDEO_URL_PATH = "videos" + PATH_SEPARATOR;
+    public static final String LOGIN_PATH     = "login" ;
     public static final String UUID_PATH      = "uuid"   + PATH_SEPARATOR;
     public static final String UPLOAD_PATH    = "upload";
     public static final String COMPOSITE_PATH = "composite";
     public static final String DOWNLOAD_PATH  = "download";
     public static final String CONTENT_STATUS = "Content-Type";
+    public static final String API_VERSION    = "0.0.0" + PATH_SEPARATOR;
 
     public static final String HTTP_POST      = "POST";
     public static final String HTTP_GET       = "GET";

@@ -3,6 +3,7 @@ package com.sandklef.coachapp.storage;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sandklef.coachapp.misc.CADateFormat;
@@ -24,21 +25,18 @@ public class Storage {
 
     //    private MemberStorageHelper memberStorage;
     //  private TeamStorageHelper teamStorage;
-    private BaseStorageHelper baseStorage;
-    private List<Member> members;
-    private List<Team> teams;
+    private BaseStorageHelper   baseStorage;
+    private List<Member>        members;
+    private List<Team>          teams;
     private List<TrainingPhase> trainingPhases;
-    private List<Media> media;
+    private List<Media>         media;
+    private List<LogMessage>    logs;
 
     private static Storage storage;
-    private static String currentClub;
 
 
     private Context context;
 
-    private String currentTeam;
-    private String currentTrainingPhase;
-    private String currentMember;
 
 
     public void updateDB(List<Member> members,
@@ -58,92 +56,157 @@ public class Storage {
             this.media = media;
         } catch (DBException e) {
             Log.d(LOG_TAG, "Failed getting hold of a db");
-                // TODO: remove report user stuff
+            // TODO: remove report user stuff
             ReportUser.warning(context, "Failed to get hold of db... :(");
         }
     }
 
-    public List<Member> getMembers() {
+    public List<Member> getMembers() throws StorageNoClubException {
         return baseStorage.getMembersFromDB();
     }
 
-    public List<Team> getTeams() {
-        return baseStorage.getTeamsFromDB();
+    public List<Member> getMembersTeam(String uuid) {
+        return baseStorage.getMembersTeamFromDB(uuid);
+    }
+
+    public List<Team> getTeams() throws StorageNoClubException {
+        if (teams==null) {
+            teams = baseStorage.getTeamsFromDB();
+        }
+        return teams;
     }
 
     //   public  List<TrainingPhase> getTrainingPhasesFromDB()
-    public List<TrainingPhase> getTrainingPhases() {
-        return baseStorage.getTrainingPhasesFromDB();
+    public List<TrainingPhase> getTrainingPhases() throws StorageNoClubException {
+        trainingPhases = baseStorage.getTrainingPhasesFromDB();
+        return trainingPhases;
     }
 
-    public List<Media> getMedia() {
+    public TrainingPhase getTrainingPhase(String uuid) {
+        for (TrainingPhase tp: trainingPhases) {
+            if (tp.getUuid().equals(uuid)){
+                return tp;
+            }
+        }
+        return null;
+    }
+
+    public Team getTeam(String uuid) {
+        for (Team t: teams) {
+            if (t.getUuid().equals(uuid)){
+                return t;
+            }
+        }
+        return null;
+    }
+
+    public List<Media> getMedia() throws StorageNoClubException {
         media = baseStorage.getMediaFromDB();
         return media;
     }
 
-    public void setMembers(List<Member> members) {
-        this.members = members;
+    public List<LogMessage> getLogMessage() {
+        logs = baseStorage.getLogMessageFromDB();
+        return logs;
     }
 
     public Media getMediaUuid(String uuid) {
-        if (media == null) {
-            media = getMedia();
-        }
-        Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
-        if (media != null) {
-            for (Media m : media) {
-                if (m.getUuid().equals(uuid)) {
-                    return m;
+        try {
+            if (media == null) {
+                media = getMedia();
+            }
+            Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
+            if (media != null) {
+                for (Media m : media) {
+                    if (m.getUuid().equals(uuid)) {
+                        return m;
+                    }
                 }
             }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
     public Media getMediaDate(String date) {
-        if (media == null) {
-            media = getMedia();
-        }
-        Log.d(LOG_TAG, "Search for media using date : " + date + "  in sizes media: " + media.size());
-        if (media != null) {
-            for (Media m : media) {
-                Log.d(LOG_TAG, " date comp: " + CADateFormat.getDateString(m.getDate()) + " ? " + date);
-                if (CADateFormat.getDateString(m.getDate()).equals(date)) {
-                    return m;
+        try {
+            if (media == null) {
+                media = getMedia();
+            }
+            Log.d(LOG_TAG, "Search for media using date : " + date + "  in sizes media: " + media.size());
+            if (media != null) {
+                for (Media m : media) {
+                    Log.d(LOG_TAG, " date comp: " + CADateFormat.getDateString(m.getDate()) + " ? " + date);
+                    if (CADateFormat.getDateString(m.getDate()).equals(date)) {
+                        return m;
+                    }
                 }
             }
+        }catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Media> getMediaTrainingPhase(String uuid) {
+        try {
+            if (media == null) {
+                media = getMedia();
+            }
+            List<Media> filteredMedia = new ArrayList<Media>();
+            Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
+            if (media != null) {
+                for (Media m : media) {
+                    if (m.getTrainingPhase().equals(uuid)) {
+                        filteredMedia.add(m);
+                    }
+                }
+            }
+            return filteredMedia;
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
     public Member getMemberTeam(String uuid) {
-        if (members == null) {
-            members = getMembers();
-        }
+        try {
+            if (members == null) {
+                members = getMembers();
+            }
 
-        Log.d(LOG_TAG, "  members: " + members.size());
+            Log.d(LOG_TAG, "  members: " + members.size());
 
-        if (members != null) {
-            for (Member m : members) {
-                if (m.getTeamUuid().equals(uuid)) {
-                    return m;
+            if (members != null) {
+                for (Member m : members) {
+                    if (m.getTeamUuid().equals(uuid)) {
+                        return m;
+                    }
                 }
             }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
     public Member getMemberUUid(String uuid) {
-        if (members == null) {
-            members = getMembers();
-        }
-        if (members != null) {
-            for (Member m : members) {
-                if (m.getUuid().equals(uuid)) {
-                    return m;
+        try {
+            if (members == null) {
+                members = getMembers();
+            }
+            if (members != null) {
+                for (Member m : members) {
+                    if (m.getUuid().equals(uuid)) {
+                        return m;
+                    }
                 }
             }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 
@@ -151,50 +214,39 @@ public class Storage {
         return storage;
     }
 
-    private Storage(String club, Context c) {
+    private Storage(Context c) {
         this.context = c;
-        baseStorage = new BaseStorageHelper(club, c);
-        /*memberStorage = new MemberStorageHelper(context);
-        teamStorage   = new TeamStorageHelper(context);
-   */
-        currentClub = club;
-        currentTeam = null;
-        currentTrainingPhase = null;
-        currentMember = null;
+        baseStorage = new BaseStorageHelper(c);
+            /*memberStorage = new MemberStorageHelper(context);
+            teamStorage   = new TeamStorageHelper(context);
+       */
+        //        LocalStorage.getInstance().setCurrentClub(club);
+        LocalStorage.getInstance().setCurrentTeam(null);
+        LocalStorage.getInstance().setCurrentTrainingPhase(null);
+        LocalStorage.getInstance().setCurrentMember(null);
     }
 
-    public void setCurrentTeam(String t) {
-        currentTeam = t;
+    public void setClubUuid(String club) {
+        baseStorage.setClubUuid(club);
     }
 
-    public String getCurrentTeam() {
-        return currentTeam;
-    }
 
-    public void setCurrentTrainingPhase(String tp) {
-        currentTrainingPhase = tp;
-    }
+    public static Storage newInstance(Context c) {
+        storage = new Storage(c);
 
-    public String setCurrentTrainingPhase() {
-        return currentTrainingPhase;
-    }
-
-    public void setCurrentMember(String m) {
-        currentMember = m;
-    }
-
-    public String getCurrentMember() {
-        return currentMember;
-    }
-
-    public static Storage newInstance(String club, Context c) {
-        storage = new Storage(club, c);
-        currentClub = club;
         return storage;
     }
 
     public void saveMedia(Media m) {
-        baseStorage.storeMedia(m);
+        try {
+            baseStorage.storeMedia(m);
+            if (media==null) {
+                getMedia();
+            }
+            media.add(m);
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean updateMediaState(Media m, int state) {
@@ -210,6 +262,23 @@ public class Storage {
     }
 
 
+    public void downloadMediaFromServer(Context c, Media m) {
+        try {
+            StorageRemoteWorker.AsyncBundle bundle;
+            StorageRemoteWorker srw;
+            bundle =
+                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_DOWNLOAD,
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m));
+            srw =
+                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
+            srw.execute(bundle);
+        } catch (StorageException e) {
+            Log.e(LOG_TAG, "Failed uploading media on server");
+            ReportUser.warning(c, "Failed uploading media on server");
+        }
+    }
+
+
     public void uploadMediaToServer(Context c, Media m) {
         try {
             StorageRemoteWorker.AsyncBundle bundle;
@@ -218,7 +287,7 @@ public class Storage {
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_UPLOAD,
                             new StorageRemoteWorker.SimpleAsyncBundle(0, m));
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub(), c);
+                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed uploading media on server");
@@ -235,7 +304,7 @@ public class Storage {
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_CREATE,
                             new StorageRemoteWorker.SimpleAsyncBundle(0, m));
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub(), c);
+                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed creating media on server");
@@ -250,13 +319,34 @@ public class Storage {
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_COMPOSITE);
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub(), c);
+                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed updating media from server " + e.getMessage());
             e.printStackTrace();
             ReportUser.warning(c, "Failed updating media from server");
         }
+    }
+
+    public void log(String msg) {
+        baseStorage.log(msg);
+    }
+
+    public List<LocalUser> getLocalUsers() {
+        return baseStorage.getLocalUserFromDB();
+    }
+
+    public LocalUser getLocalUser(int id) {
+        for (LocalUser lu: baseStorage.getLocalUserFromDB()) {
+            if (lu.getId()==id) {
+                return lu;
+            }
+        }
+        return null;
+    }
+
+    public void storeLocalUser(LocalUser lu) {
+        baseStorage.storeLocalUser(lu);
     }
 
 }

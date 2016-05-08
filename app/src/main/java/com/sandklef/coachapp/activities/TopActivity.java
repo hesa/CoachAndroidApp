@@ -29,6 +29,7 @@ import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 
 import android.os.Bundle;
@@ -79,11 +80,12 @@ public class TopActivity extends AppCompatActivity implements
        currentClub = new Club("e0b7098f-b7e1-4fe4-89bb-22c4d83f1141", "IK Nord");
 
 
-        Storage.newInstance(currentClub.getUuid(), getApplicationContext());
+        Storage.newInstance(getApplicationContext());
         LocalStorage.newInstance(getApplicationContext());
         LocalStorage.getInstance().setServerUrl("http://192.168.1.118:3000/0.0.0/");
         LocalStorage.getInstance().setCurrentClub(currentClub.getUuid());
 
+        try {
 
         // TEST
         Log.d(LOG_TAG, "Media new:");
@@ -129,6 +131,10 @@ public class TopActivity extends AppCompatActivity implements
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
         }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+
 
     }
 

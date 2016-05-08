@@ -1,23 +1,15 @@
 package com.sandklef.coachapp.model;
 
-import android.net.Uri;
-import android.provider.MediaStore;
-
 import com.sandklef.coachapp.misc.CADateFormat;
-import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Created by hesa on 2016-02-09.
  */
-public class Media extends Base {
+public class Media extends CoachAppBase {
 
     /*    public enum MediaStatus {*/
     public final static int MEDIA_STATUS_UNDEFINED     = 0;
@@ -58,7 +50,7 @@ public class Media extends Base {
         this.teamUuid = teamUuid;
         this.trainingPhaseUuid = trainingPhaseUuid;
         this.memberUuid = memberUuid;
-      //  Log.d(LOG_TAG, "<-- Constructing new Media ");
+        //  Log.d(LOG_TAG, "<-- Constructing new Media ");
     }
 
 

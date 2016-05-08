@@ -26,6 +26,7 @@ import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,19 +52,23 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 
         Log.d(LOG_TAG, "onCreate()");
 
-        mAdapter = new ArrayAdapter<TrainingPhase>(this,
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                Storage.getInstance().getTrainingPhases() );
-        Log.d(LOG_TAG, "onCreate()  adapter:" + mAdapter);
+        try {
+            mAdapter = new ArrayAdapter<TrainingPhase>(this,
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    Storage.getInstance().getTrainingPhases() );
+            Log.d(LOG_TAG, "onCreate()  adapter:" + mAdapter);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
-        ActionBar ab = getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(getResources().getString(R.string.trainingphase_list_title));
+            Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+            setSupportActionBar(myToolbar);
+            ActionBar ab = getSupportActionBar();
+            ab.setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(getResources().getString(R.string.trainingphase_list_title));
 
-        LocalStorage.getInstance().setCurrentMember(null);
+            LocalStorage.getInstance().setCurrentMember(null);
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -97,8 +102,12 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         String word = ((TextView) info.targetView).getText().toString();
         long id = info.id;
 
-        menu.setHeaderTitle("Select");
-        currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
+        try {
+            menu.setHeaderTitle("Select");
+            currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
 
         menu.add(0, v.getId(), 0, "Create instruction video");
 
@@ -119,14 +128,19 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         }
     }
 
-        @Override
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int)id);
-        Log.d(LOG_TAG, " training phase clicked: " + tp.getUuid() + "  " + tp);
+        try {
+            TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int)id);
+            Log.d(LOG_TAG, " training phase clicked: " + tp.getUuid() + "  " + tp);
 
-        LocalStorage.getInstance().setCurrentTrainingPhase(tp.getUuid());
-        ActivitySwitcher.startMemberActivity(this);
+            LocalStorage.getInstance().setCurrentTrainingPhase(tp.getUuid());
+            ActivitySwitcher.startMemberActivity(this);
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {

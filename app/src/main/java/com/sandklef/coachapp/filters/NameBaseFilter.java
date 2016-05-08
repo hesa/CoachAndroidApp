@@ -1,11 +1,7 @@
 package com.sandklef.coachapp.filters;
 
 
-import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Base;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.sandklef.coachapp.model.CoachAppBase;
 
 public class NameBaseFilter implements BaseFilter {
 
@@ -37,7 +33,7 @@ public class NameBaseFilter implements BaseFilter {
 */
 
     @Override
-    public boolean check(Base b) {
+    public boolean check(CoachAppBase b) {
         return b.toString().contains(this.name);
     }
 }
