@@ -36,7 +36,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
   //          this.c = c;
             this.clubUuid = clubUuid;
 
-            ja = new JsonAccess(clubUuid);
+            ja = new JsonAccess();
         } catch (JsonAccessException e) {
             throw new StorageException("Failed to create JsonAccess instance", e);
         }
@@ -52,23 +52,27 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         if (mode == Storage.MODE_COMPOSITE) {
             Log.d(LOG_TAG, " fetching JSON data in background");
             try {
-                JsonAccess.CompositeBundle cb = ja.update();
+                JsonAccess.CompositeBundle cb = ja.update(clubUuid);
+                Log.d(LOG_TAG, " fetching JSON data in background" + cb);
+                Log.d(LOG_TAG, " fetching JSON data in background" + cb.members.size());
 
                 Storage.getInstance().updateDB(cb.members,
                         cb.teams,
                         cb.media,
                         cb.tps);
+                return new AsyncBundle(Storage.MODE_COMPOSITE, cbundle.listener);
             } catch (JsonAccessException e) {
                 Log.d(LOG_TAG, "Failed getting Json data from server" + e.getMessage());
 // TODO: Fix ... make it possible to report to user
 //                ReportUser.warning(c, "Failed getting data from server");
+
             }
 
         } else if (mode == Storage.MODE_CREATE) {
             try {
-                String uuid = ja.createVideoOnServer(bundle.getMedia());
+                String uuid = ja.createVideoOnServer(clubUuid, bundle.getMedia());
                 Log.d(LOG_TAG, " creation seems to have work, uuid: " + uuid + "  and media: " + bundle.getMedia());
-                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid));
+                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid), null);
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
                 Log.e(LOG_TAG, " Could not create video on server" + e.getMessage());
@@ -76,9 +80,9 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
             }
         } else if (mode == Storage.MODE_UPLOAD) {
             try {
-                ja.uploadTrainingPhaseVideo(bundle.getMedia());
+                ja.uploadTrainingPhaseVideo(clubUuid, bundle.getMedia());
                 Log.d(LOG_TAG, " upload seems to have work with media: " + bundle.getMedia());
-                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()));
+                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()),null);
             } catch (JsonAccessException e) {
                 Log.e(LOG_TAG, " Failed uploading video to server: " + e.getMessage());
                 Storage.getInstance().log("Failed downloading video from server");
@@ -91,7 +95,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
             String videoUuid = m.getUuid();
             String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + JsonSettings.SERVER_VIDEO_SUFFIX;
             try {
-                ja.downloadVideo(file, videoUuid);
+                ja.downloadVideo(clubUuid, file, videoUuid);
                 LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
@@ -112,8 +116,9 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
         if (bundle != null) {
             int mode = bundle.getMode();
+            Log.d(LOG_TAG, " onPostExecute " + mode);
             CompositeAsyncBundle cam = bundle.getCompositeAsyncBundle();
-            SimpleAsyncBundle sam = bundle.getSimpleAsyncBundle();
+            SimpleAsyncBundle sam    = bundle.getSimpleAsyncBundle();
             /*
              *
              *  Store in DB
@@ -121,10 +126,12 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
              */
 
             if (mode == Storage.MODE_COMPOSITE) {
-                Storage.getInstance().updateDB(cam.getMembers(),
-                        cam.getTeams(),
-                        cam.getMedia(),
-                        cam.getTrainingPhases());
+                Log.d(LOG_TAG, " update storagelistener????");
+                Log.d(LOG_TAG, " update storagelistener???? " + bundle.listener);
+                if (bundle!=null && bundle.listener!=null) {
+                    Log.d(LOG_TAG, " update storagelistener");
+                    bundle.listener.onStorageUpdate();
+                }
             } else if (mode == Storage.MODE_CREATE) {
                 Log.d(LOG_TAG, " onPostExecute mode create");
                 String uuid = sam.getUuid();
@@ -223,29 +230,35 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         private int mode;
         private SimpleAsyncBundle sam;
         private CompositeAsyncBundle cam;
-
+        private StorageUpdateListeneer listener;
 
         public AsyncBundle(int mode,
                            List<Member> members,
                            List<Team> teams,
                            List<Media> media,
-                           List<TrainingPhase> tps) {
+                           List<TrainingPhase> tps,
+                           StorageUpdateListeneer listener) {
             this.cam = new CompositeAsyncBundle(members, teams, media, tps);
             this.mode = mode;
             this.sam = null;
+            this.listener = listener;
         }
 
         public AsyncBundle(int mode,
-                           SimpleAsyncBundle sam) {
+                           SimpleAsyncBundle sam,
+                           StorageUpdateListeneer listener) {
             this.mode = mode;
             this.cam = null;
             this.sam = sam;
+            this.listener = listener;
         }
 
-        public AsyncBundle(int mode) {
+        public AsyncBundle(int mode,
+                           StorageUpdateListeneer listener) {
             this.mode = mode;
             this.cam = null;
             this.sam = null;
+            this.listener = listener;
         }
 
         public int getMode() {

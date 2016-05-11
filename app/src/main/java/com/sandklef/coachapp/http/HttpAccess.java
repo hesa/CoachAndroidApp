@@ -42,25 +42,26 @@ public class HttpAccess {
     private String urlBase;
   //  private String serverUrl;
     private String serverUrlShort;
-    private String clubUri;
+//    private String clubUri;
 
 
+    /*
     public HttpAccess(String baseUrl, String clubUrl)throws HttpAccessException  {
         if (baseUrl==null || clubUrl==null) {
             throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ", " + clubUrl + ")");
         }
         this.urlBase   = baseUrl;
-        this.clubUri   = clubUrl;
+  //      this.clubUri   = clubUrl;
 //        this.serverUrl = urlBase ;
     }
 
-
+*/
     public HttpAccess(String baseUrl)throws HttpAccessException  {
         if (baseUrl==null ) {
-            throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ")");
+            throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ")", HttpAccessException.NETWORK_ERROR);
         }
         this.urlBase   = baseUrl;
-        this.clubUri   = "";
+    //    this.clubUri   = "";
     //    this.serverUrl = urlBase + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR ;
     }
 
@@ -91,10 +92,10 @@ public class HttpAccess {
                 Log.d(LOG_TAG, " server response ok, returning data");
                 response = EntityUtils.toString(resp.getEntity());
             } else {
-                throw new HttpAccessException("sendHttpPost failed");
+                throw new HttpAccessException("sendHttpPost failed", HttpAccessException.NETWORK_ERROR);
             }
         } catch (IOException e) {
-            throw new HttpAccessException("sendHttpPost failed", e);
+            throw new HttpAccessException("sendHttpPost failed", e, HttpAccessException.NETWORK_ERROR);
         }
         return response;
     }
@@ -108,7 +109,8 @@ public class HttpAccess {
 
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader("X-Token", token);
-        Log.d(LOG_TAG, "Server url: " + url + "  in readEntireCoachServer()");
+        Log.d(LOG_TAG, "Server url:   " + url + "  in readEntireCoachServer()");
+        Log.d(LOG_TAG, "Server token: " + token + " ");
         try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
@@ -123,16 +125,20 @@ public class HttpAccess {
                 }
             } else {
                 Log.d(LOG_TAG, "Failed to download file");
+                Log.d(LOG_TAG, " * " + response.getStatusLine().getStatusCode());
+                Log.d(LOG_TAG, " * " + response.getStatusLine());
+                Log.d(LOG_TAG, "Failed to download file" + response);
+                throw new HttpAccessException("readEntireCoachServer failed", HttpAccessException.ACCESS_ERROR);
             }
         } catch (ClientProtocolException e) {
-            throw new HttpAccessException("readEntireCoachServer failed", e);
+            throw new HttpAccessException("readEntireCoachServer failed", e, HttpAccessException.NETWORK_ERROR);
         } catch (IOException e) {
-            throw new HttpAccessException("readEntireCoachServer failed", e);
+            throw new HttpAccessException("readEntireCoachServer failed", e, HttpAccessException.NETWORK_ERROR);
         }
         return builder.toString();
     }
 
-    public String readEntireCoachServer(String token) throws HttpAccessException {
+    public String readEntireCoachServer(String token, String clubUri) throws HttpAccessException {
         return getFromServer(token, HttpSettings.PATH_SEPARATOR +
                 HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR +
                 clubUri + HttpSettings.PATH_SEPARATOR +  HttpSettings.COMPOSITE_PATH);
@@ -149,27 +155,27 @@ public class HttpAccess {
             Log.d(LOG_TAG, "getToken(" + data + ", " + header + ")");
             return sendHttpPost(new StringEntity(data), header, HttpSettings.PATH_SEPARATOR + HttpSettings.LOGIN_PATH);
         } catch (UnsupportedEncodingException e) {
-            throw new HttpAccessException("Failed encoding", e);
+            throw new HttpAccessException("Failed encoding", e, HttpAccessException.NETWORK_ERROR);
         }
     }
 
 
 
 
-    public String createVideo(String data, String header) throws HttpAccessException {
+    public String createVideo(String clubUri, String data, String header) throws HttpAccessException {
         HttpResponse resp = null;
         //$ curl --data "{ \"trainingPhaseUuid\": \"$TRAINING_PHASE_UUID\" }" --header "Content-Type: application/json" --request POST localhost:3000/0.0.0/clubs/$CLUB_UUID/videos
         try {
             Log.d(LOG_TAG, "createVideo(" + data + ", " + header + ")");
             return sendHttpPost(new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
         } catch (UnsupportedEncodingException e) {
-            throw new HttpAccessException("Failed encoding", e);
+            throw new HttpAccessException("Failed encoding", e, HttpAccessException.NETWORK_ERROR);
         }
     }
 
 
 
-    public void uploadTrainingPhaseVideo(String videoUuid,
+    public void uploadTrainingPhaseVideo(String clubUri, String videoUuid,
                                             String fileName) throws HttpAccessException {
 
         //$ curl --data-binary @sample.3gp --insecure --request POST https://localhost/api/0.0.0/clubs/$CLUB_UUID/videos/uuid/$VIDEO_UUID/upload
@@ -232,14 +238,14 @@ public class HttpAccess {
             outputStream.close();
 
         } catch (IOException e) {
-            throw new HttpAccessException("Failed uploading trainingphase video", e);
+            throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         } catch (Exception e) {
-            throw new HttpAccessException("Failed uploading trainingphase video", e);
+            throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         }
     }
 
 
-    public void downloadVideo(String file, String videoUuid)  throws HttpAccessException{
+    public void downloadVideo(String clubUri, String file, String videoUuid)  throws HttpAccessException{
         try {
             //$ GET http://localhost:3000/v0.0.0/clubs/<ID>/videos/uuid/<ID>/download
 //            String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + SERVER_VIDEO_SUFFIX;
@@ -295,10 +301,10 @@ public class HttpAccess {
                     + ((System.currentTimeMillis() - startTime) / 1000)
                     + " sec");
             if (!HttpSettings.isResponseOk(ucon.getResponseCode())) {
-                throw new HttpAccessException("Failed downloading video, response from server " + ucon.getResponseCode());
+                throw new HttpAccessException("Failed downloading video, response from server " + ucon.getResponseCode(), HttpAccessException.ACCESS_ERROR);
             }
         } catch (Exception e) {
-            throw new HttpAccessException("Failed downloading video", e);
+            throw new HttpAccessException("Failed downloading video", e, HttpAccessException.NETWORK_ERROR);
         }
     }
 }

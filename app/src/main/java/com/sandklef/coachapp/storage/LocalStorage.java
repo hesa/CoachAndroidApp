@@ -28,12 +28,14 @@ public class LocalStorage {
     private static final String CURRENT_TRAININGPHASE_KEY = "current-trainingphase";
     private static final String CURRENT_MEMBER_KEY        = "current-member";
     private static final String LATEST_USER_KEY           = "latest-user";
-
+    private static final String LATEST_USER_EMAIL_KEY     = "latest-user-email";
+    private static final String LATEST_USER_TOKEN_KEY     = "latest-user-token";
+    private static final String CURRENT_CONNECTION_STATUS = "current-satus";
     private String urlBase;
 
     private Context c;
 
-    private static String currentClub;
+//    private static String currentClub;
     private String currentTeam;
     private String currentTrainingPhase;
     private String currentMember;
@@ -93,14 +95,15 @@ public class LocalStorage {
         urlBase = url;
     }
 
-    public void storeSessionToken(String sessId) {
+   /* public void storeSessionToken(String sessId) {
         setKeyValueString(SESSION_KEY, sessId);
     }
 
     public void resetSessionToken() {
         setKeyValueString(SESSION_KEY, "");
-    }
+    }*/
 
+    /*
     public void setLatestUser(int id) {
         setKeyValueInt(LATEST_USER_KEY, id);
     }
@@ -108,10 +111,28 @@ public class LocalStorage {
     public int getLatestUser() {
         return getKeyValueInt(LATEST_USER_KEY);
     }
+    */
 
-    public String getSessionToken()               {
+    public void setLatestUserEmail(String email) {
+        setKeyValueString(LATEST_USER_EMAIL_KEY, email);
+    }
+
+    public String getLatestUserEmail() {
+        return getKeyValueString(LATEST_USER_EMAIL_KEY);
+    }
+
+    public void setLatestUserToken(String token) {
+        setKeyValueString(LATEST_USER_TOKEN_KEY, token);
+    }
+
+    public String getLatestUserToken() {
+        return getKeyValueString(LATEST_USER_TOKEN_KEY);
+    }
+
+/*    public String getSessionToken()               {
         return getKeyValueString(SESSION_KEY);
     }
+*/
 
     public String getKeyValueString(String key) {
         return settings.getString(key, "");
@@ -143,12 +164,13 @@ public class LocalStorage {
         return getKeyValueString(CURRENT_CLUB_KEY);
     }
     */
+
     public void setCurrentClub(String t) {
-        currentClub = t;
+        setKeyValueString(CURRENT_CLUB_KEY, t);
     }
 
     public String getCurrentClub() {
-        return currentClub;
+        return getKeyValueString(CURRENT_CLUB_KEY);
     }
 
     public void setCurrentTeam(String t) {
@@ -170,6 +192,7 @@ public class LocalStorage {
     public void setCurrentMember(String m) {
         currentMember = m;
     }
+
     public String getCurrentMember() {
         return currentMember;
     }
@@ -199,6 +222,13 @@ public class LocalStorage {
     }
 */
 
+    public void setConnectionStatus(int mode) {
+        setKeyValueInt(CURRENT_CONNECTION_STATUS, mode);
+    }
+
+    public int getConnectionStatus() {
+        return getKeyValueInt(CURRENT_CONNECTION_STATUS);
+    }
 
 
     public String getAppDir() {

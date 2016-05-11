@@ -37,7 +37,7 @@ public class Storage {
 
     private Context context;
 
-
+    StorageUpdateListeneer listener;
 
     public void updateDB(List<Member> members,
                          List<Team> teams,
@@ -224,12 +224,12 @@ public class Storage {
         LocalStorage.getInstance().setCurrentTeam(null);
         LocalStorage.getInstance().setCurrentTrainingPhase(null);
         LocalStorage.getInstance().setCurrentMember(null);
+
     }
 
     public void setClubUuid(String club) {
         baseStorage.setClubUuid(club);
     }
-
 
     public static Storage newInstance(Context c) {
         storage = new Storage(c);
@@ -268,7 +268,7 @@ public class Storage {
             StorageRemoteWorker srw;
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_DOWNLOAD,
-                            new StorageRemoteWorker.SimpleAsyncBundle(0, m));
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m), null);
             srw =
                     new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
@@ -285,7 +285,7 @@ public class Storage {
             StorageRemoteWorker srw;
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_UPLOAD,
-                            new StorageRemoteWorker.SimpleAsyncBundle(0, m));
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m), null);
             srw =
                     new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
@@ -302,7 +302,8 @@ public class Storage {
             StorageRemoteWorker srw;
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_CREATE,
-                            new StorageRemoteWorker.SimpleAsyncBundle(0, m));
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m),
+                            listener);
             srw =
                     new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
@@ -312,12 +313,12 @@ public class Storage {
         }
     }
 
-    public void update(Context c) {
+    public void update(Context c, StorageUpdateListeneer l) {
         try {
             StorageRemoteWorker.AsyncBundle bundle;
             StorageRemoteWorker srw;
             bundle =
-                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_COMPOSITE);
+                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_COMPOSITE, l);
             srw =
                     new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
             srw.execute(bundle);
@@ -332,7 +333,7 @@ public class Storage {
         baseStorage.log(msg);
     }
 
-    public List<LocalUser> getLocalUsers() {
+/*    public List<LocalUser> getLocalUsers() {
         return baseStorage.getLocalUserFromDB();
     }
 
@@ -347,6 +348,12 @@ public class Storage {
 
     public void storeLocalUser(LocalUser lu) {
         baseStorage.storeLocalUser(lu);
+    }
+
+*/
+
+    public void registerStorageListener(StorageUpdateListeneer l) {
+        listener = l;
     }
 
 }

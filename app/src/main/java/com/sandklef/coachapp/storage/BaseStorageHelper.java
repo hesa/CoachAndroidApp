@@ -184,6 +184,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         return projsArray;
     }
 
+
     public void setClubUuid(String club) {
         currentClubUuid = club;
     }

@@ -30,6 +30,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.sandklef.coachapp.Auth.Authenticator;
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.model.Club;
@@ -122,9 +123,28 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
         Log.d(LOG_TAG, "init : " + this);
         context = this;
         Log.d(LOG_TAG, "init : " + context);
-        BootStrapApp.init(context);
+    }
 
-        Log.d(LOG_TAG, "LatestUser: " + LocalStorage.getInstance().getLatestUser());
+    @Override
+    public void onStart() {
+        super.onStart();
+        CoachAppSession.init(context);
+
+        Log.d(LOG_TAG, "  saved token=? " + LocalStorage.getInstance().getLatestUserToken());
+        final String token = LocalStorage.getInstance().getLatestUserToken();
+        if (token != null && token.length()>8) {
+
+            Button b = (Button) findViewById(R.id.token_sign_in_button);
+            b.setVisibility(View.VISIBLE);
+            b.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(LOG_TAG, " checking saved token: " + token);
+                    ActivitySwitcher.startTeamActivity(context);
+                }
+            });
+
+        }
 
     }
 
@@ -284,6 +304,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
     }
 
 
+
     private interface ProfileQuery {
         String[] PROJECTION = {
                 ContactsContract.CommonDataKinds.Email.ADDRESS,
@@ -318,16 +339,17 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             try {
                 // For now, only one user
                 // TODO: support multiple users
-                int userId = LocalStorage.getInstance().getLatestUser();
-                Log.d(LOG_TAG, "LatestUser id: " + userId) ;
+                String userEmail = LocalStorage.getInstance().getLatestUserEmail();
+                Log.d(LOG_TAG, "LatestUser email: " + userEmail) ;
 
-                Log.d(LOG_TAG, "Storage:   " + Storage.getInstance()) ;
+                String token = LocalStorage.getInstance().getLatestUserToken();
+                Log.d(LOG_TAG, "LatestUser token: " + token) ;
 
-                LocalUser lu  = Storage.getInstance().getLocalUser(userId);
-                Log.d(LOG_TAG, "LatestUser:   " + lu) ;
+//                LocalUser lu  = Storage.getInstance().getLocalUser(userId);
+                //              Log.d(LOG_TAG, "LatestUser:   " + lu) ;
 
 
-                String token      = null;
+/*                String token      = null;
 
                 if (lu!=null) {
                     token      = lu.getToken();
@@ -335,7 +357,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                 } else {
                     Log.d(LOG_TAG, "Latest User null, token still null");
                 }
-
+*/
                 JsonAccess jsa    = new JsonAccess();
 
                 if (token!=null && !token.equals("")) {
@@ -344,46 +366,21 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                     Log.d(LOG_TAG, "Not using saved token: " + token);
 //                    token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
                     token = jsa.getToken(mEmail, mPassword);
-                    LocalStorage.getInstance().storeSessionToken(token);
+                    LocalStorage.getInstance().setLatestUserToken(token);
                     Log.d(LOG_TAG, "Token: " + token);
                     if (token==null || token.equals("")){
                         return false;
                     }
                 }
 
-                List <Club> clubs = jsa.getClubs(token);
-                Log.d(LOG_TAG, "Clubs: " + Arrays.toString(clubs.toArray()));
+                CoachAppSession.verifyToken(token);
 
-                List<String> clubsStrings = new ArrayList<String>();
-                for (Club c: clubs) {
-                    clubsStrings.add(c.getUuid());
-                }
-
-                Club primaryClub = clubs.get(0);
-
-                // TODO: register the new account here.
-                Storage.getInstance().storeLocalUser(new LocalUser(
-                        -1,
-                        null,
-                        mEmail,
-                        null,
-                        clubsStrings,
-                        // Always use 0th element, since we're only supporting ONE club TODO: extend to multiple
-                        primaryClub.getUuid(),
-                        token));
-
-                Log.d(LOG_TAG, " Localuser stored...");
-
-                Log.d(LOG_TAG, "Using club: " + primaryClub.getClubUuid());
-                BootStrapApp.initClub(primaryClub);
-
-                ActivitySwitcher.printDb("LoginActivity");
-
+                CoachAppSession.startUp(mEmail, token);
                 return true;
+
             } catch (JsonAccessException e) {
                 Log.d(LOG_TAG, "Failed to get token." + e);
                 e.printStackTrace();
-                return false;
             }
 
 
@@ -415,6 +412,8 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             // TODO: register the new account here.
             return true;
             */
+
+            return false;
         }
 
         @Override

@@ -13,24 +13,28 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Club;
+import com.sandklef.coachapp.model.CoachAppBase;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
 import com.sandklef.coachapp.storage.StorageNoClubException;
+import com.sandklef.coachapp.storage.StorageUpdateListeneer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
 
-public class TeamsActivity extends AppCompatActivity implements AbsListView.OnItemClickListener {
+public class TeamsActivity extends AppCompatActivity implements AbsListView.OnItemClickListener, StorageUpdateListeneer {
 
 
-//    private ListView list;
+    //    private ListView list;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> arrayList;
 
@@ -45,6 +49,7 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teams);
+        CoachAppSession.setupActivity();
 
         ActivitySwitcher.printDb("TeamsActivity");
 
@@ -69,6 +74,9 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
 /*        ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
         */
+
+
+
         } catch (StorageNoClubException e) {
             e.printStackTrace();
         }
@@ -77,15 +85,13 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
 
     public void updateFromServer() {
         Log.d(LOG_TAG, "Initiate update from server");
-        Storage.getInstance().update(getApplicationContext());
+        Storage.getInstance().update(getApplicationContext(), this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.top_menu, menu);
-
-
         return true;
     }
 
@@ -94,6 +100,8 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
         super.onStart();
 
         Log.d(LOG_TAG, "onStart()");
+
+        Log.d(LOG_TAG, "onStart() " +         LocalStorage.getInstance().getCurrentClub());
 
         // Set the adapter
         mListView = (ListView) findViewById(R.id.team_list);
@@ -139,18 +147,7 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
                 return true;
             case R.id.menu_refresh:
                 Log.d(LOG_TAG, "  refresh");
-                mListView.setAdapter(null);
-                mAdapter.clear();
-                try {
-                    mAdapter = new ArrayAdapter<Team>(this,
-                            android.R.layout.simple_list_item_1,
-                            android.R.id.text1,
-                            Storage.getInstance().getTeams());
-                    mListView.setAdapter(mAdapter);
-                } catch (StorageNoClubException e) {
-                    e.printStackTrace();
-                }
-
+                updateFromServer();
 
                 return true;
 
@@ -160,4 +157,27 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
         }
     }
 
+
+
+    @Override
+    public void onStorageUpdate() {
+        Log.d(LOG_TAG, "onStorageUpdate()");
+        try {
+            List<Team> teams = Storage.getInstance().getTeams();
+            Log.d(LOG_TAG, "refresh()  teams: " + teams.size());
+            for (Team t: Storage.getInstance().getTeams()) {
+                Log.d(LOG_TAG, " * " + t.getName() + " " + t.getUuid());
+            }
+
+            mListView.setAdapter(null);
+            mAdapter.clear();
+            mAdapter = new ArrayAdapter<Team>(this,
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    teams);
+            mListView.setAdapter(mAdapter);
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+    }
 }

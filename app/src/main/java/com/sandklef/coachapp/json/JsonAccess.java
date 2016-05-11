@@ -32,8 +32,9 @@ public class JsonAccess  {
 
     private String jsonString;
 
-    public JsonAccess(String club /*, Context context*/) throws JsonAccessException {
-        if (club == null /*|| context == null*/) {
+    /*
+    public JsonAccess(String club ) throws JsonAccessException {
+        if (club == null ) {
             throw new JsonAccessException(
                     "NULL pointer passed to constructor (" + club + ")");
         }
@@ -45,13 +46,14 @@ public class JsonAccess  {
             throw new JsonAccessException("Could not access Http", e);
         }
     }
+*/
 
     public JsonAccess() throws JsonAccessException {
         try {
             this.httpAccess =
                     new HttpAccess(LocalStorage.getInstance().getServerUrl());
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Could not access Http", e);
+            throw new JsonAccessException("Could not access Http", e, JsonAccessException.NETWORK_ERROR);
         }
     }
 
@@ -63,7 +65,8 @@ public class JsonAccess  {
     }
 
 
-    public List<Club> getClubs(String token) throws JsonAccessException  {
+    public  List<Club> getClubs(String token) throws JsonAccessException  {
+        Log.d(LOG_TAG, "getClubs()");
         List<Club> clubs = new ArrayList<Club>();
         try {
             String jsonData = httpAccess.getClubs(token);
@@ -84,14 +87,15 @@ public class JsonAccess  {
                 Log.d(LOG_TAG, " * " + uuid + " - " + name);
                 clubs.add(new Club(uuid, name));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        } catch (JSONException e) {
+            throw new JsonAccessException("Failed parsing JSON", e, JsonAccessException.ACCESS_ERROR);
+        } catch (HttpAccessException e) {
+            throw new JsonAccessException(e, e.getMode());
         }
         return clubs;
     }
 
-    public CompositeBundle update() throws JsonAccessException {
+    public CompositeBundle update(String clubUri) throws JsonAccessException {
         CompositeBundle bundle = new CompositeBundle();
         try {
                 /*
@@ -100,7 +104,7 @@ public class JsonAccess  {
                  *
                  */
             Log.d(LOG_TAG, "Read entire coach server");
-            jsonString = readEntireCoachServer();
+            jsonString = readEntireCoachServer(clubUri);
             JSONObject json = new JSONObject(jsonString);
 
             Log.d(LOG_TAG, " json: " + jsonString);
@@ -121,19 +125,21 @@ public class JsonAccess  {
 
             bundle.tps = extractTrainingPhases(json);
             Log.d(LOG_TAG, "TrainingPhase:  " + bundle.tps.size() + "   " + bundle.tps);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             e.printStackTrace();
-            throw new JsonAccessException("Failed receiving data from server", e);
+            throw new JsonAccessException("Failed receiving data from server", e, JsonAccessException.ACCESS_ERROR);
         }
         return bundle;
     }
 
 
-    public String readEntireCoachServer() throws JsonAccessException {
+    public String readEntireCoachServer(String clubUri) throws JsonAccessException {
         try {
-            return httpAccess.readEntireCoachServer(LocalStorage.getInstance().getSessionToken());
+            Log.d(LOG_TAG, "readEntireCoachServer(...):  token:" + LocalStorage.getInstance().getLatestUserToken());
+            return httpAccess.readEntireCoachServer(LocalStorage.getInstance().getLatestUserToken(), clubUri);
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed reading composite view", e);
+            e.printStackTrace();
+            throw new JsonAccessException("Failed reading composite view", e, e.getMode());
         }
     }
 
@@ -150,10 +156,10 @@ public class JsonAccess  {
             String token    = json.getString(JsonSettings.TOKEN_TAG);
             return new JSONObject(token).getString(JsonSettings.TOKEN_TAG);
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed getting token: ", e);
+            throw new JsonAccessException("Failed getting token: ", e, e.getMode());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new JsonAccessException("Failed getting token: ", e);
+            throw new JsonAccessException("Failed getting token: ", e, JsonAccessException.ACCESS_ERROR);
         }
     }
 
@@ -305,36 +311,36 @@ public class JsonAccess  {
     }
 
 
-    public void downloadVideo(String file, String videoUuid) throws JsonAccessException {
+    public void downloadVideo(String clubUri, String file, String videoUuid) throws JsonAccessException {
         try {
-            httpAccess.downloadVideo(file, videoUuid);
+            httpAccess.downloadVideo(clubUri, file, videoUuid);
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed downloading video: " + videoUuid, e);
+            throw new JsonAccessException("Failed downloading video: " + videoUuid, e.getMode());
         }
     }
 
-    public void uploadTrainingPhaseVideo(Media m) throws JsonAccessException {
+    public void uploadTrainingPhaseVideo(String clubUri, Media m) throws JsonAccessException {
 
         Log.d(LOG_TAG, "   upload file: " + m.fileName());
         Log.d(LOG_TAG, "      uuid    : " + m.getUuid());
         try {
-            httpAccess.uploadTrainingPhaseVideo(m.getUuid(), m.fileName());
+            httpAccess.uploadTrainingPhaseVideo(clubUri, m.getUuid(), m.fileName());
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed to access http", e);
+            throw new JsonAccessException("Failed to access http", e, e.getMode());
         }
     }
 
-    public String createVideoOnServer(Media m) throws JsonAccessException {
+    public String createVideoOnServer(String clubUri, Media m) throws JsonAccessException {
         Log.d(LOG_TAG, "createVideoOnServer()");
         String trainingPhaseUuid = m.getTrainingPhase();
         if (trainingPhaseUuid.length() < 3) {
-            throw new JsonAccessException("No TrainingPhase id");
+            throw new JsonAccessException("No TrainingPhase id", JsonAccessException.ACCESS_ERROR);
         }
         String jsonData = "{ \"trainingPhaseUuid\": \"" + trainingPhaseUuid + "\" }";
         String header = "application/json";
 
         try {
-            String jsonString = httpAccess.createVideo(jsonData, header);
+            String jsonString = httpAccess.createVideo(clubUri, jsonData, header);
             Log.d(LOG_TAG, jsonString);
             JSONObject jo = new JSONObject(jsonString);
             String uuid = jo.getString("uuid");
@@ -344,9 +350,9 @@ public class JsonAccess  {
 //            if (state.equals("empty")) {
             return uuid;
         } catch (JSONException e) {
-            throw new JsonAccessException("Failed requesting new uuid", e);
+            throw new JsonAccessException("Failed requesting new uuid", e, JsonAccessException.ACCESS_ERROR);
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed requesting new uuid", e);
+            throw new JsonAccessException("Failed requesting new uuid", e.getMode());
         }
     }
 

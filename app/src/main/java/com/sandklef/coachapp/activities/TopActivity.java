@@ -142,7 +142,7 @@ public class TopActivity extends AppCompatActivity implements
 
     public void updateFromServer() {
         Log.d(LOG_TAG, "Initiate update from server");
-        Storage.getInstance().update(getApplicationContext());
+        Storage.getInstance().update(getApplicationContext(), null);
     }
 
     @Override
