@@ -60,7 +60,7 @@ public class JsonAccess  {
     public class CompositeBundle {
         public List<Member> members;
         public List<Team> teams;
-        public List<Media> media;
+//        public List<Media> media;
         public List<TrainingPhase> tps;
     }
 
@@ -116,13 +116,16 @@ public class JsonAccess  {
 
             bundle.members = extractMembers(json);
             Log.d(LOG_TAG, "Members:  " + bundle.members.size() + "   " + bundle.members);
+            for (Member m: bundle.members) {
+                Log.d(LOG_TAG, " * " + m);
+            }
 
             bundle.teams = extractTeams(json);
             Log.d(LOG_TAG, "Teams:  " + bundle.teams.size() + "   " + bundle.teams);
 
-            bundle.media = extractVideos(json);
+  /*          bundle.media = extractVideos(json);
             Log.d(LOG_TAG, "Media:  " + bundle.media.size() + "   " + bundle.media);
-
+*/
             bundle.tps = extractTrainingPhases(json);
             Log.d(LOG_TAG, "TrainingPhase:  " + bundle.tps.size() + "   " + bundle.tps);
         } catch (JSONException e) {
@@ -155,8 +158,6 @@ public class JsonAccess  {
             JSONObject json = new JSONObject(jsonData);
             String token    = json.getString(JsonSettings.TOKEN_TAG);
             return new JSONObject(token).getString(JsonSettings.TOKEN_TAG);
-        } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed getting token: ", e, e.getMode());
         } catch (Exception e) {
             e.printStackTrace();
             throw new JsonAccessException("Failed getting token: ", e, JsonAccessException.ACCESS_ERROR);
@@ -226,7 +227,8 @@ public class JsonAccess  {
                 String uuid = jo.getString(JsonSettings.UUID_TAG);
                 String name = jo.getString(JsonSettings.NAME_TAG);
                 String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
-                TrainingPhase m = new TrainingPhase(uuid, name, clubUuid);
+                String videoUuid = jo.getString(JsonSettings.VIDEO_TAG);
+                TrainingPhase m = new TrainingPhase(uuid, name, clubUuid, videoUuid);
                 tps.add(m);
             }
         } catch (Exception e) {
@@ -251,7 +253,7 @@ public class JsonAccess  {
         return Media.MEDIA_STATUS_UPLOAD_FAILED;
     }
 
-    public List<Media> extractVideos(JSONObject json) {
+/*    public List<Media> extractVideos(JSONObject json) {
         List<Media> media = new ArrayList<Media>();
 
         try {
@@ -309,7 +311,7 @@ public class JsonAccess  {
         }
         return media;
     }
-
+*/
 
     public void downloadVideo(String clubUri, String file, String videoUuid) throws JsonAccessException {
         try {
@@ -330,6 +332,9 @@ public class JsonAccess  {
         }
     }
 
+
+
+
     public String createVideoOnServer(String clubUri, Media m) throws JsonAccessException {
         Log.d(LOG_TAG, "createVideoOnServer()");
         String trainingPhaseUuid = m.getTrainingPhase();
@@ -340,7 +345,7 @@ public class JsonAccess  {
         String header = "application/json";
 
         try {
-            String jsonString = httpAccess.createVideo(clubUri, jsonData, header);
+            String jsonString = httpAccess.createVideo(LocalStorage.getInstance().getLatestUserToken(), clubUri, jsonData, header);
             Log.d(LOG_TAG, jsonString);
             JSONObject jo = new JSONObject(jsonString);
             String uuid = jo.getString("uuid");

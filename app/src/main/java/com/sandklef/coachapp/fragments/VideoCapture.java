@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.MediaStore;
@@ -16,8 +18,11 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.animation.Animation;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.activities.ActivitySwitcher;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
+import com.sandklef.coachapp.report.ReportUser;
 import com.sandklef.coachapp.storage.LocalMediaStorage;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
@@ -27,6 +32,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback {
+
+    public static final int DEFAULT_TP_RECORDING_TIME    = 5; // secs to record a member
+    public static final int DEFAULT_INSTR_RECORDING_TIME = 10; // secs to record an instruction
 
     private final static String LOG_TAG = VideoCapture.class.getSimpleName();
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
@@ -76,12 +84,10 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     public void openCamera() {
+        Log.d(LOG_TAG, "openCamere()  open camera()");
         if (mCamera != null) {
             return;
-//            Log.d(LOG_TAG, "openCamere()  release camera");
-//            mCamera.release();
         }
-        Log.d(LOG_TAG, "openCamere()  open camera()");
         try {
             mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
             if (mCamera == null) {
@@ -89,16 +95,22 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
                 mCamera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
             }
             mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
-            for (Camera.Size str : mSupportedPreviewSizes)
+            /*for (Camera.Size str : mSupportedPreviewSizes)
                 Log.d(LOG_TAG, str.width + "/" + str.height);
+            */
             Camera.Parameters params = mCamera.getParameters();
             params.setRecordingHint(true);
             mCamera.setParameters(params);
             Log.d(LOG_TAG, "openCamere()  camera: " + mCamera);
+            return;
         } catch (RuntimeException re) {
             Log.d(LOG_TAG, "Failed to get hold of camera");
             re.printStackTrace();
         }
+        ReportUser.warning(CoachAppSession.getInstance().getContext(),
+                "Could not open Camera", "Failed to get hold the camera. ");
+        CoachAppSession.getInstance().getCurrentActivity().finish();
+        //ActivitySwitcher.startTrainingActivity(CoachAppSession.getInstance().getCurrentActivity());
 
     }
 
@@ -126,13 +138,83 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
             // ignore: tried to stop a non-existent preview
         }
     }
+    public void startRecordInstructional(String fileName) {
+        RecordTaskSettings rts =
+                new RecordTaskSettings(fileName,
+                        LocalStorage.getInstance().getInstructionalRecordingTime(),
+                        REC_TYPE_INSTR);
+        new RecordTask().execute(rts);
+    }
 
-    public void startRecord() {
+    public void startRecordTP(String fileName) {
+        Log.d(LOG_TAG, "startRecordTP()");
+        RecordTaskSettings rts =
+                new RecordTaskSettings(fileName,
+                        LocalStorage.getInstance().getTPRecordingTime(),
+                        REC_TYPE_TP);
+        new RecordTask().execute(rts);
+//        startRecordImpl(rts);
+
+    }
+
+    private static final int REC_TYPE_TP    = 0 ;
+    private static final int REC_TYPE_INSTR = 1 ;
+
+    private class RecordTaskSettings {
+        String fileName;
+        int    recTime;
+        int    recType;
+
+        private  RecordTaskSettings(String file, int rec, int type) {
+            fileName = file;
+            recTime  = rec;
+            recType  = type;
+        }
+    }
+
+    private class RecordTaskResult {
+    }
+
+    private class RecordTask extends AsyncTask<RecordTaskSettings, Void, RecordTaskResult> {
+
+        @Override
+        protected RecordTaskResult doInBackground(RecordTaskSettings... params) {
+            Log.d(LOG_TAG, "RecordTask doInBackground()");
+            RecordTaskSettings rts = params[0];
+            int ret = startRecord(rts);
+
+            //
+            return new RecordTaskResult();
+        }
+
+        @Override
+        protected void onPostExecute(RecordTaskResult rtr) {
+            ReportUser.warning(CoachAppSession.getInstance().getCurrentActivity(),
+                    "Video recorded", "Finished recording video");
+        }
+
+        private int startRecord(RecordTaskSettings rt) {
+            Log.d(LOG_TAG, "RecordTaskResult startRecord()");
+            return startRecordImpl(rt);
+        }
+    }
+
+
+    private int startRecordImpl(RecordTaskSettings rt) {
+        Log.d(LOG_TAG, "startRecordImpl()");
+        String fileName = rt.fileName;
+        int    recTime  = rt.recTime;
+
+        Log.d(LOG_TAG, "startRecordImpl: file: " + fileName);
+        Log.d(LOG_TAG, "startRecordImpl: time: " + recTime);
+
+
+        int delay = 1;
     /*
     Open Camera - Use the Camera.open() to get an instance of the camera object.
     */
         // already done
-    openCamera();
+        openCamera();
 
 /* Connect Preview - Prepare a live camera image preview by connecting a SurfaceView to the camera using Camera.setPreviewDisplay().
 Start Preview - Call Camera.startPreview() to begin displaying the live camera images.
@@ -161,12 +243,17 @@ Caution: You must call these MediaRecorder configuration methods in this order, 
 
         mediaRecorder.setCamera(mCamera);
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+
+        // NEW
+//        mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+
+
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-        mediaRecorder.setOutputFile("/mnt/sdcard/apa.mp4");
-      //  mediaRecorder.setPreviewDisplay((Surface) mHolder);
+        mediaRecorder.setOutputFile(fileName);
+        //  mediaRecorder.setPreviewDisplay((Surface) mHolder);
 
         /*
 Prepare MediaRecorder - Prepare the MediaRecorder with provided configuration settings by calling MediaRecorder.prepare().
@@ -176,18 +263,37 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
             mediaRecorder.prepare();
         } catch (IOException e) {
             Log.d(LOG_TAG, "IOException in VideoCapture");
+            e.printStackTrace();
+            return -1;
         }
+
+        /*
+        Log.d(LOG_TAG, "sleeping secs: " + delay);
+        try {
+            Thread.sleep(delay*1000);
+        } catch (Exception e) {
+            e.getLocalizedMessage();
+        }
+*/
 
         Log.d(LOG_TAG, "start recording");
         mediaRecorder.start();
 
-        Log.d(LOG_TAG, "sleep 2 secs");
-        SystemClock.sleep(2000);
-        Log.d(LOG_TAG, "slept 2 secs");
+        Log.d(LOG_TAG, "record for secs: " + recTime);
+        try {
+            Thread.sleep(recTime*1000);
+        } catch (Exception e) {
+            e.getLocalizedMessage();
+            return -2;
+        }
+        Log.d(LOG_TAG, "record for secs: " + recTime + " done");
+//        SystemClock.sleep(recTime);
 
         Log.d(LOG_TAG, "stop recording");
         stopRecord();
         startPreview();
+
+        return 0;
     }
 
 
@@ -334,7 +440,6 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         mCamera.setParameters(parameters);
-
         mCamera.setDisplayOrientation(result);
     }
 
@@ -345,20 +450,21 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec) / 4;
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec) / 4;
         openCamera();
-        Log.d(LOG_TAG, "onMeassure()");
-        Log.d(LOG_TAG, "onMeassure(): preview sizes" + mSupportedPreviewSizes);
+    //    Log.d(LOG_TAG, "onMeassure()");
+      //  Log.d(LOG_TAG, "onMeassure(): preview sizes" + mSupportedPreviewSizes);
 
         if (mSupportedPreviewSizes != null) {
-            Log.d(LOG_TAG, "onMeassure(): looking for preview size");
+        //    Log.d(LOG_TAG, "onMeassure(): looking for preview size");
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
         } else {
-            Log.d(LOG_TAG, "onMeassure(): could not find preview sizes....");
+          //  Log.d(LOG_TAG, "onMeassure(): could not find preview sizes....");
+            CoachAppSession.getInstance().getCurrentActivity().finish();
             return;
         }
 
-        Log.d(LOG_TAG, "onMeassure():    " + mPreviewSize);
+//        Log.d(LOG_TAG, "onMeassure():    " + mPreviewSize);
         if (mPreviewSize==null) {
-            Log.d(LOG_TAG, "onMeassure(): could not find preview size: null");
+  //          Log.d(LOG_TAG, "onMeassure(): could not find preview size: null");
             return;
         }
 
@@ -389,19 +495,19 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
         for (Camera.Size size : sizes) {
             double ratio = (double) size.height / size.width;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) {
-                Log.d(LOG_TAG, " continue");
+               // Log.d(LOG_TAG, " continue");
                 continue;
             }
 
             if (Math.abs(size.height - targetHeight) < minDiff) {
-                Log.d(LOG_TAG, " if ...");
+  //              Log.d(LOG_TAG, " if ...");
                 optimalSize = size;
                 minDiff = Math.abs(size.height - targetHeight);
             }
         }
 
         if (optimalSize == null) {
-            Log.d(LOG_TAG, " after ...");
+//            Log.d(LOG_TAG, " after ...");
             minDiff = Double.MAX_VALUE;
             for (Camera.Size size : sizes) {
                 if (Math.abs(size.height - targetHeight) < minDiff) {

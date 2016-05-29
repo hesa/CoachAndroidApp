@@ -1,5 +1,6 @@
 package com.sandklef.coachapp.storage;
 
+import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.*;
 import com.sandklef.coachapp.report.ReportUser;
@@ -31,11 +32,13 @@ public class LocalStorage {
     private static final String LATEST_USER_EMAIL_KEY     = "latest-user-email";
     private static final String LATEST_USER_TOKEN_KEY     = "latest-user-token";
     private static final String CURRENT_CONNECTION_STATUS = "current-satus";
+    private static final String TP_RECORDING_TIME         = "tp-recording-time"; // secs to record a member
+    private static final String INSTR_RECORDING_TIME      = "instructional-recording-time"; // secs to record an instruction
     private String urlBase;
 
     private Context c;
 
-//    private static String currentClub;
+    //    private static String currentClub;
     private String currentTeam;
     private String currentTrainingPhase;
     private String currentMember;
@@ -265,18 +268,49 @@ public class LocalStorage {
     }
 
     public boolean replaceLocalWithDownloaded(Media m, String newFileName) {
-        File oldFile = new File(m.fileName());
-        if (Storage.getInstance().updateMediaReplaceDownloadedFile(m, newFileName)) {
-            String replaceFileName = m.fileName().replace(c.getString(R.string.NEW_MEDIA_DIR),
-                    c.getString(R.string.DELETABLE_MEDIA_DIR));
-            File newFile =
-                    new File(replaceFileName);
-            // Create deletable dir first
-            Log.d(LOG_TAG, "Move " + oldFile.getAbsolutePath() + " => " + newFile.getAbsolutePath());
-            return oldFile.renameTo(newFile);
+        Log.d(LOG_TAG, "replaceLocalWithDownloaded " + m +  " with: " + newFileName);
+        if (m.fileName()!=null) {
+            File oldFile = new File(m.fileName());
+            if (Storage.getInstance().updateMediaReplaceDownloadedFile(m, newFileName)) {
+                String replaceFileName = m.fileName().replace(c.getString(R.string.NEW_MEDIA_DIR),
+                        c.getString(R.string.DELETABLE_MEDIA_DIR));
+                File newFile =
+                        new File(replaceFileName);
+                // Create deletable dir first
+                Log.d(LOG_TAG, "Move " + oldFile.getAbsolutePath() + " => " + newFile.getAbsolutePath());
+                return oldFile.renameTo(newFile);
+            }
+        }else {
+            if (Storage.getInstance().updateMediaReplaceDownloadedFile(m, newFileName)) {
+                return true;
+            }
         }
         return false;
     }
 
+
+    public void setInstructionalRecordingTime(int value) {
+        setKeyValueInt(INSTR_RECORDING_TIME, value);
+    }
+
+    public void setTPRecordingTime(int value) {
+        setKeyValueInt(TP_RECORDING_TIME, value);
+    }
+
+    public int getInstructionalRecordingTime(){
+        int ret = getKeyValueInt(INSTR_RECORDING_TIME);
+        if (ret==0) {
+            return VideoCapture.DEFAULT_INSTR_RECORDING_TIME;
+        }
+        return ret;
+    }
+
+    public int getTPRecordingTime(){
+        int ret = getKeyValueInt(TP_RECORDING_TIME);
+        if (ret==0) {
+            return VideoCapture.DEFAULT_TP_RECORDING_TIME;
+        }
+        return ret;
+    }
 
 }

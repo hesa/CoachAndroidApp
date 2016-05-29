@@ -29,9 +29,9 @@ public class ActivitySwitcher {
     private final static String LOG_TAG = ActivitySwitcher.class.getSimpleName();
 
     // TODO: MOVE somewhere
-    private final static String VIDEO_FILE_DATE_FORMAT = "yyyyMMdd-HHmmss";
-    private final static String VIDEO_FILE_TYPE_SUFFIX = ".mp4";
-    private final static int VIDEO_FILE_DEFAULT_TIME = 5000;
+    public final static String VIDEO_FILE_DATE_FORMAT = "yyyyMMdd-HHmmss";
+    public  final static String VIDEO_FILE_TYPE_SUFFIX = ".mp4";
+    public final static int VIDEO_FILE_DEFAULT_TIME = 5000;
 
 
     private static void startActivityImpl(Activity a, Class c) {
@@ -47,6 +47,16 @@ public class ActivitySwitcher {
     // TODO: remove this method. should not be needed
     public static void startTrainingActivity(Activity a) {
         startActivityImpl(a, com.sandklef.coachapp.activities.TeamsActivity.class);
+    }
+
+    public static void startLoginActivity(Activity a) {
+        // TODO: make sure back stack is deleted
+        startActivityImpl(a, com.sandklef.coachapp.activities.LoginActivity.class);
+    }
+
+    public static void startMediaRecorderActivity(Activity a) {
+        // TODO: make sure back stack is deleted
+        startActivityImpl(a, com.sandklef.coachapp.activities.MediaRecorderActivity.class);
     }
 
     public static void startTeamActivity(Activity a) {
@@ -77,6 +87,11 @@ public class ActivitySwitcher {
     }
 
     public static void startClubInfoActivity(Activity a) {
+        // TODO: REMOVE THIS ... REALLY REALLY
+        android.util.Log.d(LOG_TAG, "updateConnectionStatusImpl reset token");
+       LocalStorage.getInstance().setLatestUserToken("");
+
+
         startActivityImpl(a, com.sandklef.coachapp.activities.ClubInfoActivity.class);
     }
 
@@ -144,7 +159,11 @@ public class ActivitySwitcher {
 
     private static void printDbImpl(boolean full, String prefix) {
         try {
-            Log.d(LOG_TAG, prefix + "Teams:         " + Storage.getInstance().getTeams().size());
+            if (Storage.getInstance()==null) {
+                Log.d(LOG_TAG, prefix + "Teams:         " + Storage.getInstance().getTeams().size());
+                return;
+            }
+
             if (full) {
                 for (Team t : Storage.getInstance().getTeams()) {
                     Log.d(LOG_TAG, " * " + t);

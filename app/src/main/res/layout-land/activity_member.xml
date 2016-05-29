@@ -31,24 +31,25 @@
 
                 <com.sandklef.coachapp.fragments.VideoCapture
                     android:id="@+id/videoView"
-                    android:layout_width="200dp"
-                    android:layout_height="200dp"
+                    android:layout_width="400dp"
+                    android:layout_height="400dp"
                     android:background="#00000000" />
 
-                <Button
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="watchInstructionalVideo"/>
 
             </LinearLayout>
 
-
-            <ListView
+            <GridView
                 android:id="@+id/member_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true" />
+                android:layout_centerHorizontal="true"
+                android:columnWidth="90dp"
+                android:numColumns="4"
+                android:verticalSpacing="10dp"
+                android:horizontalSpacing="10dp"
+                android:stretchMode="columnWidth"
+                android:gravity="center"/>
         </LinearLayout>
     </LinearLayout>
 

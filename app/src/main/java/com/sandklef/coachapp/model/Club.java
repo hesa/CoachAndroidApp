@@ -7,7 +7,7 @@ public class Club extends CoachAppBase {
 
     public Club(String uuid,
                 String name) {
-        super(uuid, name, null);
+        super(uuid, name, uuid);
     }
 
 

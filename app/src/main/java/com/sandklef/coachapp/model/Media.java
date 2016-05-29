@@ -117,8 +117,6 @@ public class Media extends CoachAppBase {
         return memberUuid;
     }
 
-
-
     public String toString() {
 /*        return super.toString() +
                 " " + getDate()

@@ -8,6 +8,7 @@ import coachassistant.sandklef.com.coachapp.R;
 
 public class VideoActivity extends ActionBarActivity {
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

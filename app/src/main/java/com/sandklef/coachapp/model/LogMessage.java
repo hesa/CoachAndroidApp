@@ -14,6 +14,7 @@ import java.util.Date;
 public class LogMessage {
 
     private String message;
+    private String detail;
     private String clubUuid;
     private Date   date;
     private long   id;
@@ -26,23 +27,28 @@ public class LogMessage {
     public LogMessage(long id,
                       String clubUuid,
                       String msg,
+                      String detail,
                       Date   date) {
         this.id       = id;
         this.clubUuid = clubUuid;
         this.message  = msg;
+        this.detail   = detail;
         this.date     = date;
     }
 
     public String getMesssage() {
         return message;
     }
-
+    public String getDetail() {
+        return detail;
+    }
     public Date getDate() {
         return date;
     }
 
     public String toString() {
         // Log.d(LOG_TAG, "LOG: converting date: " + date);
-        return "[" + CADateFormat.getDateString(date) + "] " + message;
+        return CADateFormat.getDateString(date) + "\n" + message;
     }
+
 }

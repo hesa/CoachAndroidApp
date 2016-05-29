@@ -122,7 +122,7 @@ public class TopActivity extends AppCompatActivity implements
 
         topFragment = (TopFragment) fragment;
 
-        updateFromServer();
+//        updateFromServer();
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
@@ -139,11 +139,13 @@ public class TopActivity extends AppCompatActivity implements
     }
 
 
+    /*
 
     public void updateFromServer() {
         Log.d(LOG_TAG, "Initiate update from server");
-        Storage.getInstance().update(getApplicationContext(), null);
+        Storage.getInstance().update(getApplicationContext(), this, null);
     }
+    */
 
     @Override
     public void onBackPressed() {
@@ -205,7 +207,7 @@ public class TopActivity extends AppCompatActivity implements
         String member = LocalStorage.getInstance().getCurrentMember();
         String tp = LocalStorage.getInstance().getCurrentTrainingPhase();
         // TODO: get member name instaed of UUID
-        Storage.getInstance().log("Recorded " + member.toString());
+        Storage.getInstance().log("Recorded " + member.toString(), "");
         Media m = new Media(null,
                 "",
                 club,

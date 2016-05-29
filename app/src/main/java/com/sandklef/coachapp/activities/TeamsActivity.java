@@ -1,7 +1,6 @@
 package com.sandklef.coachapp.activities;
 
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -14,24 +13,23 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
-import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Club;
-import com.sandklef.coachapp.model.CoachAppBase;
 import com.sandklef.coachapp.model.Team;
+import com.sandklef.coachapp.storage.ConnectionStatusListener;
 import com.sandklef.coachapp.storage.LocalStorage;
-import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
 import com.sandklef.coachapp.storage.StorageNoClubException;
-import com.sandklef.coachapp.storage.StorageUpdateListeneer;
+import com.sandklef.coachapp.storage.StorageUpdateListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
 
-public class TeamsActivity extends AppCompatActivity implements AbsListView.OnItemClickListener, StorageUpdateListeneer {
+public class TeamsActivity
+        extends AppCompatActivity
+        implements AbsListView.OnItemClickListener, StorageUpdateListener {
 
 
     //    private ListView list;
@@ -42,14 +40,15 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
     private ArrayAdapter mAdapter;
 
     private final static String LOG_TAG = TeamsActivity.class.getSimpleName();
-//    private Club currentClub;
+    //    private Club currentClub;
+
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teams);
-        CoachAppSession.setupActivity();
+        CoachAppSession.getInstance().setupActivity(this);
 
         ActivitySwitcher.printDb("TeamsActivity");
 
@@ -63,12 +62,13 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
                     Storage.getInstance().getTeams());
             Log.d(LOG_TAG, "onCreate()  adapter:" + mAdapter);
 
-            updateFromServer();
+            CoachAppSession.getInstance().updateFromServer(this, this, CoachAppSession.getInstance());
 
             Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
             setSupportActionBar(myToolbar);
 //        myToolbar.setTitle(getString(R.string.team_list_header));
             getSupportActionBar().setTitle(getResources().getString(R.string.team_list_header));
+//            getSupportActionBar().setIcon(android.R.drawable.arrow_up_float);
 
 
 /*        ActionBar ab = getSupportActionBar();
@@ -83,26 +83,24 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
 
     }
 
-    public void updateFromServer() {
-        Log.d(LOG_TAG, "Initiate update from server");
-        Storage.getInstance().update(getApplicationContext(), this);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.top_menu, menu);
+
+        Log.d(LOG_TAG, " find menu: " + menu);
+
+        CoachAppSession.getInstance().setupActivity(this, menu, R.id.topsync);
+
         return true;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
         Log.d(LOG_TAG, "onStart()");
-
         Log.d(LOG_TAG, "onStart() " +         LocalStorage.getInstance().getCurrentClub());
-
         // Set the adapter
         mListView = (ListView) findViewById(R.id.team_list);
 
@@ -117,6 +115,7 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         try {
+            Log.d(LOG_TAG, " team clicked: " + id);
             Team t = Storage.getInstance().getTeams().get((int) id);
             Log.d(LOG_TAG, " team clicked: " + t.getUuid() + "  " + t);
 
@@ -130,31 +129,7 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
 
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(LOG_TAG, "  onOptionsItemSelected: " + item.getItemId());
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.menu_log_file:
-                Log.d(LOG_TAG, "  log");
-                ActivitySwitcher.startLogMessageActivity(this);
-                return true;
-            case R.id.menu_media_manager:
-                Log.d(LOG_TAG, "  media");
-                ActivitySwitcher.startLocalMediaManager(this);
-                return true;
-            case R.id.menu_club_info:
-                Log.d(LOG_TAG, "  club");
-                ActivitySwitcher.startClubInfoActivity(this);
-                return true;
-            case R.id.menu_refresh:
-                Log.d(LOG_TAG, "  refresh");
-                updateFromServer();
-
-                return true;
-
-            default:
-                Log.d(LOG_TAG, "  doin nada");
-                return true;
-        }
+        return CoachAppSession.getInstance().handleTopMenu(item, this);
     }
 
 
@@ -180,4 +155,5 @@ public class TeamsActivity extends AppCompatActivity implements AbsListView.OnIt
             e.printStackTrace();
         }
     }
+
 }

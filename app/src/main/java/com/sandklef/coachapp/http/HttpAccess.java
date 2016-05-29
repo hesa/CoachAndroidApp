@@ -66,7 +66,8 @@ public class HttpAccess {
     }
 
 
-    public String sendHttpPost(StringEntity data,
+    private String sendHttpPost(String token,
+                               StringEntity data,
                                String header,
                                String path)  throws HttpAccessException {
         HttpClient client = new DefaultHttpClient();
@@ -85,6 +86,12 @@ public class HttpAccess {
         try {
             httpPost.setHeader(HttpSettings.CONTENT_STATUS, header);
             httpPost.setEntity(data);
+            if (token!=null) {
+                httpPost.setHeader("X-Token", token);
+                Log.d(LOG_TAG, "Using token: " + token);
+            } else {
+                Log.d(LOG_TAG, "Not using token");
+            }
             resp = client.execute(httpPost);
             Log.d(LOG_TAG, resp + "  <==  sendHttpPost");
             Log.d(LOG_TAG, resp.getStatusLine().getStatusCode() + "  <==  sendHttpPost");
@@ -92,7 +99,10 @@ public class HttpAccess {
                 Log.d(LOG_TAG, " server response ok, returning data");
                 response = EntityUtils.toString(resp.getEntity());
             } else {
-                throw new HttpAccessException("sendHttpPost failed", HttpAccessException.NETWORK_ERROR);
+                Log.d(LOG_TAG, "Server response OK but bad password");
+                HttpAccessException e = new HttpAccessException("sendHttpPost failed", HttpAccessException.ACCESS_ERROR);
+                Log.d(LOG_TAG, "Will throw: " + e.getMode());
+                throw e;
             }
         } catch (IOException e) {
             throw new HttpAccessException("sendHttpPost failed", e, HttpAccessException.NETWORK_ERROR);
@@ -128,6 +138,7 @@ public class HttpAccess {
                 Log.d(LOG_TAG, " * " + response.getStatusLine().getStatusCode());
                 Log.d(LOG_TAG, " * " + response.getStatusLine());
                 Log.d(LOG_TAG, "Failed to download file" + response);
+                Log.w("Failed reading data from server", "Failed to download: " + path);
                 throw new HttpAccessException("readEntireCoachServer failed", HttpAccessException.ACCESS_ERROR);
             }
         } catch (ClientProtocolException e) {
@@ -153,7 +164,7 @@ public class HttpAccess {
         // POST /api/login { "user": "my_email@example.com", "password": "my_password" }
         try {
             Log.d(LOG_TAG, "getToken(" + data + ", " + header + ")");
-            return sendHttpPost(new StringEntity(data), header, HttpSettings.PATH_SEPARATOR + HttpSettings.LOGIN_PATH);
+            return sendHttpPost(null, new StringEntity(data), header, HttpSettings.PATH_SEPARATOR + HttpSettings.LOGIN_PATH);
         } catch (UnsupportedEncodingException e) {
             throw new HttpAccessException("Failed encoding", e, HttpAccessException.NETWORK_ERROR);
         }
@@ -162,12 +173,12 @@ public class HttpAccess {
 
 
 
-    public String createVideo(String clubUri, String data, String header) throws HttpAccessException {
+    public String createVideo(String token, String clubUri, String data, String header) throws HttpAccessException {
         HttpResponse resp = null;
         //$ curl --data "{ \"trainingPhaseUuid\": \"$TRAINING_PHASE_UUID\" }" --header "Content-Type: application/json" --request POST localhost:3000/0.0.0/clubs/$CLUB_UUID/videos
         try {
             Log.d(LOG_TAG, "createVideo(" + data + ", " + header + ")");
-            return sendHttpPost(new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
+            return sendHttpPost(token, new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
         } catch (UnsupportedEncodingException e) {
             throw new HttpAccessException("Failed encoding", e, HttpAccessException.NETWORK_ERROR);
         }
@@ -182,6 +193,7 @@ public class HttpAccess {
         HttpURLConnection connection = null;
         DataOutputStream outputStream = null;
         DataInputStream inputStream = null;
+
 
 
         String pathToOurFile = fileName;
@@ -210,6 +222,11 @@ public class HttpAccess {
             connection.setUseCaches(false);
             connection.setRequestMethod(HttpSettings.HTTP_POST);
 
+
+            connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
+            Log.d(LOG_TAG, " upload, token: " + LocalStorage.getInstance().getLatestUserToken());
+
+
             outputStream = new DataOutputStream(connection.getOutputStream());
             bytesAvailable = fileInputStream.available();
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
@@ -237,6 +254,10 @@ public class HttpAccess {
             outputStream.flush();
             outputStream.close();
 
+            if (serverResponseCode<500 && serverResponseCode>=400) {
+                throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
+            }
+
         } catch (IOException e) {
             throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         } catch (Exception e) {
@@ -262,6 +283,7 @@ public class HttpAccess {
             //Open a connection to that URL.
             HttpURLConnection ucon = (HttpURLConnection) url.openConnection();
 
+            ucon.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
             ucon.setRequestMethod(HttpSettings.HTTP_GET);
 
             //this timeout affects how long it takes for the app to realize there's a connection problem

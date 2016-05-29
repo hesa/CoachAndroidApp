@@ -34,19 +34,21 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/watch_intruction"
+                <!--                    android:text="unset" -->
+                <!--
+                <ImageButton
+                    android:id="@+id/intructional_video"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Watch"
-                    android:onClick="watchInstructionalVideo" />
+                    android:src="@drawable/ic_play_arrow_black_24dp"
+                    android:onClick="handleInstructionalVideo" />
                 <Button
                     android:id="@+id/record_intruction"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Record"
                     android:onClick="recordVideo" />
-
+-->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -60,12 +62,21 @@
             </LinearLayout>
         </LinearLayout>
 
-        <ListView
+        <!--
+                    android:numColumns="auto_fit"
+-->
+        <GridView
             android:id="@+id/member_list"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:columnWidth="90dp"
+            android:numColumns="3"
+            android:verticalSpacing="10dp"
+            android:horizontalSpacing="10dp"
+            android:stretchMode="columnWidth"
+            android:gravity="center"/>
 
     </LinearLayout>
 

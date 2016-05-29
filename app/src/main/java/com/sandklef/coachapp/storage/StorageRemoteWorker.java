@@ -1,12 +1,14 @@
 package com.sandklef.coachapp.storage;
 
-import android.content.Context;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.Log;
-import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
@@ -15,10 +17,9 @@ import com.sandklef.coachapp.model.TrainingPhase;
 import java.util.List;
 
 
-import com.sandklef.coachapp.json.JsonAccess;
-import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.json.JsonSettings;
-import com.sandklef.coachapp.report.ReportUser;
+
+import coachassistant.sandklef.com.coachapp.R;
 
 /**
  * Created by hesa on 2016-02-25.
@@ -27,20 +28,17 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
     private final static String LOG_TAG = StorageRemoteWorker.class.getSimpleName();
 
-    private String clubUuid;
-//    private Context c;
     private JsonAccess ja;
 
-    public StorageRemoteWorker(String clubUuid /*, Context c*/) throws StorageException {
+    public StorageRemoteWorker() throws StorageException {
         try {
-  //          this.c = c;
-            this.clubUuid = clubUuid;
-
             ja = new JsonAccess();
         } catch (JsonAccessException e) {
             throw new StorageException("Failed to create JsonAccess instance", e);
         }
     }
+
+
 
     @Override
     protected AsyncBundle doInBackground(AsyncBundle... bundles) {
@@ -48,64 +46,81 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         SimpleAsyncBundle bundle = cbundle.getSimpleAsyncBundle();
         int mode = cbundle.getMode();
         Log.d(LOG_TAG, "doInBackground  mode: " + mode);
+        Log.d(LOG_TAG, "doInBackground  modes: " + Storage.MODE_COMPOSITE + " | " + Storage.MODE_CREATE + " | " + Storage.MODE_UPLOAD + " | " + Storage.MODE_DOWNLOAD);
+        Log.d(LOG_TAG, "doInBackground  mode: " + mode);
+        Log.d(LOG_TAG, "doInBackground  club: " + LocalStorage.getInstance().getCurrentClub());
+
 
         if (mode == Storage.MODE_COMPOSITE) {
+            Log.d(LOG_TAG, "doInBackground  mode: COMPOSITE");
             Log.d(LOG_TAG, " fetching JSON data in background");
             try {
-                JsonAccess.CompositeBundle cb = ja.update(clubUuid);
+                JsonAccess.CompositeBundle cb = ja.update(LocalStorage.getInstance().getCurrentClub());
                 Log.d(LOG_TAG, " fetching JSON data in background" + cb);
                 Log.d(LOG_TAG, " fetching JSON data in background" + cb.members.size());
 
                 Storage.getInstance().updateDB(cb.members,
                         cb.teams,
-                        cb.media,
+/*                        cb.media,*/
                         cb.tps);
-                return new AsyncBundle(Storage.MODE_COMPOSITE, cbundle.listener);
+                return new AsyncBundle(Storage.MODE_COMPOSITE,
+                        JsonAccessException.OK,
+                        cbundle.listener,
+                        cbundle.connListener);
             } catch (JsonAccessException e) {
                 Log.d(LOG_TAG, "Failed getting Json data from server" + e.getMessage());
 // TODO: Fix ... make it possible to report to user
 //                ReportUser.warning(c, "Failed getting data from server");
 
+                return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
 
         } else if (mode == Storage.MODE_CREATE) {
+            Log.d(LOG_TAG, "doInBackground  mode: CREATE");
             try {
-                String uuid = ja.createVideoOnServer(clubUuid, bundle.getMedia());
+                String uuid = ja.createVideoOnServer(LocalStorage.getInstance().getCurrentClub(), bundle.getMedia());
                 Log.d(LOG_TAG, " creation seems to have work, uuid: " + uuid + "  and media: " + bundle.getMedia());
-                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid), null);
+                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid), null,  null);
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
                 Log.e(LOG_TAG, " Could not create video on server" + e.getMessage());
-                return null;
+                return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
         } else if (mode == Storage.MODE_UPLOAD) {
+            Log.d(LOG_TAG, "doInBackground  mode: UPLOAD");
             try {
-                ja.uploadTrainingPhaseVideo(clubUuid, bundle.getMedia());
-                Log.d(LOG_TAG, " upload seems to have work with media: " + bundle.getMedia());
-                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()),null);
+                ja.uploadTrainingPhaseVideo(LocalStorage.getInstance().getCurrentClub(), bundle.getMedia());
+                Log.d(LOG_TAG, " upload seems to have worked with media: " + bundle.getMedia());
+                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()),null, null);
             } catch (JsonAccessException e) {
                 Log.e(LOG_TAG, " Failed uploading video to server: " + e.getMessage());
-                Storage.getInstance().log("Failed downloading video from server");
+                Storage.getInstance().log("Upload failed", "Failed uploading video from server");
+                return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
-            // TODO: store errors in log?
-            Log.e(LOG_TAG, " Finished uploading video to server");
-            return null;
         } else if (mode == Storage.MODE_DOWNLOAD) {
+            Log.d(LOG_TAG, "doInBackground  mode: DOWNLOAD");
             Media m = bundle.getMedia();
-            String videoUuid = m.getUuid();
-            String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + JsonSettings.SERVER_VIDEO_SUFFIX;
-            try {
-                ja.downloadVideo(clubUuid, file, videoUuid);
-                LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
-            } catch (JsonAccessException e) {
-                // TODO: store errors in log?
-                Log.e(LOG_TAG, " Failed downloading video from server; " + e.getMessage());
-                e.printStackTrace();
-                Storage.getInstance().log("Failed downloading video from server");
-                return null;
+            if (m!=null) {
+                String videoUuid = m.getUuid();
+                String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + JsonSettings.SERVER_VIDEO_SUFFIX;
+                try {
+                    ja.downloadVideo(LocalStorage.getInstance().getCurrentClub(), file, videoUuid);
+                    LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
+                } catch (JsonAccessException e) {
+                    // TODO: store errors in log?
+                    Log.e(LOG_TAG, " Failed downloading video from server; " + e.getMessage());
+                    e.printStackTrace();
+                    Storage.getInstance().log("Download failed", "Failed downloading video from server");
+                    return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
+                }
+                Log.d(LOG_TAG, " Finished downloading video from server ");
+            } else {
+                Log.d(LOG_TAG, "Can't download null media");
             }
-            Log.d(LOG_TAG, " Finished downloading video from server ");
             return null;
+        } else {
+            Log.d(LOG_TAG, "doInBackground  mode: NULL");
+
         }
 //        return new SimpleAsyncBundle(mode, 0, bundle.getMedia());
         return null;
@@ -113,6 +128,13 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
     protected void onPostExecute(AsyncBundle bundle) {
         Log.d(LOG_TAG, " onPostExecute " + bundle);
+
+        CoachAppSession.getInstance().closeDialog();
+
+        if (bundle!=null) {
+            Log.d(LOG_TAG, " onPostExecute " + bundle.getMode());
+        }
+
 
         if (bundle != null) {
             int mode = bundle.getMode();
@@ -124,7 +146,17 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
              *  Store in DB
              *
              */
-
+            if (mode == Storage.MODE_FAILURE) {
+                Log.d(LOG_TAG, " onPostExecute, will inform about status: " + bundle.connectionStatus);
+                if (bundle.connListener != null) {
+                    bundle.connListener.onConnectionStatusUpdate(bundle.connectionStatus);
+                }
+                return;
+            } else {
+                if (bundle.connListener!=null) {
+                    bundle.connListener.onConnectionStatusUpdate(JsonAccessException.OK);
+                }
+            }
             if (mode == Storage.MODE_COMPOSITE) {
                 Log.d(LOG_TAG, " update storagelistener????");
                 Log.d(LOG_TAG, " update storagelistener???? " + bundle.listener);
@@ -152,6 +184,8 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
             }
 
 
+        } else {
+            Log.d(LOG_TAG, "Bundle null, indicating server communication failure or similar");
         }
         // TODO: throw exception
     }
@@ -228,37 +262,47 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
     public static class AsyncBundle {
         private int mode;
+        private int connectionStatus;
         private SimpleAsyncBundle sam;
         private CompositeAsyncBundle cam;
-        private StorageUpdateListeneer listener;
+        private StorageUpdateListener listener;
+        private ConnectionStatusListener connListener;
 
         public AsyncBundle(int mode,
                            List<Member> members,
                            List<Team> teams,
                            List<Media> media,
                            List<TrainingPhase> tps,
-                           StorageUpdateListeneer listener) {
+                           StorageUpdateListener listener,
+                           ConnectionStatusListener connListener) {
             this.cam = new CompositeAsyncBundle(members, teams, media, tps);
             this.mode = mode;
             this.sam = null;
             this.listener = listener;
+            this.connListener = connListener;
         }
 
         public AsyncBundle(int mode,
                            SimpleAsyncBundle sam,
-                           StorageUpdateListeneer listener) {
+                           StorageUpdateListener listener,
+                           ConnectionStatusListener connListener) {
             this.mode = mode;
             this.cam = null;
             this.sam = sam;
             this.listener = listener;
+            this.connListener = connListener;
         }
 
         public AsyncBundle(int mode,
-                           StorageUpdateListeneer listener) {
+                           int connectionStatus,
+                           StorageUpdateListener listener,
+                           ConnectionStatusListener connListener) {
+            this.connectionStatus = connectionStatus;
             this.mode = mode;
             this.cam = null;
             this.sam = null;
             this.listener = listener;
+            this.connListener = connListener;
         }
 
         public int getMode() {

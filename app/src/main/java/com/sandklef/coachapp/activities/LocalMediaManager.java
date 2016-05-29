@@ -237,9 +237,6 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.d(LOG_TAG, "  onOptionsItemSelected: " + item.getItemId());
-        // Handle item selection
-
-        LocalStorageSync.getInstance().syncLocalMedia();
 
 
         switch (item.getItemId()) {

@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -18,6 +19,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.json.JsonSettings;
 import com.sandklef.coachapp.misc.Log;
@@ -52,6 +54,11 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 
         Log.d(LOG_TAG, "onCreate()");
 
+        CoachAppSession.getInstance().setupActivity(this);
+
+        Log.d(LOG_TAG, "onCreate() storage:" + Storage.getInstance());
+
+
         try {
             mAdapter = new ArrayAdapter<TrainingPhase>(this,
                     android.R.layout.simple_list_item_1,
@@ -72,6 +79,19 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.top_menu, menu);
+
+        Log.d(LOG_TAG, " find menu: " + menu);
+
+        CoachAppSession.getInstance().setupActivity(this, menu, R.id.topsync);
+
+        return true;
+    }
+
+
+    @Override
     protected void onStart(){
         super.onStart();
 
@@ -86,7 +106,6 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         mListView.setOnItemClickListener(this);
 
         registerForContextMenu(mListView);
-
     }
 
 
@@ -116,16 +135,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(LOG_TAG, "onOptionsItemSelected(): " + item);
-
-        switch (item.getItemId()) {
-
-            default:
-                finish();
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
-                return super.onOptionsItemSelected(item);
-        }
+        return CoachAppSession.getInstance().handleTopMenu(item, null);
     }
 
     @Override
@@ -187,7 +197,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         Log.d(LOG_TAG, "savemedia: " + Storage.getInstance().getTrainingPhase(tp));
 
         // TODO: get member name instaed of UUID
-        Storage.getInstance().log("Recorded instructional video for" + Storage.getInstance().getTrainingPhase(tp).getName());
+        Storage.getInstance().log("Video (instr) recorded", "Recorded instructional video for" + Storage.getInstance().getTrainingPhase(tp).getName());
         Log.d(LOG_TAG, "Recorded instructional video for" + Storage.getInstance().getTrainingPhase(tp).getName());
         Media m = new Media(null,
                 "",

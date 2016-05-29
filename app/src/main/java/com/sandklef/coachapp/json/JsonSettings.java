@@ -7,7 +7,7 @@ public class JsonSettings {
 
     // SERVER TYPE TAGS
     public static final String TRAINING_PHASES_TAG = "trainingPhases";
-    public static final String VIDEOS_TAG = "videos";
+//    public static final String VIDEOS_TAG = "videos";
     public static final String TEAMS_TAG = "teams";
     public static final String MEMBERS_TAG = "members";
 
@@ -22,6 +22,7 @@ public class JsonSettings {
     public static final String STATUS_TAG = "status";
     public static final String CREATED_TAG = "created";
     public static final String TOKEN_TAG   = "token";
+    public static final String VIDEO_TAG   = "videoUuid";
 
     // SERVER VIDEO TAGS
     public static final String SERVER_VIDEO_EMPTY_TAG = "empty";

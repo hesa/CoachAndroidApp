@@ -31,6 +31,10 @@
     <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <android:uses-permission android:name="android.permission.READ_CALL_LOG" />
 
+    <!--
+    <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+-->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -73,17 +77,18 @@
             android:name="com.sandklef.coachapp.activities.ClubInfoActivity"
             android:label="@string/title_activity_club_info" />
         <activity android:name="com.sandklef.coachapp.activities.VideoActivity" />
+
         <activity
             android:name="com.sandklef.coachapp.activities.LoginActivity"
             android:label="@string/title_activity_login">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-
+        </activity>
+        <activity
+            android:name="com.sandklef.coachapp.activities.MediaRecorderActivity"
+            android:label="@string/title_activity_login">
         </activity>
     </application>
 

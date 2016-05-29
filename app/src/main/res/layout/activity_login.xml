@@ -69,6 +69,12 @@
                 android:text="@string/action_token_sign_in"
                 android:textStyle="bold"
                 android:visibility="invisible"/>
+            <TextView
+                android:id="@+id/more_info_link"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:text="@string/more_info"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

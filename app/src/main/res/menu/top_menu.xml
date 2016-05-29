@@ -3,6 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/topsync"
+        android:icon="@drawable/ic_refresh_black_24dp"
+        android:title="Refresh"
+        app:showAsAction="ifRoom"
+        android:scaleType="fitXY"/>
+    />
+
+    <item
         android:id="@+id/menu_refresh"
         android:orderInCategory="100"
         android:title="@string/menu_refresh_title"
@@ -24,6 +32,12 @@
         android:id="@+id/menu_club_info"
         android:orderInCategory="100"
         android:title="@string/menu_info_title"
+        />
+
+    <item
+        android:id="@+id/menu_destroy_token"
+        android:orderInCategory="100"
+        android:title="@string/destroy_token"
         />
 
 

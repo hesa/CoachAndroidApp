@@ -9,8 +9,12 @@ import java.util.Date;
 public class CADateFormat {
 
     public static SimpleDateFormat sdf;
+    public static SimpleDateFormat sdfDay;
+    public static SimpleDateFormat sdfTime;
     static {
-        sdf = new SimpleDateFormat("yyyy-mm-dd hh:MM:ss");
+        sdf     = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        sdfDay  = new SimpleDateFormat("yyyy-MM-dd");
+        sdfTime = new SimpleDateFormat("hh:mm:ss");
     }
 
 //    public static String DATE_FORMAT = "yyyyMMdd-HHmmss";
@@ -22,6 +26,14 @@ public class CADateFormat {
     public static String getDateString(Date d) {
 //        java.text.DateFormat df = new SimpleDateFormat(DATE_FORMAT);
         return sdf.format(d);
+    }
+
+    public static String getDayString(Date d) {
+        return sdfDay.format(d);
+    }
+
+    public static String getTimeString(Date d) {
+        return sdfTime.format(d);
     }
 
     public static String getDateString(long time) {

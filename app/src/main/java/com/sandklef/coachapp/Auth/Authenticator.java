@@ -57,39 +57,12 @@ public class Authenticator {
             }
 
             Club primaryClub = clubs.get(0);
-
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-
-            final String clubUuid = primaryClub.getClubUuid();
-            Log.d(LOG_TAG, "-2 club: " + primaryClub.getClubUuid());
-            Log.d(LOG_TAG, "-2 club: " + clubsStrings.get(0));
-            Log.d(LOG_TAG, "-2 club: " + clubUuid); // <-----------------------
-
-//            clubUuid = primaryClub.toString();
-            Log.d(LOG_TAG, " 0 club: " + clubsStrings.get(0));
-            Log.d(LOG_TAG, " 0 club: " + clubUuid); // <-----------------------
-
             String s = primaryClub.getUuid();
-            Log.d(LOG_TAG, " 1 club: " + s);
+          //  Storage.getInstance().setClubUuid(s);
+            LocalStorage.getInstance().setCurrentClub(s);
+            Log.d(LOG_TAG, "Club set for use in app: " + LocalStorage.getInstance().getCurrentClub());
 
-            String s2 = clubsStrings.get(0);
-            Log.d(LOG_TAG, " 1 club: " + s2);
-
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-            Log.d(LOG_TAG, " 2 club: " + primaryClub.getUuid());
-
-            LocalStorage.getInstance().setCurrentClub(clubUuid);
-            Log.d(LOG_TAG, " 3 club: " + LocalStorage.getInstance().getCurrentClub()); // <-----------------------
-
-            LocalStorage.getInstance().setCurrentClub(primaryClub.getUuid());
-            Log.d(LOG_TAG, " 3 club: " + LocalStorage.getInstance().getCurrentClub());
-
-            Storage.getInstance().setClubUuid(primaryClub.getUuid());
-
-            ActivitySwitcher.printDb("LoginActivity");
+            ActivitySwitcher.printDb("Authenticator");
             Log.d(LOG_TAG, "verifyToken()  return 0");
             return 0; // SUCCESSS
         } catch (JsonAccessException e) {

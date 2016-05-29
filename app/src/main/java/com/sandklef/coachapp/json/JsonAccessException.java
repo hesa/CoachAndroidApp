@@ -5,6 +5,7 @@ package com.sandklef.coachapp.json;
  */
 public class JsonAccessException extends Exception {
 
+    public final static int OK            = 0;  // no problemos
     public final static int NETWORK_ERROR = 1;  // netowrk down, http problem
     public final static int ACCESS_ERROR  = 2;  // server responds "not ok"
 

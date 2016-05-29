@@ -1,7 +1,7 @@
 package com.sandklef.coachapp.storage;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.media.MediaPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +17,17 @@ public class Storage {
 
     private final static String LOG_TAG = Storage.class.getSimpleName();
 
-    public static final int MODE_CREATE = 0;
-    public static final int MODE_UPLOAD = 1;
-    public static final int MODE_DOWNLOAD = 2;
+    public static final int MODE_FAILURE   = -1;
+    public static final int MODE_CREATE    = 0;
+    public static final int MODE_UPLOAD    = 1;
+    public static final int MODE_DOWNLOAD  = 2;
     public static final int MODE_COMPOSITE = 3;
 
+    /*
+    public static final int CONNECTION_STATUS_OK              = 0;
+    public static final int CONNECTION_STATUS_ACCESS_DENIED   = 1;
+    public static final int CONNECTION_STATUS_NETWORK_FAILURE = 2;
+*/
 
     //    private MemberStorageHelper memberStorage;
     //  private TeamStorageHelper teamStorage;
@@ -37,27 +43,28 @@ public class Storage {
 
     private Context context;
 
-    StorageUpdateListeneer listener;
+    StorageUpdateListener    storageListener;
+    ConnectionStatusListener connectionListener;
 
     public void updateDB(List<Member> members,
                          List<Team> teams,
-                         List<Media> media,
+/*                         List<Media> media,*/
                          List<TrainingPhase> tps) {
         try {
             System.out.println("storing members:  " + members.size());
             baseStorage.storeMembersToDB(members);
             baseStorage.storeTeamsToDB(teams);
             baseStorage.storeTrainingPhasesToDB(tps);
-            baseStorage.storeMediaToDB(media);
+//            baseStorage.storeMediaToDB(media);
 
             this.members = members;
             this.teams = teams;
             this.trainingPhases = tps;
-            this.media = media;
+  //          this.media = media;
         } catch (DBException e) {
             Log.d(LOG_TAG, "Failed getting hold of a db");
             // TODO: remove report user stuff
-            ReportUser.warning(context, "Failed to get hold of db... :(");
+            ReportUser.warning(context, "Database problem", "Failed to get hold of db... :(");
         }
     }
 
@@ -105,8 +112,8 @@ public class Storage {
         return media;
     }
 
-    public List<LogMessage> getLogMessage() {
-        logs = baseStorage.getLogMessageFromDB();
+    public List<LogMessage> getLogMessages() {
+        logs = baseStorage.getLogMessagesFromDB();
         return logs;
     }
 
@@ -170,6 +177,29 @@ public class Storage {
         return null;
     }
 
+    public Media getInstructionalMedia(String uuid) {
+        try {
+            if (media == null) {
+                media = getMedia();
+            }
+            Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
+            if (media != null) {
+                for (Media m : media) {
+                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getUuid());
+                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getTrainingPhase());
+                    if (m.getTrainingPhase().equals(uuid)) {
+                        if (m.getMember()==null || m.getMember().equals("")) {
+                            return m;
+                        }
+                    }
+                }
+            }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Member getMemberTeam(String uuid) {
         try {
             if (members == null) {
@@ -227,10 +257,10 @@ public class Storage {
 
     }
 
-    public void setClubUuid(String club) {
+/*    public void setClubUuid(String club) {
         baseStorage.setClubUuid(club);
     }
-
+*/
     public static Storage newInstance(Context c) {
         storage = new Storage(c);
 
@@ -261,6 +291,26 @@ public class Storage {
         return baseStorage.updateMediaReplaceDownloadedFile(m, file);
     }
 
+    public void downloadTrainingPhaseFiles() {
+        Log.d(LOG_TAG, "download tp videos");
+
+        for (TrainingPhase tp: trainingPhases) {
+
+            Media m = getInstructionalMedia(tp.getUuid());
+
+            if (m == null || m.fileName()==null) {
+                Log.d(LOG_TAG, "Download to: " + tp + " ....");
+
+                downloadMediaFromServer(context, m);
+
+            } else {
+                Log.d(LOG_TAG, "No need to download: " + tp);
+                Log.d(LOG_TAG, "No need to download: " + m.fileName());
+            }
+        }
+
+    }
+
 
     public void downloadMediaFromServer(Context c, Media m) {
         try {
@@ -268,13 +318,14 @@ public class Storage {
             StorageRemoteWorker srw;
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_DOWNLOAD,
-                            new StorageRemoteWorker.SimpleAsyncBundle(0, m), null);
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m),
+                            null, null);
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
+                    new StorageRemoteWorker();
             srw.execute(bundle);
         } catch (StorageException e) {
-            Log.e(LOG_TAG, "Failed uploading media on server");
-            ReportUser.warning(c, "Failed uploading media on server");
+            Log.e(LOG_TAG, "Failed downloading media from server");
+            ReportUser.warning(c, "Media download failed", "Failed downloading media from server");
         }
     }
 
@@ -285,13 +336,14 @@ public class Storage {
             StorageRemoteWorker srw;
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_UPLOAD,
-                            new StorageRemoteWorker.SimpleAsyncBundle(0, m), null);
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m),
+                            null, null);
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
+                    new StorageRemoteWorker();
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed uploading media on server");
-            ReportUser.warning(c, "Failed uploading media on server");
+            ReportUser.warning(c, "Upload failed", "Failed uploading media on server");
         }
     }
 
@@ -303,34 +355,34 @@ public class Storage {
             bundle =
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_CREATE,
                             new StorageRemoteWorker.SimpleAsyncBundle(0, m),
-                            listener);
+                            null, null);
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
+                    new StorageRemoteWorker();
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed creating media on server");
-            ReportUser.warning(c, "Failed creating media on server");
+            ReportUser.warning(c, "Create media on server failed", "Failed creating storage for media on server");
         }
     }
 
-    public void update(Context c, StorageUpdateListeneer l) {
+    public void update(Context c, StorageUpdateListener l, ConnectionStatusListener cl) {
         try {
             StorageRemoteWorker.AsyncBundle bundle;
             StorageRemoteWorker srw;
             bundle =
-                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_COMPOSITE, l);
+                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_COMPOSITE, 0, l, cl);
             srw =
-                    new StorageRemoteWorker(LocalStorage.getInstance().getCurrentClub());
+                    new StorageRemoteWorker();
             srw.execute(bundle);
         } catch (StorageException e) {
             Log.e(LOG_TAG, "Failed updating media from server " + e.getMessage());
             e.printStackTrace();
-            ReportUser.warning(c, "Failed updating media from server");
+            ReportUser.warning(c, "Update failed", "Failed updating media from server");
         }
     }
 
-    public void log(String msg) {
-        baseStorage.log(msg);
+    public void log(String msg, String detail) {
+        baseStorage.log(msg, detail);
     }
 
 /*    public List<LocalUser> getLocalUsers() {
@@ -352,8 +404,10 @@ public class Storage {
 
 */
 
-    public void registerStorageListener(StorageUpdateListeneer l) {
-        listener = l;
+    public void registerStorageListener(StorageUpdateListener l) {
+        storageListener = l;
     }
+
+    public void registerConnectionListener(ConnectionStatusListener l) { connectionListener = l; }
 
 }

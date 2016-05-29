@@ -19,7 +19,8 @@ public class HttpAccessException extends Exception {
     }
 
     public HttpAccessException(String msg, int mode) {
-        super(msg);this.mode=mode;
+        super(msg);
+        this.mode=mode;
     }
 
     public int getMode() {

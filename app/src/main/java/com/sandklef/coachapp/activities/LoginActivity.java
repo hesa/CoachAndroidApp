@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -17,9 +18,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
@@ -37,9 +40,12 @@ import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.LocalUser;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
+import com.sandklef.coachapp.report.ReportUser;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 import com.sandklef.coachapp.storage.StorageNoClubException;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,28 +53,10 @@ import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
 
-
-/**
- * A login screen that offers login via email/password.
- */
 public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<Cursor> {
 
-    /* CODE FROM TMP TOKEN CODE
-          try {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);    JsonAccess jsa = new JsonAccess();
-            String token = jsa.getToken("hesa@sandklef.com", "F23bzx%d");
-            Log.d(LOG_TAG, "Token: " + token);
-        } catch (JsonAccessException e) {
-            Log.d(LOG_TAG, "Failed to get token." + e);
-            e.printStackTrace();
-        }
 
-        currentClub = new Club(club, "IK Nord");
-        BootStrapApp.init(getApplicationContext(), currentClub);
-
-
-     */
+    private String loginFailureMessage = "";
 
 
     private final static String LOG_TAG = LoginActivity.class.getSimpleName();
@@ -109,6 +97,17 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             }
         });
 
+        TextView more_info = (TextView) findViewById(R.id.more_info_link);
+        more_info.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://www.tranarappen.se";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
+
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -128,21 +127,28 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
     @Override
     public void onStart() {
         super.onStart();
-        CoachAppSession.init(context);
+        CoachAppSession.getInstance().init(context);
 
         Log.d(LOG_TAG, "  saved token=? " + LocalStorage.getInstance().getLatestUserToken());
         final String token = LocalStorage.getInstance().getLatestUserToken();
         if (token != null && token.length()>8) {
-
-            Button b = (Button) findViewById(R.id.token_sign_in_button);
+/*            Button b = (Button) findViewById(R.id.token_sign_in_button);
             b.setVisibility(View.VISIBLE);
             b.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Log.d(LOG_TAG, " checking saved token: " + token);
+                    CoachAppSession.getInstance().verifyToken(token);
                     ActivitySwitcher.startTeamActivity(context);
                 }
             });
+            */
+
+
+            CoachAppSession.getInstance().verifyToken(token);
+            ActivitySwitcher.startTeamActivity(context);
+            ReportUser.log("User logged in", "User logged in using token");
+
 
         }
 
@@ -373,13 +379,24 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                     }
                 }
 
-                CoachAppSession.verifyToken(token);
+                CoachAppSession.getInstance().verifyToken(token);
+                CoachAppSession.getInstance().startUp(mEmail, token);
 
-                CoachAppSession.startUp(mEmail, token);
                 return true;
 
             } catch (JsonAccessException e) {
-                Log.d(LOG_TAG, "Failed to get token." + e);
+                Log.d(LOG_TAG, "Failed to get token." + e.getMessage());
+                Log.d(LOG_TAG, "Failed to get token." + e.getMode());
+                if(e.getMode()==JsonAccessException.NETWORK_ERROR){
+                    ReportUser.log("Network is down", "Network is down");
+                    loginFailureMessage = "Network seems to be down";
+                }
+                else if(e.getMode()==JsonAccessException.ACCESS_ERROR)  {
+                    ReportUser.log("Password incorrect", "Password incorrect");
+                    loginFailureMessage = "Password incorrect";
+                } else {
+                    loginFailureMessage = "Unknown reason";
+                }
                 e.printStackTrace();
             }
 
@@ -426,8 +443,9 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             if (success) {
                 //finish();
                 ActivitySwitcher.startTeamActivity(context);
+                ReportUser.log(mEmail + " logged in", "User " + mEmail + " logged in correctly with email and password");
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                mPasswordView.setError(loginFailureMessage);
                 mPasswordView.requestFocus();
             }
         }
@@ -439,5 +457,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
+
+
 }
 

@@ -47,10 +47,15 @@
     <string name="trainingphase_list_title">Training Phases</string>
     <string name="title_activity_login">Sign in</string>
 
+    <string name="sync_in_progress">Syncing</string>
+
+    <string name="login_again_to_get_token">Log in to get a new?</string>
+    <string name="token_invalid">Token invalid</string>
+
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
     <string name="action_token_sign_in">Use token</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
@@ -61,6 +66,19 @@
         completions."
     </string>
     <string name="menu_refresh_title">Refresh</string>
+    <string name="team_column">Team: </string>
+    <string name="trainingphase_column">Training phase: </string>
+    <string name="no_network_sync">Can\'t sync without wifi</string>
+    <string name="user_credentials_faulty">"User credentials wrong, update skipped"</string>
+    <string name="network_down_server_up">Network is up, but server seems to be down</string>
+    <string name="getting_data_from_server">Getting data from server</string>
+    <string name="sync_title">Synchronization with server</string>
+    <string name="sync_started">Sync started</string>
+    <string name="destroy_token">Delete token</string>
+
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="more_info">More information</string>
 
 
     <!--

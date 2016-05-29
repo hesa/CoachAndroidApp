@@ -40,10 +40,11 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     public static final String URI_COLUMN_NAME      = "uri";
     public static final String STATUS_COLUMN_NAME   = "status";
     public static final String DATE_COLUMN_NAME     = "date";
-
+    public static final String VIDEO_COLUMN_NAME    = "video_uuid";
     // Event Log
     public static final String LOG_ID        = "id";
     public static final String LOG_MSG       = "message";
+    public static final String LOG_DETAIL    = "detail";
     public static final String LOG_DATE      = "date";
 
     // Local User
@@ -59,11 +60,11 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     // General
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "coachassistant.db";
-    public static final String SORT_ORDER = UUID_COLUMN_NAME + " DESC";
+    public static final String SORT_ORDER = NAME_COLUMN_NAME + " ASC";
 
 
     private Context context;
-    private String  currentClubUuid;
+//    private String  currentClubUuid;
 
     private boolean isCreating = false;
     private SQLiteDatabase currentDB = null;
@@ -79,6 +80,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             LOG_ID + " text primary key," +
                     CLUB_COLUMN_NAME     + " text ," +
                     LOG_MSG + " text , " +
+                    LOG_DETAIL + " text , " +
                     LOG_DATE + " long ";
 
     private static final String LOCAL_USER_COLUMNS =
@@ -136,8 +138,10 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 + MEMBER_COLUMN_NAME + " text, "
                 + DATE_COLUMN_NAME + " int"));
 
-        logExecSQL(buildCreateString(TRAININGPHASE_TABLE, null));
 
+        logExecSQL(buildCreateString(TRAININGPHASE_TABLE,  ", " + VIDEO_COLUMN_NAME + " text"));
+
+        Log.d(LOG_TAG, "Creating log table: " + LOG_COLUMNS);
         logExecSQL("CREATE TABLE " + LOG_TABLE + " ( " + LOG_COLUMNS + " ); ");
         logExecSQL("CREATE TABLE " + LOCAL_USER_TABLE + " ( " + LOCAL_USER_COLUMNS + " ); ");
 
@@ -185,13 +189,15 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     }
 
 
-    public void setClubUuid(String club) {
+  /*  public void setClubUuid(String club) {
         currentClubUuid = club;
     }
+*/
 
     private Cursor getCursorFirst(String tbl, String[] projections)  {
         //  SQLiteDatabase db = getWritableDatabase();
 
+        /*
         Log.d(LOG_TAG, "  projection array: " + buildProjectionArray(projections));
         Log.d(LOG_TAG, "  Printing projection array: " + buildProjectionArray(projections).length);
         if (projections != null) {
@@ -199,15 +205,15 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 Log.d(LOG_TAG, "  * " + a);
             }
         }
-
+*/
         String whereClause = CLUB_COLUMN_NAME + " = ? ";
         SQLiteDatabase db = getWritableDatabase();
 
-        Log.d(LOG_TAG, "  get cursor: club: " + currentClubUuid);
+        Log.d(LOG_TAG, "  get cursor: club: " + LocalStorage.getInstance().getCurrentClub());
 
         Cursor cursor = db.query(tbl,
                 buildProjectionArray(projections),
-                whereClause, new String[]{currentClubUuid}, null, null,
+                whereClause, new String[]{LocalStorage.getInstance().getCurrentClub()}, null, null,
                 BaseStorageHelper.SORT_ORDER);
         if (cursor == null) {
             return null;
@@ -224,7 +230,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     public void storeBaseToDB(SQLiteDatabase db, List<CoachAppBase> bases, String table) {
         Log.d(LOG_TAG, "Getting db " + db);
         if (db == null) {
-            ReportUser.warning(getContext(), "Failed to get hold of db");
+            ReportUser.warning(getContext(), "Database problem", "Failed to get hold of db");
             throw new DBException();
         }
         try {
@@ -249,10 +255,11 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         }
     }
 
+
     public List<Team> getTeamsFromDB() throws StorageNoClubException {
         String[] subProjectionArray = null;
         List<Team> teams = new ArrayList<Team>();
-        if (currentClubUuid==null) {
+        if (LocalStorage.getInstance().getCurrentClub()==null) {
             throw new StorageNoClubException("Club not set or faulty");
         }
         Cursor cursor = getCursorFirst(TEAM_TABLE, subProjectionArray);
@@ -280,21 +287,46 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         Log.d(LOG_TAG, "Storing TrainingPhases " + TrainingPhases.size());
         SQLiteDatabase db = getWritableDatabase();
         storeBaseToDB(db, (List<CoachAppBase>) (List<? extends CoachAppBase>) TrainingPhases, TRAININGPHASE_TABLE);
+
         for (TrainingPhase t : TrainingPhases) {
             ContentValues values = buildContentValues(t);
+            values.put(VIDEO_COLUMN_NAME, t.getVideoUuid());
             long rowId = db.insert(TRAININGPHASE_TABLE, null, values);
-            //    Log.d(LOG_TAG, " * " + rowId + " inserted " + t);
             if (rowId < 0) {
                 Log.e(LOG_TAG, "ERROR inserting (" + rowId + "): " + t);
             }
+/*    public Media(String uuid,
+                 String name,
+                 String clubUuid,
+                 String file,
+                 int status,
+                 long date,
+                 String teamUuid,
+                 String trainingPhaseUuid,
+                 String memberUuid)*/
+            if (t.getVideoUuid().length()>5) {
+                Log.d(LOG_TAG, "Storing media " + t.getVideoUuid() + " based on TP: " + t.getUuid() );
+                Media m = new Media(t.getVideoUuid(),
+                        t.getVideoUuid(),
+                        t.getClubUuid(),
+                        null,
+                        Media.MEDIA_STATUS_AVAILABLE,
+                        0,
+                        null,
+                        t.getUuid(),
+                        null);
+                storeMedia(m);
+            }
+
         }
     }
 
 
     public List<TrainingPhase> getTrainingPhasesFromDB() throws StorageNoClubException {
-        String[] subProjectionArray = null;
+        String[] subProjectionArray = {VIDEO_COLUMN_NAME};
+
         List<TrainingPhase> trainingPhases = new ArrayList<TrainingPhase>();
-        if (currentClubUuid==null) {
+        if (LocalStorage.getInstance().getCurrentClub()==null) {
             throw new StorageNoClubException("Club not set or faulty");
         }
         Cursor cursor = getCursorFirst(TRAININGPHASE_TABLE, subProjectionArray);
@@ -314,15 +346,25 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         }
         TrainingPhase t = new TrainingPhase(cursor.getString(0),
                 cursor.getString(1),
-                cursor.getString(2));
+                cursor.getString(2),
+                cursor.getString(3) );
         return t;
     }
 
     public void storeMedia(Media m) {
-        Log.d(LOG_TAG, "Storing media" + m.fileName());
+        Log.d(LOG_TAG, "Storing media, file: " + m.fileName());
+        Log.d(LOG_TAG, "Storing media, tp:   " + m.getTrainingPhase());
         SQLiteDatabase db = getWritableDatabase();
 
-        ContentValues values = buildContentValues(m);
+        ContentValues values = new ContentValues();
+        if (m.getUuid()!=null) {
+            Log.d(LOG_TAG, "Storing media, uuuid:  " + m.getUuid());
+            values.put(BaseStorageHelper.UUID_COLUMN_NAME, m.getUuid());
+        } else {
+            Log.d(LOG_TAG, "Storing media, uuuid not set");
+        }
+        values.put(BaseStorageHelper.NAME_COLUMN_NAME, m.getName());
+        values.put(BaseStorageHelper.CLUB_COLUMN_NAME, m.getClubUuid());
         values.put(TEAM_COLUMN_NAME, m.getTeam());
         values.put(URI_COLUMN_NAME, m.fileName());
         values.put(STATUS_COLUMN_NAME, m.getStatus());
@@ -369,10 +411,10 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             // Log.d(LOG_TAG, " getMembersTeamFromDB()  : " + teamUuid + "  size: " + allMembers.size());
             for (Member m: allMembers) {
                 if (m.getTeamUuid().equals(teamUuid)) {
-                    //       Log.d(LOG_TAG, " Adding    : " + m + "  team: " + m.getTeamUuid());
+                    Log.d(LOG_TAG, " Adding    : " + m + "  team: " + m.getTeamUuid());
                     filteredMembers.add(m);
                 } else {
-                    //     Log.d(LOG_TAG, " Not adding: " + m + "  team: " + m.getTeamUuid());
+                    Log.d(LOG_TAG, " Not adding: " + m + "  team: " + m.getTeamUuid());
                 }
             }
             return filteredMembers;
@@ -389,14 +431,16 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         String[] subProjectionArray = {TEAM_COLUMN_NAME};
         List<Member> members = new ArrayList<Member>();
 
-        if (currentClubUuid==null) {
+        if (LocalStorage.getInstance().getCurrentClub()==null) {
             throw new StorageNoClubException("Club not set or faulty");
         }
 
         Cursor cursor = getCursorFirst(MEMBER_TABLE, subProjectionArray);
 
         while (!cursor.isAfterLast()) {
-            members.add(cursorToMember(cursor));
+            Member m = cursorToMember(cursor);
+            Log.d(LOG_TAG," add member: " + m);
+            members.add(m);
             cursor.moveToNext();
         }
         closeCursor(cursor);
@@ -409,7 +453,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
 
 
         List<Media> media = new ArrayList<Media>();
-        if (currentClubUuid==null) {
+        if (LocalStorage.getInstance().getCurrentClub()==null) {
             throw new StorageNoClubException("Club not set or faulty");
         }
         Cursor cursor = getCursorFirst(MEDIA_TABLE, subProjectionArray);
@@ -417,6 +461,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         while (!cursor.isAfterLast()) {
             Media m = cursorToMedia(cursor);
             media.add(m);
+            Log.d(LOG_TAG, " fetchig media: " + m.fileName() + " | " + m.getUuid());
             cursor.moveToNext();
         }
         closeCursor(cursor);
@@ -424,21 +469,21 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     }
 
 
-    public List<LogMessage> getLogMessageFromDB() {
+    public List<LogMessage> getLogMessagesFromDB() {
         Log.d(LOG_TAG, "---> Getting log messages");
 
-        String[] projectionArray = {LOG_ID, CLUB_COLUMN_NAME, LOG_MSG, LOG_DATE};
+        String[] projectionArray = {LOG_ID, CLUB_COLUMN_NAME, LOG_MSG, LOG_DETAIL, LOG_DATE};
 
-        List<LogMessage> logmsgs = new ArrayList<LogMessage>();
+        List<LogMessage> logmsgs = new ArrayList<>();
 
         String whereClause = CLUB_COLUMN_NAME + " = ? ";
         SQLiteDatabase db = getWritableDatabase();
 
-        Log.d(LOG_TAG, "  get cursor, clubuuid: " + currentClubUuid);
+        Log.d(LOG_TAG, "  get cursor, clubuuid: " + LocalStorage.getInstance().getCurrentClub());
 
         Cursor cursor = db.query(LOG_TABLE,
                 projectionArray,
-                whereClause, new String[]{currentClubUuid}, null, null,
+                whereClause, new String[]{LocalStorage.getInstance().getCurrentClub()}, null, null,
                 "date DESC");
         if (cursor == null) {
             return null;
@@ -459,11 +504,12 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
 
 
     public void storeMembersToDB(List<Member> members) {
-        Log.d(LOG_TAG, "Storing member " + members.size());
+        Log.d(LOG_TAG, "Storing member " + members.size() );
         SQLiteDatabase db = getWritableDatabase();
         storeBaseToDB(db, (List<CoachAppBase>) (List<? extends CoachAppBase>) members, MEMBER_TABLE);
 
         for (Member m : members) {
+            Log.d(LOG_TAG, "Storing member " + m );
             ContentValues values = buildContentValues(m);
             // Add team to member
             values.put(TEAM_COLUMN_NAME, m.getTeamUuid());
@@ -496,12 +542,24 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             Log.d(LOG_TAG, "Cursor is null in Log database");
             return null;
         }
+
+        for (String s: cursor.getColumnNames()) {
+            Log.d(LOG_TAG, " column: " + s);
+        }
+
+        Log.d(LOG_TAG, " * " + cursor.getCount());
+        Log.d(LOG_TAG, " * " + cursor.getInt(0));
+        Log.d(LOG_TAG, " * " + cursor.getString(1));
+        Log.d(LOG_TAG, " * " + cursor.getString(2));
+        Log.d(LOG_TAG, " * " + cursor.getString(3));
         //        String[] projectionArray = {LOG_ID, CLUB_COLUMN_NAME, LOG_MSG, LOG_DATE};
+
         LogMessage lm = new LogMessage(
                 cursor.getInt(0),
                 cursor.getString(1),
                 cursor.getString(2),
-                new Date(cursor.getLong(3)));
+                cursor.getString(3),
+                new Date(cursor.getLong(4)));
         return lm;
     }
 
@@ -515,11 +573,25 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 values, "uuid = ? ",
                 new String[]{m.getUuid()});
 
-        Log.d(LOG_TAG, " * " + rows + " updated" + m);
+        Log.d(LOG_TAG, " * " + rows + " updated " + m + " from state " + m.getStatus() + " to new state: " + state);
 
         return rows == 1;
     }
 
+
+    private boolean checkIfMediaExists(String filename) {
+        SQLiteDatabase db = getWritableDatabase();
+        Log.d(LOG_TAG, "checkIfMediaExists(): " + filename);
+        String Query = "SELECT * from " + MEDIA_TABLE + " where " + URI_COLUMN_NAME + " = '" + filename + "'";
+        Cursor cursor = db.rawQuery(Query, null);
+        Log.d(LOG_TAG, "SELECT => count: " + cursor.getCount());
+        if(cursor.getCount() <= 0){
+            cursor.close();
+            return false;
+        }
+        cursor.close();
+        return true;
+    }
 
     public boolean updateMediaStateCreated(Media m, String uuid) {
         Log.d(LOG_TAG, "Updating media element: " + m + " " + uuid);
@@ -528,17 +600,22 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         values.put(UUID_COLUMN_NAME, uuid);
         SQLiteDatabase db = getWritableDatabase();
 
-/*
-        List<Media> mediaList  = getMediaFromDB();
-        for (Media med: mediaList) {
-            Log.d(LOG_TAG, " * media: " + m.getUuid() + " " + m.fileName());
+        try {
+            List<Media> mediaList = getMediaFromDB();
+            for (Media med : mediaList) {
+                Log.d(LOG_TAG, " * media (db, exists?): " + med.getUuid() + " " + med.fileName());
+            }
+        } catch ( StorageNoClubException e) {
+            Log.d(LOG_TAG, "no club set, just printing media so don't give a f%%k....");
         }
-*/
+
+        Log.d(LOG_TAG, " * " + m.fileName() + " exists? " + checkIfMediaExists(uuid));
+
         long rows = db.update(MEDIA_TABLE,
                 values, "  " + URI_COLUMN_NAME + " = ? ",
                 new String[]{m.fileName()});
 
-        Log.d(LOG_TAG, " * Updating media element " + rows + " updated to: " + uuid + " (media)");
+        Log.d(LOG_TAG, " * Updating " + rows + " elements to: " + uuid + " (media)");
 
 /*
         Log.d(LOG_TAG, "Listing all Media after status update");
@@ -625,20 +702,29 @@ DATE_COLUMN_NAME
                 values, "  " + UUID_COLUMN_NAME + " = ? ",
                 new String[]{m.getUuid()});
 
-        Log.d(LOG_TAG, " * " + rows + " updated to downloaded");
+        Log.d(LOG_TAG, " * " + rows + " updated " + m + " to downloaded (" + file + ")");
 
+        try {
+            for (Media media : Storage.getInstance().getMedia()) {
+                Log.d(LOG_TAG, " media: " + media.fileName());
+            }
+
+        } catch (StorageNoClubException e) {
+            Log.d(LOG_TAG, "Failed checking media");
+        }
 
         return rows == 1;
     }
 
-    public void log(String msg) {
+    public void log(String msg, String detail) {
         Log.d(LOG_TAG, "LOG: " + msg);
         Log.d(LOG_TAG, "LOG: " + new Date().getTime());
         Log.d(LOG_TAG, "LOG: " + new Date(new Date().getTime()));
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(CLUB_COLUMN_NAME, currentClubUuid);
+        values.put(CLUB_COLUMN_NAME, LocalStorage.getInstance().getCurrentClub());
         values.put(LOG_MSG,     msg);
+        values.put(LOG_DETAIL,  detail);
         values.put(LOG_DATE,    (new Date().getTime()));
 
         long rowId = db.insert(LOG_TABLE, null, values);
