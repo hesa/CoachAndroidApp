@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import java.net.MalformedURLException;
+import java.security.acl.LastOwnerException;
 
 public class HttpAccess {
 
@@ -202,6 +203,7 @@ public class HttpAccess {
                 HttpSettings.UPLOAD_PATH;
 
         Log.d(LOG_TAG, "Upload server url: " + urlServer);
+        Log.d(LOG_TAG, "Upload file:       " + fileName);
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
@@ -259,8 +261,12 @@ public class HttpAccess {
             }
 
         } catch (IOException e) {
+            Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
+            e.printStackTrace();
             throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         } catch (Exception e) {
+            Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
+            e.printStackTrace();
             throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         }
     }
@@ -306,7 +312,6 @@ public class HttpAccess {
             //Read bytes (and store them) until there is nothing more to read(-1)
             int len;
             while ((len = inStream.read(buff)) != -1) {
-                Log.d(LOG_TAG, "Downloading...");
                 outStream.write(buff, 0, len);
             }
 

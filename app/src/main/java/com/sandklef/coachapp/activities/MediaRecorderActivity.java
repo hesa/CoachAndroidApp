@@ -57,6 +57,8 @@ public class MediaRecorderActivity extends Activity {
 
     private final static String LOG_TAG = MediaRecorderActivity.class.getSimpleName();
 
+    private String fileName ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +66,9 @@ public class MediaRecorderActivity extends Activity {
 
         mPreview = (TextureView) findViewById(R.id.surface_view);
   //      captureButton = (Button) findViewById(R.id.button_capture);
+
+        fileName = getIntent().getExtras().getString("file");
+
 
     }
 
@@ -215,7 +220,7 @@ public class MediaRecorderActivity extends Activity {
         mMediaRecorder.setProfile(profile);
 
         // Step 4: Set output file
-        mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO);
+        mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO, fileName);
         if (mOutputFile == null) {
             return false;
         }

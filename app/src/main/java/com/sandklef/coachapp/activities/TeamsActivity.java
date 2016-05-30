@@ -22,6 +22,7 @@ import com.sandklef.coachapp.storage.Storage;
 import com.sandklef.coachapp.storage.StorageNoClubException;
 import com.sandklef.coachapp.storage.StorageUpdateListener;
 
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,10 @@ public class TeamsActivity
     private final static String LOG_TAG = TeamsActivity.class.getSimpleName();
     //    private Club currentClub;
 
-
+    @Override
+    public void onBackPressed(){
+        Log.d(LOG_TAG, "onBackPressed(), ignoring back press");
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -62,7 +66,7 @@ public class TeamsActivity
                     Storage.getInstance().getTeams());
             Log.d(LOG_TAG, "onCreate()  adapter:" + mAdapter);
 
-            CoachAppSession.getInstance().updateFromServer(this, this, CoachAppSession.getInstance());
+//            CoachAppSession.getInstance().updateFromServer(this, this, CoachAppSession.getInstance());
 
             Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
             setSupportActionBar(myToolbar);

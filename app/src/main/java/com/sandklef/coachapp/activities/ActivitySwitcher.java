@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
 
 import com.sandklef.coachapp.fragments.VideoCapture;
@@ -39,6 +40,12 @@ public class ActivitySwitcher {
         a.startActivity(intent);
     }
 
+    private static void startActivityImpl(Activity a, Class c, Bundle b) {
+        Intent intent = new Intent(a, c);
+        intent.putExtras(b);
+        a.startActivity(intent);
+    }
+
     private static void startActivityImpl(Context con, Class c) {
         Intent intent = new Intent(con, c);
         con.startActivity(intent);
@@ -54,9 +61,11 @@ public class ActivitySwitcher {
         startActivityImpl(a, com.sandklef.coachapp.activities.LoginActivity.class);
     }
 
-    public static void startMediaRecorderActivity(Activity a) {
+    public static void startMediaRecorderActivity(Activity a, String file) {
         // TODO: make sure back stack is deleted
-        startActivityImpl(a, com.sandklef.coachapp.activities.MediaRecorderActivity.class);
+        Bundle mBundle = new Bundle();
+        mBundle.putString("file",file);
+        startActivityImpl(a, com.sandklef.coachapp.activities.MediaRecorderActivity.class, mBundle);
     }
 
     public static void startTeamActivity(Activity a) {
@@ -159,7 +168,7 @@ public class ActivitySwitcher {
 
     private static void printDbImpl(boolean full, String prefix) {
         try {
-            if (Storage.getInstance()==null) {
+            if (Storage.getInstance()!=null) {
                 Log.d(LOG_TAG, prefix + "Teams:         " + Storage.getInstance().getTeams().size());
                 return;
             }

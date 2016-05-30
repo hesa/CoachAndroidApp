@@ -1,6 +1,7 @@
 package com.sandklef.coachapp.model;
 
 import com.sandklef.coachapp.misc.CADateFormat;
+import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
@@ -43,7 +44,7 @@ public class Media extends CoachAppBase {
                  String memberUuid) {
         super(uuid, name, clubUuid);
 
-        //Log.d(LOG_TAG, "--> Constructing new Media ");
+        Log.d(LOG_TAG, "--> Constructing new Media with uuid: " + getUuid());
         this.file = file;
         this.status = status;
         this.date = date;
@@ -127,7 +128,8 @@ public class Media extends CoachAppBase {
 */
         Member member = Storage.getInstance().getMemberUUid(getMember());
         String result = CADateFormat.getDateString(getDate());
-        if (member!=null) { result = result + " (" + member.getName() + ") " + getUuid() + " [" + statusToString(getStatus()) + "]";}
+        if (member!=null) {
+            result = result + " (" + member.getName() + ") " + getUuid() + " [" + statusToString(getStatus()) + "]";}
         return result;//+ super.toString() + "-" + file  ;
     }
 

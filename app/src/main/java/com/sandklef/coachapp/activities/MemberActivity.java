@@ -160,12 +160,17 @@ public class MemberActivity extends ActionBarActivity
         saveMedia(Uri.fromFile(new File(file)));
     }
     */
-
+/*
     public void recordVideo(View v) {
         Log.d(LOG_TAG, "recordVideo()");
-        ActivitySwitcher.startMediaRecorderActivity(this);
+        ActivitySwitcher.startMediaRecorderActivity(this, null);
+    }
+*/
 
-
+    @Override
+    public void onBackPressed(){
+        Log.d(LOG_TAG, "onBackPressed()");
+        ActivitySwitcher.startTrainingPhaseActivity(this);
     }
 
 
@@ -210,19 +215,19 @@ public class MemberActivity extends ActionBarActivity
 
 //        ActivitySwitcher.startRecording(this);
         String file = CoachAppSession.getInstance().newFileName();
-
+        File f = new File(file);
 
         try {
 //        VideoCapture vc = (VideoCapture) videoView;
 // BRING BACK?            VideoCapture.getInstance().startRecordTP(file);
-            ActivitySwitcher.startMediaRecorderActivity(this);
+            ActivitySwitcher.startMediaRecorderActivity(this, file);
         } catch (java.lang.RuntimeException e) {
             Log.d(LOG_TAG, "Recording failed....");
             new File(file).delete();
             ReportUser.log("Video recording failed", e.getMessage());
             return;
         }
-       saveMedia(Uri.fromFile(new File(file)));
+        saveMedia(Uri.fromFile(new File(file)));
 
 
 /*
@@ -257,7 +262,7 @@ public class MemberActivity extends ActionBarActivity
                 tp,
                 member);
 
-        Log.d(LOG_TAG, "Calling storage to store Media.  File: " + uri.getPath());
+        Log.d(LOG_TAG, "Calling store: Media:  File: " + uri.getPath());
         Storage.getInstance().saveMedia(m);
     }
 
@@ -301,8 +306,7 @@ public class MemberActivity extends ActionBarActivity
                 Storage.getInstance().downloadTrainingPhaseFiles();
                 break;
             default:
-                Log.d(LOG_TAG, "default, go back");
-                CoachAppSession.getInstance().getCurrentActivity().finish();
+                CoachAppSession.getInstance().goBackToActivity();
                 break;
         }
 

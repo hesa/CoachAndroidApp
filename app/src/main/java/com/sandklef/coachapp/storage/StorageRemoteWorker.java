@@ -38,7 +38,50 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         }
     }
 
+    /*
+     Log.d(LOG_TAG, " onPostExecute mode create");
+                String uuid = sam.getUuid();
+                Media m = sam.getMedia();
+                Log.d(LOG_TAG, "Newly created video on server: " + uuid);
+                Storage.getInstance().updateMediaStateCreated(m, uuid);
+            } else if (mode == Storage.MODE_UPLOAD) {
+                Log.d(LOG_TAG, " onPostExecute mode upload");
+                Media m = sam.getMedia();
+                boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_UPLOADED);
+            } else if (mode == Storage.MODE_DOWNLOAD) {
+                Log.d(LOG_TAG, " onPostExecute mode download");
+                Media m = sam.getMedia();
+                boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_DOWNLOADED);
 
+     */
+
+    public void uploadMedia(Media m) throws  JsonAccessException {
+        ja.uploadTrainingPhaseVideo(LocalStorage.getInstance().getCurrentClub(), m);
+        Log.d(LOG_TAG, " upload seems to have worked with media: " + m);
+        boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_UPLOADED);
+    }
+
+    public AsyncBundle createMedia(Media m) throws  JsonAccessException {
+        String uuid = ja.createVideoOnServer(LocalStorage.getInstance().getCurrentClub(), m);
+        Log.d(LOG_TAG, " creation seems to have work, uuid: " + uuid + "  and media: " + m);
+        Log.d(LOG_TAG, "Newly created video on server: " + uuid);
+        Storage.getInstance().updateMediaStateCreated(m, uuid);
+        return new AsyncBundle(Storage.MODE_CREATE, new SimpleAsyncBundle(0, m, uuid), null,  null);
+    }
+
+    public void downloadMedia(Media m) throws JsonAccessException{
+        Log.d(LOG_TAG, "doInBackground  mode: DOWNLOAD");
+        if (m != null) {
+            String videoUuid = m.getUuid();
+            String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + JsonSettings.SERVER_VIDEO_SUFFIX;
+            ja.downloadVideo(LocalStorage.getInstance().getCurrentClub(), file, videoUuid);
+            LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
+            Log.d(LOG_TAG, " Finished downloading video from server ");
+            boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_DOWNLOADED);
+        } else {
+            Log.d(LOG_TAG, "Can't download null media");
+        }
+    }
 
     @Override
     protected AsyncBundle doInBackground(AsyncBundle... bundles) {
@@ -50,6 +93,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         Log.d(LOG_TAG, "doInBackground  mode: " + mode);
         Log.d(LOG_TAG, "doInBackground  club: " + LocalStorage.getInstance().getCurrentClub());
 
+        CoachAppSession.getInstance().addDialoguser();
 
         if (mode == Storage.MODE_COMPOSITE) {
             Log.d(LOG_TAG, "doInBackground  mode: COMPOSITE");
@@ -71,16 +115,13 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 Log.d(LOG_TAG, "Failed getting Json data from server" + e.getMessage());
 // TODO: Fix ... make it possible to report to user
 //                ReportUser.warning(c, "Failed getting data from server");
-
                 return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
 
         } else if (mode == Storage.MODE_CREATE) {
             Log.d(LOG_TAG, "doInBackground  mode: CREATE");
             try {
-                String uuid = ja.createVideoOnServer(LocalStorage.getInstance().getCurrentClub(), bundle.getMedia());
-                Log.d(LOG_TAG, " creation seems to have work, uuid: " + uuid + "  and media: " + bundle.getMedia());
-                return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia(), uuid), null,  null);
+                return createMedia(bundle.getMedia());
             } catch (JsonAccessException e) {
                 // TODO: store errors in log?
                 Log.e(LOG_TAG, " Could not create video on server" + e.getMessage());
@@ -89,8 +130,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         } else if (mode == Storage.MODE_UPLOAD) {
             Log.d(LOG_TAG, "doInBackground  mode: UPLOAD");
             try {
-                ja.uploadTrainingPhaseVideo(LocalStorage.getInstance().getCurrentClub(), bundle.getMedia());
-                Log.d(LOG_TAG, " upload seems to have worked with media: " + bundle.getMedia());
+                uploadMedia(bundle.getMedia());
                 return new AsyncBundle(mode, new SimpleAsyncBundle(0, bundle.getMedia()),null, null);
             } catch (JsonAccessException e) {
                 Log.e(LOG_TAG, " Failed uploading video to server: " + e.getMessage());
@@ -98,26 +138,17 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
                 return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
         } else if (mode == Storage.MODE_DOWNLOAD) {
-            Log.d(LOG_TAG, "doInBackground  mode: DOWNLOAD");
             Media m = bundle.getMedia();
-            if (m!=null) {
-                String videoUuid = m.getUuid();
-                String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + JsonSettings.SERVER_VIDEO_SUFFIX;
-                try {
-                    ja.downloadVideo(LocalStorage.getInstance().getCurrentClub(), file, videoUuid);
-                    LocalStorage.getInstance().replaceLocalWithDownloaded(m, file);
-                } catch (JsonAccessException e) {
-                    // TODO: store errors in log?
-                    Log.e(LOG_TAG, " Failed downloading video from server; " + e.getMessage());
-                    e.printStackTrace();
-                    Storage.getInstance().log("Download failed", "Failed downloading video from server");
-                    return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
-                }
-                Log.d(LOG_TAG, " Finished downloading video from server ");
-            } else {
-                Log.d(LOG_TAG, "Can't download null media");
+            try {
+                downloadMedia(m);
+            } catch (JsonAccessException e) {
+                // TODO: store errors in log?
+                Log.e(LOG_TAG, " Failed downloading video from server; " + e.getMessage());
+                e.printStackTrace();
+                Storage.getInstance().log("Download failed", "Failed downloading video from server");
+                return new AsyncBundle(Storage.MODE_FAILURE, e.getMode(), cbundle.listener, cbundle.connListener);
             }
-            return null;
+
         } else {
             Log.d(LOG_TAG, "doInBackground  mode: NULL");
 

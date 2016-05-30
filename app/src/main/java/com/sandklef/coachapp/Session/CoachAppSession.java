@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -20,6 +21,9 @@ import com.sandklef.coachapp.storage.ConnectionStatusListener;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageRemoteWorker;
+import com.sandklef.coachapp.storage.StorageSync;
+import com.sandklef.coachapp.storage.StorageSyncListener;
 import com.sandklef.coachapp.storage.StorageUpdateListener;
 
 import java.io.File;
@@ -33,7 +37,7 @@ import coachassistant.sandklef.com.coachapp.R;
 /**
  * Created by hesa on 2016-05-10.
  */
-public class CoachAppSession  implements ConnectionStatusListener {
+public class CoachAppSession  implements ConnectionStatusListener, StorageSyncListener {
 
     private final String url = "https://app.tranarappen.se/api/";
 
@@ -56,6 +60,9 @@ public class CoachAppSession  implements ConnectionStatusListener {
      */
     private static Dialog  dialog;
     private static boolean dialogInUse;
+    private static int     dialogUser;
+
+    private boolean syncMode;
 
     private CoachAppSession() {
         ;
@@ -100,13 +107,27 @@ public class CoachAppSession  implements ConnectionStatusListener {
     }
 
 
+    public boolean getSyncMode() {
+        return syncMode;
+    }
+
+    public void setSyncMode() {
+        syncMode = true;
+    }
+
+    public void unsetSyncMode() {
+        syncMode = false;
+        closeDialog();
+    }
+
+
     public void setupActivity(Activity actiivity) {
-        Log.d(LOG_TAG, "setupActivity()");
+        Log.d(LOG_TAG, "setupActivity()     activity name: " + actiivity.getClass().getName());
         currentActivity = actiivity;
         if (LocalStorage.getInstance()!=null) {
             Log.d(LOG_TAG, "setupActivity() club: " + LocalStorage.getInstance().getCurrentClub());
-
         }
+        context = actiivity;
         //        Storage.getInstance().setClubUuid(LocalStorage.getInstance().getCurrentClub());
     }
 
@@ -143,6 +164,13 @@ public class CoachAppSession  implements ConnectionStatusListener {
         new TokenVerifier().execute(token);
     }
 
+    @Override
+    public void syncFinished(StorageSync.StorageSyncBundle bundle) {
+        Log.d(LOG_TAG, "SYNC FINI ------------------------");
+        Log.d(LOG_TAG, "SYNC FINI ------------------------ bundle: " + bundle.getMsg());
+        Log.d(LOG_TAG, "SYNC FINI ------------------------ bundle: " + bundle.getErrorCode());
+    }
+
     public class TokenVerifier extends AsyncTask<String, Void, Void> {
 
         @Override
@@ -163,11 +191,13 @@ public class CoachAppSession  implements ConnectionStatusListener {
     }
 
     public Dialog getSyncDialog(){
-        Log.d(LOG_TAG, "getAlertDialog()");
+        Log.d(LOG_TAG, "get SyncDialog()");
         if (dialog==null) {
             AlertDialog.Builder builder = CoachAppSession.getInstance().buildAlertDialog(R.string.sync_title, R.string.sync_in_progress);
             builder.setNegativeButton(CoachAppSession.getInstance().getContext().getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
+                    Log.d(LOG_TAG, "User pressed cancel, will quit sync");
+                    CoachAppSession.getInstance().unsetSyncMode();
                     // User cancelled the dialog
                 }
             });
@@ -183,13 +213,22 @@ public class CoachAppSession  implements ConnectionStatusListener {
         return dialog;
     }
 
-
+    public void addDialoguser() {
+        dialogUser++;
+        Log.d(LOG_TAG, "addDialoguser()   SyncDiag users: " + dialogUser + "  what the fuck????");
+    }
 
     public void closeDialog(){
+        if (dialogUser>0) {
+            dialogUser--;
+        }
+        Log.d(LOG_TAG, "close SyncDialog()   users: " + dialogUser);
         Log.d(LOG_TAG, "Closing dialog: " + dialog);
-        if (dialog!=null) {
-            dialog.dismiss();
-            dialog=null;
+        if (dialogUser==0) {
+            if (dialog != null) {
+                dialog.dismiss();
+                dialog = null;
+            }
         }
         dialogInUse=false;
     }
@@ -250,8 +289,6 @@ public class CoachAppSession  implements ConnectionStatusListener {
                         context.getResources().getString(R.string.sync_started));
 
                 LocalStorageSync.getInstance().syncLocalStorage();
-
-
             }
         } else {
             Log.d(LOG_TAG, "No network, will not sync");
@@ -342,7 +379,21 @@ public class CoachAppSession  implements ConnectionStatusListener {
         activeNetwork = cm.getActiveNetworkInfo();
     }
 
+    public static boolean isEmulator() {
+        return Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion")
+                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+                || "google_sdk".equals(Build.PRODUCT);
+    }
+
     public boolean isWifi() {
+        Log.d(LOG_TAG, "Build Product: " + isEmulator());
+        if (isEmulator()) { return true;}
+
         networkCommonCheck();
 
         if (activeNetwork==null) {
@@ -368,8 +419,19 @@ public class CoachAppSession  implements ConnectionStatusListener {
                 activeNetwork.isConnectedOrConnecting();
     }
 
+    public void goBackToActivity(){
+        Log.d(LOG_TAG, " -- switch from "+ currentActivity.getClass().getName());
+        if (currentActivity.getClass()==com.sandklef.coachapp.activities.MemberActivity.class) {
+            Log.d(LOG_TAG, " -- switch from Member");
+            ActivitySwitcher.startTrainingPhaseActivity(currentActivity);
+        } else if (currentActivity.getClass()==com.sandklef.coachapp.activities.TrainingPhasesActivity.class) {
+            Log.d(LOG_TAG, " -- switch from TrainingPhase");
+            ActivitySwitcher.startTeamActivity(currentActivity);
+        }
+    }
+
     public boolean isSyncAllowed() {
-        return isWifi() && serverConnectionStatus == JsonAccessException.OK;
+        return isWifi() && (serverConnectionStatus == JsonAccessException.OK) ;
     }
 
     public boolean handleTopMenu(MenuItem item, StorageUpdateListener l) {
@@ -405,13 +467,24 @@ public class CoachAppSession  implements ConnectionStatusListener {
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  sync");
                 if (CoachAppSession.getInstance().isWifi()) {
                     Log.d(LOG_TAG, "Dialog time?" + " activity: " + currentActivity);
-                    Log.d(LOG_TAG, "all sync methods will be called");
+                    Log.d(LOG_TAG, "----> all sync methods will be called");
 
-                    CoachAppSession.getInstance().getSyncDialog();
+
+                    // SYNC HERE
+
+                    CoachAppSession.getInstance().getSyncDialog().setCancelable(false);
+
+                    /*
                     LocalStorageSync.getInstance().syncLocalStorage();
                     Storage.getInstance().downloadTrainingPhaseFiles();
+*/
+                    CoachAppSession.getInstance().updateFromServer(currentActivity, l, CoachAppSession.getInstance());
 
-                    Log.d(LOG_TAG, "all sync methods called");
+                    new StorageSync(this).execute();
+
+                    Log.d(LOG_TAG, "<---- all sync methods called");
+
+
                 } else {
                     ReportUser.warning(context,
                             context.getResources().getString(R.string.no_network_sync),
@@ -419,8 +492,8 @@ public class CoachAppSession  implements ConnectionStatusListener {
                 }
                 return true;
             default:
-                com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  default");
-                currentActivity.finish();
+                goBackToActivity();
+
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  default handled");
                 return true;
         }

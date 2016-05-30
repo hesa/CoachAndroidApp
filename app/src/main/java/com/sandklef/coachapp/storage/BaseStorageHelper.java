@@ -5,6 +5,7 @@ import com.sandklef.coachapp.model.*;
 import com.sandklef.coachapp.report.ReportUser;
 
 
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -307,14 +308,14 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             if (t.getVideoUuid().length()>5) {
                 Log.d(LOG_TAG, "Storing media " + t.getVideoUuid() + " based on TP: " + t.getUuid() );
                 Media m = new Media(t.getVideoUuid(),
-                        t.getVideoUuid(),
+                        "tmp-name"+t.getVideoUuid(),
                         t.getClubUuid(),
                         null,
                         Media.MEDIA_STATUS_AVAILABLE,
-                        0,
+                        new Date().getDate(),
                         null,
                         t.getUuid(),
-                        null);
+                        "");
                 storeMedia(m);
             }
 
@@ -372,11 +373,17 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         values.put(MEMBER_COLUMN_NAME, m.getMember());
         values.put(DATE_COLUMN_NAME, m.getDate());
 
-        long rowId = db.insert(MEDIA_TABLE, null, values);
+        Log.d(LOG_TAG, "Contentvalues: " + values);
+
+        long rowId = db.insertWithOnConflict(MEDIA_TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+//        long rowId = db.insert(MEDIA_TABLE, null, values);
         //  Log.d(LOG_TAG, " * " + rowId + " inserted " + m + " (Storing media)");
         if (rowId < 0) {
-            Log.e(LOG_TAG, "ERROR inserting (" + rowId + "): " + m);
+            Log.d(LOG_TAG, "ERROR inserting, but don't worry (" + rowId + "): media uuid:" + m.getUuid());
+        } else {
+            Log.d(LOG_TAG, "Inserted (" + rowId + "): media uuid:" + m.getUuid());
         }
+
 
     }
 

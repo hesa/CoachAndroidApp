@@ -48,6 +48,12 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
     private String currentTPId = null;
 
     @Override
+    public void onBackPressed(){
+        Log.d(LOG_TAG, "onBackPressed()");
+        ActivitySwitcher.startTeamActivity(this);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_phases);

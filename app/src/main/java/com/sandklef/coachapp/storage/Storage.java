@@ -6,6 +6,9 @@ import android.media.MediaPlayer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.json.JsonAccess;
+import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Member;
@@ -60,7 +63,7 @@ public class Storage {
             this.members = members;
             this.teams = teams;
             this.trainingPhases = tps;
-  //          this.media = media;
+            //          this.media = media;
         } catch (DBException e) {
             Log.d(LOG_TAG, "Failed getting hold of a db");
             // TODO: remove report user stuff
@@ -257,10 +260,10 @@ public class Storage {
 
     }
 
-/*    public void setClubUuid(String club) {
-        baseStorage.setClubUuid(club);
-    }
-*/
+    /*    public void setClubUuid(String club) {
+            baseStorage.setClubUuid(club);
+        }
+    */
     public static Storage newInstance(Context c) {
         storage = new Storage(c);
 
@@ -292,23 +295,50 @@ public class Storage {
     }
 
     public void downloadTrainingPhaseFiles() {
-        Log.d(LOG_TAG, "download tp videos");
+        downloadTrainingPhaseFilesImpl(true);
+    }
 
-        for (TrainingPhase tp: trainingPhases) {
+    public void downloadTrainingPhaseFilesSynchronised() {
+        downloadTrainingPhaseFilesImpl(false);
+    }
+
+    public void downloadTrainingPhaseFilesImpl(boolean async) {
+        Log.d(LOG_TAG, "download tp videos");
+        StorageRemoteWorker srw = null;
+
+        for (TrainingPhase tp : trainingPhases) {
+
+            if(!CoachAppSession.getInstance().getSyncMode()){
+                Log.d(LOG_TAG, "Uh oh download tp interrupted");
+                return ;
+            }
 
             Media m = getInstructionalMedia(tp.getUuid());
-
-            if (m == null || m.fileName()==null) {
-                Log.d(LOG_TAG, "Download to: " + tp + " ....");
-
-                downloadMediaFromServer(context, m);
-
+            if (m == null || m.fileName() == null) {
+                if (async) {
+                    Log.d(LOG_TAG, "Download (async) to: " + tp + " ....");
+                    downloadMediaFromServer(context, m);
+                } else {
+                    if (srw == null) {
+                        try {
+                            srw = new StorageRemoteWorker();
+                        } catch (StorageException e) {
+                            Log.d(LOG_TAG, "Could not create StorageRemoteWorker");
+                            break;
+                        }
+                    }
+                    try {
+                        Log.d(LOG_TAG, "Download (sync) to: " + tp + " ....");
+                        srw.downloadMedia(m);
+                    } catch (JsonAccessException e) {
+                        Log.d(LOG_TAG, "Failed downloading: " + m);
+                    }
+                }
             } else {
                 Log.d(LOG_TAG, "No need to download: " + tp);
                 Log.d(LOG_TAG, "No need to download: " + m.fileName());
             }
         }
-
     }
 
 

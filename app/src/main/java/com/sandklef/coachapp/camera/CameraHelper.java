@@ -155,7 +155,7 @@ public class CameraHelper {
      * @param type Media type. Can be video or image.
      * @return A file object pointing to the newly created file.
      */
-    public  static File getOutputMediaFile(int type){
+    public  static File getOutputMediaFile(int type, String fileName){
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
         if (!Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
@@ -166,7 +166,6 @@ public class CameraHelper {
                 Environment.DIRECTORY_PICTURES), "CameraSample");
 */
 
-        String fileName = CoachAppSession.getInstance().newFileName();
 
 
         // This location works best if you want the created images to be shared
