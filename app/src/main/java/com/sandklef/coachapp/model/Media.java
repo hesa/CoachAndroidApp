@@ -70,7 +70,7 @@ public class Media extends CoachAppBase {
         status = s;
     }
 
-    public String statusToString(int s) {
+    public static String statusToString(int s) {
         switch (s) {
             case MEDIA_STATUS_UNDEFINED:
                 return "undefined";
@@ -96,6 +96,10 @@ public class Media extends CoachAppBase {
 
     public String fileName() {
         return file;
+    }
+
+    public void setFileName(String f) {
+        file=f;
     }
 
     public int getStatus() {

@@ -412,6 +412,7 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
 
 
         int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
+
         int degrees = 0;
 
         Log.d(LOG_TAG, "setCameraDisplay:  " + rotation);
@@ -430,6 +431,8 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
                 break;
         }
 
+
+
         int result;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
@@ -440,7 +443,9 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         mCamera.setParameters(parameters);
-        mCamera.setDisplayOrientation(result);
+//        mCamera.setDisplayOrientation(result);
+        degrees = CoachAppSession.getInstance().orientationDegrees();
+        mCamera.setDisplayOrientation(degrees);
     }
 
     //@Override

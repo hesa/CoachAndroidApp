@@ -125,6 +125,7 @@ public class LocalStorage {
     }
 
     public void setLatestUserToken(String token) {
+        Log.d(LOG_TAG, "setLatestUserToken: '" + token + "'");
         setKeyValueString(LATEST_USER_TOKEN_KEY, token);
     }
 

@@ -188,7 +188,7 @@ public class HttpAccess {
 
 
     public void uploadTrainingPhaseVideo(String clubUri, String videoUuid,
-                                            String fileName) throws HttpAccessException {
+                                            String fileName) throws HttpAccessException, IOException {
 
         //$ curl --data-binary @sample.3gp --insecure --request POST https://localhost/api/0.0.0/clubs/$CLUB_UUID/videos/uuid/$VIDEO_UUID/upload
         HttpURLConnection connection = null;
@@ -210,7 +210,6 @@ public class HttpAccess {
 
 
 
-        try {
             FileInputStream fileInputStream = new FileInputStream(new File(pathToOurFile));
 
             URL url    = new URL(urlServer);
@@ -260,15 +259,18 @@ public class HttpAccess {
                 throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
             }
 
-        } catch (IOException e) {
+/*        } catch (IOException e) {
             Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
             e.printStackTrace();
             throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
+*/
+        /*
         } catch (Exception e) {
             Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
             e.printStackTrace();
             throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
         }
+        */
     }
 
 

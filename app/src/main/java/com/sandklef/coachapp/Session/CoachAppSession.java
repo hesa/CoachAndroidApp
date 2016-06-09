@@ -3,14 +3,19 @@ package com.sandklef.coachapp.Session;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
+import android.widget.TextView;
 
 import com.sandklef.coachapp.Auth.Authenticator;
 import com.sandklef.coachapp.activities.ActivitySwitcher;
@@ -21,7 +26,7 @@ import com.sandklef.coachapp.storage.ConnectionStatusListener;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.LocalStorageSync;
 import com.sandklef.coachapp.storage.Storage;
-import com.sandklef.coachapp.storage.StorageRemoteWorker;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 import com.sandklef.coachapp.storage.StorageSync;
 import com.sandklef.coachapp.storage.StorageSyncListener;
 import com.sandklef.coachapp.storage.StorageUpdateListener;
@@ -58,7 +63,8 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     /**
      *
      */
-    private static Dialog  dialog;
+    private static AlertDialog  dialog;
+    private static ProgressDialog progress;
     private static boolean dialogInUse;
     private static int     dialogUser;
 
@@ -93,6 +99,9 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public void startUp(String email, String token) {
+
+        Log.d(LOG_TAG, "startUp: Email: " + email + " Token: " + token);
+
 //        Storage.getInstance().setClubUuid(club.getUuid());
         //      LocalStorage.getInstance().setCurrentClub(club.getUuid());
 
@@ -116,14 +125,21 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public void unsetSyncMode() {
+        Log.d(LOG_TAG, " ------------------- UNSET SYNC MODE");
         syncMode = false;
         closeDialog();
+        //progress=null;
     }
 
 
     public void setupActivity(Activity actiivity) {
         Log.d(LOG_TAG, "setupActivity()     activity name: " + actiivity.getClass().getName());
         currentActivity = actiivity;
+
+        if (LocalStorage.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(actiivity);
+        }
+
         if (LocalStorage.getInstance()!=null) {
             Log.d(LOG_TAG, "setupActivity() club: " + LocalStorage.getInstance().getCurrentClub());
         }
@@ -167,8 +183,8 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     @Override
     public void syncFinished(StorageSync.StorageSyncBundle bundle) {
         Log.d(LOG_TAG, "SYNC FINI ------------------------");
-        Log.d(LOG_TAG, "SYNC FINI ------------------------ bundle: " + bundle.getMsg());
         Log.d(LOG_TAG, "SYNC FINI ------------------------ bundle: " + bundle.getErrorCode());
+        closeDialog();
     }
 
     public class TokenVerifier extends AsyncTask<String, Void, Void> {
@@ -190,7 +206,28 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         }
     }
 
-    public Dialog getSyncDialog(){
+    public void setSyncDialog(int tot, String title) {
+        Log.d(LOG_TAG, "setSyncDialog()" + progress);
+        closeDialog();
+        getSyncDialog();
+        progress.setMax(tot);
+        progress.setTitle(title);
+    }
+
+    public Dialog getSyncDialog() {
+        Log.d(LOG_TAG, "get SyncDialog()" + progress);
+        if (progress == null) {
+            progress = new ProgressDialog(getContext());
+            progress.setIndeterminate(false);
+            progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+//            progress.show();
+        }
+        Log.d(LOG_TAG, "get SyncDialog()" + progress + " " + progress.getProgress());
+        return progress;
+    }
+
+    public Dialog getSyncDialogA(){
         Log.d(LOG_TAG, "get SyncDialog()");
         if (dialog==null) {
             AlertDialog.Builder builder = CoachAppSession.getInstance().buildAlertDialog(R.string.sync_title, R.string.sync_in_progress);
@@ -203,6 +240,8 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             });
             dialog = builder.create();
             Log.d(LOG_TAG, "Creating dialog: " + dialog);
+            setSyncMode();
+            dialog.setCancelable(false);
             dialog.show();
             dialogInUse=true;
         } else {
@@ -219,6 +258,8 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public void closeDialog(){
+        Log.d(LOG_TAG, "closeDialog" + progress);
+
         if (dialogUser>0) {
             dialogUser--;
         }
@@ -229,8 +270,52 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                 dialog.dismiss();
                 dialog = null;
             }
+            if (progress != null) {
+                progress.dismiss();
+               progress = null;
+            }
         }
         dialogInUse=false;
+    }
+
+    public void setDialogText(String s) {
+        Log.d(LOG_TAG, "setSyncDialogText()" + progress);
+
+        progress.setProgress(progress.getProgress()+1);
+        progress.show(getContext(), "Syncing", s);
+
+        /*
+        TextView tv = new TextView(currentActivity);
+        tv.setText(s);
+        if (dialog!=null) {
+            dialog.setMessage(s);
+        } else {
+            Log.d(LOG_TAG, "setDialogText  from onProgressUpdate dialog null, text: " + s);
+        }
+        */
+    }
+
+    public void setDialogInfo(int cnt, String text) {
+        Log.d(LOG_TAG, "setSyncDialogInfo()" + progress);
+        getSyncDialog();
+        if (progress != null) {
+            progress.setProgress(cnt);
+            if (!progress.isShowing()) {
+                progress.show();
+            }
+
+//            Log.d(LOG_TAG, "setDialogInfo: " + cnt + " " + progress.getMax());
+
+        /*
+        TextView tv = new TextView(currentActivity);
+        tv.setText(s);
+        if (dialog!=null) {
+            dialog.setMessage(s);
+        } else {
+            Log.d(LOG_TAG, "setDialogText  from onProgressUpdate dialog null, text: " + s);
+        }
+        */
+        }
     }
 
     public void updateFromServer(
@@ -254,8 +339,11 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                         context.getResources().getString(R.string.network_down_server_up));
                 Log.d(LOG_TAG, "Network is up, but server seems to be down");
             } else {
-                ReportUser.inform(activity,
-                        context.getResources().getString(R.string.getting_data_from_server));
+                Log.d(LOG_TAG, "Update from server, sync mode?: " + CoachAppSession.getInstance().getSyncMode());
+                if (!CoachAppSession.getInstance().getSyncMode()) {
+                    ReportUser.inform(activity,
+                            context.getResources().getString(R.string.getting_data_from_server));
+                }
                 Log.d(LOG_TAG, "Initiate update from server");
                 Storage.getInstance().update(activity, sl, cl);
             }
@@ -273,7 +361,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
         if (serverConnectionStatus == JsonAccessException.ACCESS_ERROR ) {
             ReportUser.warning(activity,
-                    context.getResources().getString(R.string.getting_data_from_server),
+                    context.getResources().getString(R.string.error_incorrect_password),
                     "User credentials were wrong so we've skipped update from server");
             return;
 
@@ -464,32 +552,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                 LocalStorage.getInstance().setLatestUserToken("");
                 return true;
             case R.id.topsync:
-                com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  sync");
-                if (CoachAppSession.getInstance().isWifi()) {
-                    Log.d(LOG_TAG, "Dialog time?" + " activity: " + currentActivity);
-                    Log.d(LOG_TAG, "----> all sync methods will be called");
-
-
-                    // SYNC HERE
-
-                    CoachAppSession.getInstance().getSyncDialog().setCancelable(false);
-
-                    /*
-                    LocalStorageSync.getInstance().syncLocalStorage();
-                    Storage.getInstance().downloadTrainingPhaseFiles();
-*/
-                    CoachAppSession.getInstance().updateFromServer(currentActivity, l, CoachAppSession.getInstance());
-
-                    new StorageSync(this).execute();
-
-                    Log.d(LOG_TAG, "<---- all sync methods called");
-
-
-                } else {
-                    ReportUser.warning(context,
-                            context.getResources().getString(R.string.no_network_sync),
-                            "To limit bandwidth useage when on mobile network, you can only sync with wifi");
-                }
+                syncAll();
                 return true;
             default:
                 goBackToActivity();
@@ -498,6 +561,34 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                 return true;
         }
     }
+
+
+    public void syncAll() {
+        com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  sync");
+        if (CoachAppSession.getInstance().isWifi()) {
+            Log.d(LOG_TAG, "Dialog time?" + " activity: " + currentActivity);
+            Log.d(LOG_TAG, "----> all sync methods will be called");
+
+
+            //TODO: REFRESH DATA FROM SERVER AS WELL AS SYNC FILES
+//                    CoachAppSession.getInstance().updateFromServer(currentActivity, l, CoachAppSession.getInstance());
+            try {
+                new StorageSync(this).execute();
+                // SYNC HERE
+                Dialog dialog = CoachAppSession.getInstance().getSyncDialog();
+
+                Log.d(LOG_TAG, "<---- all sync methods called");
+            } catch (StorageNoClubException e) {
+                e.printStackTrace();
+                // FIXME: 2016-06-08
+            }
+        } else {
+            ReportUser.warning(context,
+                    context.getResources().getString(R.string.no_network_sync),
+                    "To limit bandwidth useage when on mobile network, you can only sync with wifi");
+        }
+    }
+
 
     public String newFileName() {
         DateFormat df = new SimpleDateFormat(ActivitySwitcher.VIDEO_FILE_DATE_FORMAT);
@@ -519,6 +610,101 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         return newFileName;
     }
 
+    public int orientationDegrees(int orientation) {
+        int degrees = 0 ;
+        switch (orientation) {
+            case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
+                degrees = 0;
+                break;
+            case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
+                degrees = 180;
+                break;
+            case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
+                degrees = 90;
+                break;
+            default:
+                degrees = 180;
+                break;
+        }
 
+        Log.d(LOG_TAG, " Screen orientation: " + orientation);
+        Log.d(LOG_TAG, " * landscape: " + ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        Log.d(LOG_TAG, " * rev land:  " + ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+        Log.d(LOG_TAG, " * portrait:  " + ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Log.d(LOG_TAG, " Degress:     " + degrees);
+
+        return degrees ;
+    }
+
+    public int orientationDegrees() {
+        return  orientationDegrees(getScreenOrientation());
+    }
+
+    public int getScreenOrientation() {
+        /*
+*     Not my (c)
+ *   http://stackoverflow.com/questions/10380989/how-do-i-get-the-current-orientation-activityinfo-screen-orientation-of-an-a
+     */
+        int rotation = currentActivity.getWindowManager().getDefaultDisplay().getRotation();
+        DisplayMetrics dm = new DisplayMetrics();
+        currentActivity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int width = dm.widthPixels;
+        int height = dm.heightPixels;
+        int orientation;
+        // if the device's natural orientation is portrait:
+        if ((rotation == Surface.ROTATION_0
+                || rotation == Surface.ROTATION_180) && height > width ||
+                (rotation == Surface.ROTATION_90
+                        || rotation == Surface.ROTATION_270) && width > height) {
+            switch(rotation) {
+                case Surface.ROTATION_0:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+                case Surface.ROTATION_90:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_180:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                    break;
+                case Surface.ROTATION_270:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                    break;
+                default:
+                    Log.e(LOG_TAG, "Unknown screen orientation. Defaulting to " +
+                            "portrait.");
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+            }
+        }
+        // if the device's natural orientation is landscape or if the device
+        // is square:
+        else {
+            switch(rotation) {
+                case Surface.ROTATION_0:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_90:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+                case Surface.ROTATION_180:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_270:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                    break;
+                default:
+                    Log.e(LOG_TAG, "Unknown screen orientation. Defaulting to " +
+                            "landscape.");
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+            }
+        }
+
+        return orientation;
+    }
 
 }

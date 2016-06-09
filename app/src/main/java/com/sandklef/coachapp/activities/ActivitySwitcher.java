@@ -96,10 +96,12 @@ public class ActivitySwitcher {
     }
 
     public static void startClubInfoActivity(Activity a) {
+
+/*
         // TODO: REMOVE THIS ... REALLY REALLY
         android.util.Log.d(LOG_TAG, "updateConnectionStatusImpl reset token");
        LocalStorage.getInstance().setLatestUserToken("");
-
+*/
 
         startActivityImpl(a, com.sandklef.coachapp.activities.ClubInfoActivity.class);
     }

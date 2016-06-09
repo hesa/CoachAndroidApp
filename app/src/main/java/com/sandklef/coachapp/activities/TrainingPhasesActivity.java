@@ -60,6 +60,9 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 
         Log.d(LOG_TAG, "onCreate()");
 
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
         CoachAppSession.getInstance().setupActivity(this);
 
         Log.d(LOG_TAG, "onCreate() storage:" + Storage.getInstance());

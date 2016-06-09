@@ -18,6 +18,7 @@ package com.sandklef.coachapp.activities;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
@@ -26,10 +27,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.camera.CameraHelper;
 import com.sandklef.coachapp.storage.LocalStorage;
 
@@ -163,6 +167,33 @@ public class MediaRecorderActivity extends Activity {
         }
     }
 
+    public static void setCameraDisplayOrientation(Activity activity,
+                                                   int cameraId, android.hardware.Camera camera) {
+        android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay()
+                .getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; Log.d(LOG_TAG, "deg: 0");break;
+            case Surface.ROTATION_90: degrees = 90; Log.d(LOG_TAG, "deg: 90");break;
+            case Surface.ROTATION_180: degrees = 180; Log.d(LOG_TAG, "deg: 180");break;
+            case Surface.ROTATION_270: degrees = 270; Log.d(LOG_TAG, "deg: 270");break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        Log.d(LOG_TAG, "deg: result: " + result);
+        camera.setDisplayOrientation(result);
+
+    }
+
     private void releaseCamera(){
         if (mCamera != null){
             // release the camera for other applications
@@ -176,11 +207,24 @@ public class MediaRecorderActivity extends Activity {
 
         // BEGIN_INCLUDE (configure_preview)
         mCamera = CameraHelper.getDefaultCameraInstance();
+        int orientation = CoachAppSession.getInstance().getScreenOrientation();
+        int orientationDegrees = CoachAppSession.getInstance().orientationDegrees(orientation);
+        mCamera.setDisplayOrientation(orientationDegrees);
+
+        Log.d(LOG_TAG, "deg: orientation: " + orientationDegrees);
+
+
+        Log.d(LOG_TAG, "deg: orientation: " + orientationDegrees);
+     //   orientationDegrees = 90;
+
+
 
         // We need to make sure that our preview and recording video size are supported by the
         // camera. Query camera to find all the sizes and choose the optimal size given the
         // dimensions of our preview surface.
         Camera.Parameters parameters = mCamera.getParameters();
+
+
         List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
         List<Camera.Size> mSupportedVideoSizes = parameters.getSupportedVideoSizes();
         Camera.Size optimalSize = CameraHelper.getOptimalVideoSize(mSupportedVideoSizes,
@@ -216,8 +260,13 @@ public class MediaRecorderActivity extends Activity {
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT );
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
+
+
+//        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+
         // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
         mMediaRecorder.setProfile(profile);
+
 
         // Step 4: Set output file
         mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO, fileName);
@@ -226,6 +275,15 @@ public class MediaRecorderActivity extends Activity {
         }
         mMediaRecorder.setOutputFile(mOutputFile.getPath());
         // END_INCLUDE (configure_media_recorder)
+
+        mMediaRecorder.setOrientationHint(orientationDegrees);
+
+
+/*        SurfaceView surf = (SurfaceView)findViewById(R.id.surface_view);
+       mMediaRecorder.setPreviewDisplay(surf.getHolder().getSurface());
+  */      //mMediaRecorder.setOrientationHint(orientationDegrees);
+
+
 
         // Step 5: Prepare configured MediaRecorder
         try {

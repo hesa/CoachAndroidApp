@@ -3,6 +3,7 @@ package com.sandklef.coachapp.storage;
 import android.content.Context;
 import android.media.MediaPlayer;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +103,13 @@ public class Storage {
     }
 
     public Team getTeam(String uuid) {
+        try {
+            getTeams();
+        } catch (StorageNoClubException e) {
+            // TODO: change to runtime exception
+            e.printStackTrace();
+        }
+
         for (Team t: teams) {
             if (t.getUuid().equals(uuid)){
                 return t;
@@ -111,8 +119,27 @@ public class Storage {
     }
 
     public List<Media> getMedia() throws StorageNoClubException {
-        media = baseStorage.getMediaFromDB();
+        if (media == null) {
+            media = baseStorage.getMediaFromDB();
+        }
         return media;
+    }
+
+    public List<Media> getLocalMedia() throws StorageNoClubException {
+        List<Media> localMedia = new ArrayList<>();
+        List<Media> media = getMedia();
+        for(Media m: media) {
+            Log.d(LOG_TAG, "Finding local media, member: '" + m.getMember() + "'");
+            if (!m.getMember().equals("")){
+                localMedia.add(m);
+            }
+        }
+        return localMedia;
+    }
+
+    public void reReadMedia() throws StorageNoClubException {
+        baseStorage.removeDeletableMediaFromDB();
+        media = baseStorage.getMediaFromDB();
     }
 
     public List<LogMessage> getLogMessages() {
@@ -188,8 +215,8 @@ public class Storage {
             Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
             if (media != null) {
                 for (Media m : media) {
-                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getUuid());
-                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getTrainingPhase());
+//                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getUuid());
+  //                  Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getTrainingPhase());
                     if (m.getTrainingPhase().equals(uuid)) {
                         if (m.getMember()==null || m.getMember().equals("")) {
                             return m;
@@ -276,22 +303,58 @@ public class Storage {
             if (media==null) {
                 getMedia();
             }
+            media.remove(m);
             media.add(m);
         } catch (StorageNoClubException e) {
             e.printStackTrace();
         }
     }
 
+
     public boolean updateMediaState(Media m, int state) {
-        return baseStorage.updateMediaState(m, state);
+        Log.d(LOG_TAG, "updateMediaState(" + m + ", " + Media.statusToString(state));
+        if (state==Media.MEDIA_STATUS_UPLOADED) {
+            Log.d(LOG_TAG, "File: " + m + " uploaded. Will delete   size: " + media.size());
+            String fileName = m.fileName();
+
+
+            //baseStorage.removeMediaFromDB(m);
+            //media.remove(m);
+            Log.d(LOG_TAG, "File: " + m + " uploaded. deleted   size: " + media.size());
+            String newFileName = fileName.replace(
+                    Media.statusToString(Media.MEDIA_STATUS_NEW),
+                    Media.statusToString(Media.MEDIA_STATUS_DELETABLE));
+            File oldFile = new File(fileName);
+            File newFile = new File(newFileName);
+            Log.d(LOG_TAG, "updated file in db, renaming: " + fileName + " --> " + newFileName);
+            oldFile.renameTo(newFile);
+
+//            media.remove(m);
+//            baseStorage.updateMediaFileName(m, newFileName);
+            baseStorage.removeMediaFromDB(m);
+
+        } else if (baseStorage.updateMediaState(m, state)) {
+            m.setStatus(state);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateMediaStateCreated(Media m, String uuid) {
-        return baseStorage.updateMediaStateCreated(m, uuid);
+        if (baseStorage.updateMediaStateCreated(m, uuid)) {
+            m.setStatus(Media.MEDIA_STATUS_CREATED);
+            m.setUuid(uuid);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateMediaReplaceDownloadedFile(Media m, String file) {
-        return baseStorage.updateMediaReplaceDownloadedFile(m, file);
+        if (baseStorage.updateMediaReplaceDownloadedFile(m, file)) {
+            m.setFileName(file);
+            return true;
+        }
+        return false;
     }
 
     public void downloadTrainingPhaseFiles() {
@@ -306,8 +369,14 @@ public class Storage {
         Log.d(LOG_TAG, "download tp videos");
         StorageRemoteWorker srw = null;
 
+        if (trainingPhases==null) {
+            Log.d(LOG_TAG, "No data downlaoded.... Missing information about your club and team(s). Refresh");
+            return;
+        }
+        int cnt = 0;
         for (TrainingPhase tp : trainingPhases) {
 
+            cnt++;
             if(!CoachAppSession.getInstance().getSyncMode()){
                 Log.d(LOG_TAG, "Uh oh download tp interrupted");
                 return ;
@@ -316,7 +385,18 @@ public class Storage {
             Media m = getInstructionalMedia(tp.getUuid());
             if (m == null || m.fileName() == null) {
                 if (async) {
-                    Log.d(LOG_TAG, "Download (async) to: " + tp + " ....");
+
+                    cnt++;
+
+                    Log.d(LOG_TAG, "Syncing (dload) file: " + cnt + " of " + trainingPhases.size() + " files");
+
+    // TODO: remove
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                     downloadMediaFromServer(context, m);
                 } else {
                     if (srw == null) {
@@ -368,6 +448,7 @@ public class Storage {
                     new StorageRemoteWorker.AsyncBundle(Storage.MODE_UPLOAD,
                             new StorageRemoteWorker.SimpleAsyncBundle(0, m),
                             null, null);
+
             srw =
                     new StorageRemoteWorker();
             srw.execute(bundle);
@@ -378,6 +459,22 @@ public class Storage {
     }
 
 
+    public void createMediaOnServerSync(Context c, Media m) {
+        try {
+            StorageRemoteWorker.AsyncBundle bundle;
+            StorageRemoteWorker srw;
+            bundle =
+                    new StorageRemoteWorker.AsyncBundle(Storage.MODE_CREATE,
+                            new StorageRemoteWorker.SimpleAsyncBundle(0, m),
+                            null, null);
+            srw =
+                    new StorageRemoteWorker();
+            srw.execute(bundle);
+        } catch (StorageException e) {
+            Log.e(LOG_TAG, "Failed creating media on server");
+            ReportUser.warning(c, "Create media on server failed", "Failed creating storage for media on server");
+        }
+    }
     public void createMediaOnServer(Context c, Media m) {
         try {
             StorageRemoteWorker.AsyncBundle bundle;
@@ -409,6 +506,15 @@ public class Storage {
             e.printStackTrace();
             ReportUser.warning(c, "Update failed", "Failed updating media from server");
         }
+    }
+
+
+    public boolean removeMediaFromDb(Media m) {
+        if (baseStorage.removeMediaFromDB(m)){
+            media.remove(m);
+            return true;
+        }
+        return false;
     }
 
     public void log(String msg, String detail) {

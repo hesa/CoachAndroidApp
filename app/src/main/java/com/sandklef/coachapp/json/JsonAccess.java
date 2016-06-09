@@ -1,8 +1,10 @@
 package com.sandklef.coachapp.json;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.http.HttpAccessException;
 import com.sandklef.coachapp.model.*;
 import com.sandklef.coachapp.misc.*;
+import com.sandklef.coachapp.report.ReportUser;
 import com.sandklef.coachapp.storage.*;
 import com.sandklef.coachapp.http.HttpAccess;
 
@@ -10,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,6 +21,8 @@ import java.util.TimeZone;
 
 import android.content.Context;
 import android.os.AsyncTask;
+
+import coachassistant.sandklef.com.coachapp.R;
 
 
 public class JsonAccess  {
@@ -327,6 +332,12 @@ public class JsonAccess  {
         Log.d(LOG_TAG, "      uuid    : " + m.getUuid());
         try {
             httpAccess.uploadTrainingPhaseVideo(clubUri, m.getUuid(), m.fileName());
+        } catch (IOException e) {
+            Log.d(LOG_TAG, "Missing file ... deleting Media from db");
+            ReportUser.Log(
+                    CoachAppSession.getInstance().getCurrentActivity().getString(R.string.missing_file),
+                    "Missing file: " + m.fileName());
+            Storage.getInstance().removeMediaFromDb(m);
         } catch (HttpAccessException e) {
             throw new JsonAccessException("Failed to access http", e, e.getMode());
         }
@@ -341,7 +352,18 @@ public class JsonAccess  {
         if (trainingPhaseUuid.length() < 3) {
             throw new JsonAccessException("No TrainingPhase id", JsonAccessException.ACCESS_ERROR);
         }
-        String jsonData = "{ \"trainingPhaseUuid\": \"" + trainingPhaseUuid + "\" }";
+
+
+
+        String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\"";
+        if (!m.getMember().equals("")) {
+            jsonData = jsonData + " , \"" + JsonSettings.MEMBER_TAG + "\": \"" + m.getMember() + "\"";
+        }
+        jsonData = jsonData + "}";
+
+        Log.d(LOG_TAG, "DEBUG upload: " + jsonData);
+
+
         String header = "application/json";
 
         try {

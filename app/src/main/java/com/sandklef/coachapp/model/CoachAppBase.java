@@ -22,6 +22,10 @@ public class CoachAppBase {
         return uuid;
     }
 
+    public void setUuid(String id) {
+        uuid=id;
+    }
+
     public String getName() {
         return name;
     }

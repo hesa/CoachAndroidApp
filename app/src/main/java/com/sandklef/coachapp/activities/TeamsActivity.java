@@ -52,9 +52,15 @@ public class TeamsActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teams);
+
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
         CoachAppSession.getInstance().setupActivity(this);
 
-        ActivitySwitcher.printDb("TeamsActivity");
+//        ActivitySwitcher.printDb("TeamsActivity");
+
+        Log.d(LOG_TAG, "orientation: " + CoachAppSession.getInstance().getScreenOrientation());
 
         try {
 

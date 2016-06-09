@@ -13,6 +13,7 @@ import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
@@ -411,6 +412,22 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     }
 
 
+    public boolean removeMediaFromDB(Media m) {
+        SQLiteDatabase db = getWritableDatabase();
+        Log.d(LOG_TAG, "delete media from db: " + m.getUuid());
+        return db.delete(MEDIA_TABLE, UUID_COLUMN_NAME + "= '" + m.getUuid() + "'" , null) > 0;
+    }
+
+    public void removeDeletableMediaFromDB() {
+        SQLiteDatabase db = getWritableDatabase();
+        Log.d(LOG_TAG, "delete deletable media from db: ");
+//        int rows = db.delete(MEDIA_TABLE, STATUS_COLUMN_NAME + "= '" + Media.MEDIA_STATUS_DELETABLE + "'" , null);
+  //      Log.d(LOG_TAG, "delete deletable media from db, deleted " + rows + " rows");
+    }
+
+
+
+
     public List<Member> getMembersTeamFromDB(String teamUuid) {
         try {
             List<Member> filteredMembers    = new ArrayList<Member>();
@@ -468,13 +485,14 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         while (!cursor.isAfterLast()) {
             Media m = cursorToMedia(cursor);
             media.add(m);
-            Log.d(LOG_TAG, " fetchig media: " + m.fileName() + " | " + m.getUuid());
+            Log.d(LOG_TAG, " fetching media: " + m.getStatus() + " | " + m.getUuid() + " | " + m.fileName());
             cursor.moveToNext();
         }
+        Log.d(LOG_TAG, " fetching media: ---- fini");
+
         closeCursor(cursor);
         return media;
     }
-
 
     public List<LogMessage> getLogMessagesFromDB() {
         Log.d(LOG_TAG, "---> Getting log messages");
@@ -572,6 +590,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
 
 
     public boolean updateMediaState(Media m, int state) {
+        int oldStatus = m.getStatus();
         ContentValues values = buildContentValues(m);
         values.put(STATUS_COLUMN_NAME, state);
         SQLiteDatabase db = getWritableDatabase();
@@ -580,7 +599,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
                 values, "uuid = ? ",
                 new String[]{m.getUuid()});
 
-        Log.d(LOG_TAG, " * " + rows + " updated " + m + " from state " + m.getStatus() + " to new state: " + state);
+        Log.d(LOG_TAG, " * " + rows + " updated " + m + " from state " + oldStatus + " to new state: " + m.getStatus());
 
         return rows == 1;
     }
@@ -606,7 +625,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         values.put(STATUS_COLUMN_NAME, Media.MEDIA_STATUS_CREATED);
         values.put(UUID_COLUMN_NAME, uuid);
         SQLiteDatabase db = getWritableDatabase();
-
+        long rows = -1;
         try {
             List<Media> mediaList = getMediaFromDB();
             for (Media med : mediaList) {
@@ -616,13 +635,18 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             Log.d(LOG_TAG, "no club set, just printing media so don't give a f%%k....");
         }
 
-        Log.d(LOG_TAG, " * " + m.fileName() + " exists? " + checkIfMediaExists(uuid));
+        Log.d(LOG_TAG, " * " + m.fileName() + " uuid: " + m.getUuid() + " exists? " + checkIfMediaExists(uuid));
 
-        long rows = db.update(MEDIA_TABLE,
-                values, "  " + URI_COLUMN_NAME + " = ? ",
-                new String[]{m.fileName()});
-
-        Log.d(LOG_TAG, " * Updating " + rows + " elements to: " + uuid + " (media)");
+        try {
+            rows = db.update(MEDIA_TABLE,
+                    values, "  " + URI_COLUMN_NAME + " = ? ",
+                    new String[]{m.fileName()});
+            Log.d(LOG_TAG, " * Updating " + rows + " elements to: " + uuid + " (media)");
+        } catch (SQLiteConstraintException e) {
+            Log.d(LOG_TAG, " UH OH.... ");
+            // TODO: FIX FIX FIX HESAHESA HESA HESA
+            return false;
+        }
 
 /*
         Log.d(LOG_TAG, "Listing all Media after status update");
@@ -710,7 +734,7 @@ DATE_COLUMN_NAME
                 new String[]{m.getUuid()});
 
         Log.d(LOG_TAG, " * " + rows + " updated " + m + " to downloaded (" + file + ")");
-
+/*
         try {
             for (Media media : Storage.getInstance().getMedia()) {
                 Log.d(LOG_TAG, " media: " + media.fileName());
@@ -719,7 +743,21 @@ DATE_COLUMN_NAME
         } catch (StorageNoClubException e) {
             Log.d(LOG_TAG, "Failed checking media");
         }
+*/
+        return rows == 1;
+    }
 
+    public boolean updateMediaFileName(Media m, String file) {
+        Log.d(LOG_TAG, "Updating media element: " + m.getUuid() + "   new file: " + file);
+        ContentValues values = new ContentValues();
+        values.put(URI_COLUMN_NAME, file);
+        SQLiteDatabase db = getWritableDatabase();
+
+        long rows = db.update(MEDIA_TABLE,
+                values, "  " + UUID_COLUMN_NAME + " = ? ",
+                new String[]{m.getUuid()});
+
+        Log.d(LOG_TAG, " * " + rows + " updated " + m + " to downloaded (" + file + ")");
         return rows == 1;
     }
 

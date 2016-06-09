@@ -14,6 +14,7 @@ import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.model.TrainingPhase;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -55,7 +56,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
 
      */
 
-    public void uploadMedia(Media m) throws  JsonAccessException {
+    public void uploadMedia(Media m) throws JsonAccessException {
         ja.uploadTrainingPhaseVideo(LocalStorage.getInstance().getCurrentClub(), m);
         Log.d(LOG_TAG, " upload seems to have worked with media: " + m);
         boolean res = Storage.getInstance().updateMediaState(m, Media.MEDIA_STATUS_UPLOADED);
@@ -65,6 +66,7 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
         String uuid = ja.createVideoOnServer(LocalStorage.getInstance().getCurrentClub(), m);
         Log.d(LOG_TAG, " creation seems to have work, uuid: " + uuid + "  and media: " + m);
         Log.d(LOG_TAG, "Newly created video on server: " + uuid);
+
         Storage.getInstance().updateMediaStateCreated(m, uuid);
         return new AsyncBundle(Storage.MODE_CREATE, new SimpleAsyncBundle(0, m, uuid), null,  null);
     }
@@ -160,7 +162,6 @@ public class StorageRemoteWorker extends AsyncTask<StorageRemoteWorker.AsyncBund
     protected void onPostExecute(AsyncBundle bundle) {
         Log.d(LOG_TAG, " onPostExecute " + bundle);
 
-        CoachAppSession.getInstance().closeDialog();
 
         if (bundle!=null) {
             Log.d(LOG_TAG, " onPostExecute " + bundle.getMode());

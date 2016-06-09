@@ -72,7 +72,12 @@ public class MemberActivity extends ActionBarActivity
 
         setContentView(R.layout.activity_member);
 
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+
         CoachAppSession.getInstance().setupActivity(this);
+
 
 
         String teamUUid = LocalStorage.getInstance().getCurrentTeam();
@@ -182,6 +187,7 @@ public class MemberActivity extends ActionBarActivity
         Log.d(LOG_TAG, "  file: " + file);
         Uri uri = Uri.fromFile(new File(file));
 
+        Log.d(LOG_TAG, "  creating intent");
 
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
 /*
@@ -191,8 +197,11 @@ public class MemberActivity extends ActionBarActivity
         intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
   */
         intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1); // set the video image quality to high
+        Log.d(LOG_TAG, "  starting activity");
         startActivityForResult(intent, VideoCapture.VIDEO_CAPTURE);
        // saveinstructionMedia(Uri.fromFile(new File(file)));
+        Log.d(LOG_TAG, "  done");
+
     }
 
 
@@ -252,7 +261,19 @@ public class MemberActivity extends ActionBarActivity
             // TODO: get member name instaed of UUID
             Storage.getInstance().log("Video recorded " + member, "Recorded video (" + member.toString() + " | " + tpName +" | " + teamName + ")" );
         }
-        Media m = new Media(null,
+        /*
+            public Media(String uuid,
+                 String name,
+                 String clubUuid,
+                 String file,
+                 int status,
+                 long date,
+                 String teamUuid,
+                 String trainingPhaseUuid,
+                 String memberUuid) {
+        super(uuid, name, clubUuid);
+         */
+        Media m = new Media("temp-uuid-"+System.currentTimeMillis(),
                 "",
                 club,
                 uri.getPath(),
@@ -302,8 +323,7 @@ public class MemberActivity extends ActionBarActivity
                 break;
             case R.id.member_sync:
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  sync");
-                LocalStorageSync.getInstance().syncLocalStorage();
-                Storage.getInstance().downloadTrainingPhaseFiles();
+                CoachAppSession.getInstance().syncAll();
                 break;
             default:
                 CoachAppSession.getInstance().goBackToActivity();
