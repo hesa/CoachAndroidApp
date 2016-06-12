@@ -75,7 +75,6 @@ public class MemberActivity extends ActionBarActivity
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
         }
-
         CoachAppSession.getInstance().setupActivity(this);
 
 
@@ -110,6 +109,16 @@ public class MemberActivity extends ActionBarActivity
                 R.id.trainingphase_text,
                 getResources().getString(R.string.trainingphase_column) +
                         Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()));
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG, "onResume()");
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
     }
 
     @Override
@@ -252,14 +261,21 @@ public class MemberActivity extends ActionBarActivity
     private void saveMediaImpl(Uri uri, String member) {
         String club = LocalStorage.getInstance().getCurrentClub();
         String team = LocalStorage.getInstance().getCurrentTeam();
-        String tp = LocalStorage.getInstance().getCurrentTrainingPhase();
+        String tp   = LocalStorage.getInstance().getCurrentTrainingPhase();
 
-        String teamName = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
-        String tpName   = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
+        String memberName = Storage.getInstance().getMemberUUid(member).getName();
+        String teamName   = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
+        String tpName     = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
+
 
         if (member!=null) {
             // TODO: get member name instaed of UUID
-            Storage.getInstance().log("Video recorded " + member, "Recorded video (" + member.toString() + " | " + tpName +" | " + teamName + ")" );
+            Storage.getInstance().log("Recorded " + memberName,
+                    "Recorded video:\n" +
+                            "Team: " + teamName +
+                            "TraingingPhase: " + tpName +"\n" +
+                            "Member: " + memberName + "\n"
+            );
         }
         /*
             public Media(String uuid,

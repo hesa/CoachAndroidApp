@@ -1,11 +1,10 @@
 package com.sandklef.coachapp.Auth;
 
-import android.util.Log;
-
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.activities.ActivitySwitcher;
 import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.json.JsonAccessException;
+import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;

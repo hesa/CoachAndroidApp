@@ -1,7 +1,9 @@
 package com.sandklef.coachapp.activities;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,13 +11,17 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ListAdapter;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.adapters.ExpandableListAdapter;
 import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.LogMessage;
 import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
 import java.text.ParseException;
@@ -32,8 +38,8 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
 
     private final static String LOG_TAG = LogMessage.class.getSimpleName();
 
-    private ListAdapter      mAdapter;
-    private AbsListView      mListView;
+    private ExpandableListAdapter mAdapter;
+    private ExpandableListView    mListView;
     private List<LogMessage> logs;
     private Club             currentClub;
     private Toolbar          toolbar;
@@ -48,7 +54,14 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
         //List<LogMessage> logs;
 //        Storage.getInstance().log("onCreate in LogMessage");
 
-        logs = Storage.getInstance().getLogMessages();
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+        CoachAppSession.getInstance().setupActivity(this);
+
+
+
+        logs = Storage.getInstance().getLogMessages(LocalStorage.getInstance().getLogMessageLimit());
 /*        String lastDayString = null;
 
 
@@ -67,8 +80,10 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
         }
 */
 
-        mAdapter = new ArrayAdapter<LogMessage>(this,
+        /*
+        mAdapter = new ExpandableListAdapter(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, logs);
+*/
 
 
         //        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media)
@@ -76,9 +91,15 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
         mAdapter = new MediaListAdapter(getApplicationContext(),
                 R.layout.media_list, media);
 */
+//        ExpandableListView listView = (ExpandableListView) findViewById(R.id.local_log_list);
+
         // Set the adapter
-        mListView = (AbsListView) findViewById(R.id.local_log_list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        mListView = (ExpandableListView) findViewById(R.id.local_log_list);
+        mAdapter = new ExpandableListAdapter(this,logs);
+
+        mListView.setAdapter(mAdapter);
+
+//        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         registerForContextMenu(mListView);
 
@@ -122,5 +143,13 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, " log clicked");
         Log.d(LOG_TAG, " detail:" + logs.get((int)id).getDetail());
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(CoachAppSession.getInstance().getContext());
+        builder.setMessage(logs.get((int)id).toString())
+                .setTitle(logs.get((int)id).getDetail());
+        AlertDialog dialog = builder.create();
+        dialog.setIcon(R.drawable.ic_sync_alert_black_24dp);
+        dialog.show();
+
     }
 }

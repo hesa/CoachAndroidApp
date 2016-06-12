@@ -141,7 +141,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
     public void startRecordInstructional(String fileName) {
         RecordTaskSettings rts =
                 new RecordTaskSettings(fileName,
-                        LocalStorage.getInstance().getInstructionalRecordingTime(),
+                        LocalStorage.getInstance().getVideoRecordingTime(),
                         REC_TYPE_INSTR);
         new RecordTask().execute(rts);
     }
@@ -150,7 +150,7 @@ public class VideoCapture extends SurfaceView implements SurfaceHolder.Callback 
         Log.d(LOG_TAG, "startRecordTP()");
         RecordTaskSettings rts =
                 new RecordTaskSettings(fileName,
-                        LocalStorage.getInstance().getTPRecordingTime(),
+                        LocalStorage.getInstance().getVideoRecordingTime(),
                         REC_TYPE_TP);
         new RecordTask().execute(rts);
 //        startRecordImpl(rts);

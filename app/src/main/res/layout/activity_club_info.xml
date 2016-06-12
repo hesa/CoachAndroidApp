@@ -13,6 +13,12 @@
         android:orientation="vertical">
 
         <TextView
+            android:text="Club information"
+            android:textStyle="bold"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
             android:id="@+id/teams_info"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
@@ -24,6 +30,12 @@
 
         <TextView
             android:id="@+id/members_info"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="Media"
+            android:textStyle="bold"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 
@@ -44,6 +56,12 @@
 
         <TextView
             android:id="@+id/instructional_media_info"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="Teams"
+            android:textStyle="bold"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 

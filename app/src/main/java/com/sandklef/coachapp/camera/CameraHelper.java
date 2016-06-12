@@ -20,9 +20,9 @@ import android.annotation.TargetApi;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Environment;
-import android.util.Log;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.misc.Log;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

@@ -25,7 +25,6 @@ import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -35,6 +34,7 @@ import android.widget.Button;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.camera.CameraHelper;
+import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 
 import java.io.File;
@@ -316,10 +316,10 @@ public class MediaRecorderActivity extends Activity {
 
                 isRecording = true;
 
-                Log.d(LOG_TAG, "before sleep: " + LocalStorage.getInstance().getTPRecordingTime());
+                Log.d(LOG_TAG, "before sleep: " + LocalStorage.getInstance().getVideoRecordingTime());
                 // HESA
                 try {
-                    Thread.sleep(LocalStorage.getInstance().getTPRecordingTime()*1000);
+                    Thread.sleep(LocalStorage.getInstance().getVideoRecordingTime()*1000);
                 } catch (Exception e) {
                     e.getLocalizedMessage();
                 }

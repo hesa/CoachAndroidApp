@@ -1,6 +1,9 @@
 package com.sandklef.coachapp.activities;
 
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -41,10 +44,11 @@ public class TeamsActivity
     private ArrayAdapter mAdapter;
 
     private final static String LOG_TAG = TeamsActivity.class.getSimpleName();
+
     //    private Club currentClub;
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         Log.d(LOG_TAG, "onBackPressed(), ignoring back press");
     }
 
@@ -53,11 +57,12 @@ public class TeamsActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teams);
 
-        if (CoachAppSession.getInstance()==null) {
+        if (CoachAppSession.getInstance() == null) {
             ActivitySwitcher.startLoginActivity(this);
         }
         CoachAppSession.getInstance().setupActivity(this);
 
+        Log.d(LOG_TAG, "video length: " + LocalStorage.getInstance().getVideoRecordingTime());
 //        ActivitySwitcher.printDb("TeamsActivity");
 
         Log.d(LOG_TAG, "orientation: " + CoachAppSession.getInstance().getScreenOrientation());
@@ -86,11 +91,18 @@ public class TeamsActivity
         */
 
 
-
         } catch (StorageNoClubException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG, "onResume()");
+        if (CoachAppSession.getInstance() == null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
     }
 
 
@@ -109,8 +121,11 @@ public class TeamsActivity
     @Override
     protected void onStart() {
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+
         Log.d(LOG_TAG, "onStart()");
-        Log.d(LOG_TAG, "onStart() " +         LocalStorage.getInstance().getCurrentClub());
+        Log.d(LOG_TAG, "onStart() " + LocalStorage.getInstance().getCurrentClub());
         // Set the adapter
         mListView = (ListView) findViewById(R.id.team_list);
 
@@ -137,11 +152,9 @@ public class TeamsActivity
     }
 
 
-
     public boolean onOptionsItemSelected(MenuItem item) {
         return CoachAppSession.getInstance().handleTopMenu(item, this);
     }
-
 
 
     @Override
@@ -150,7 +163,7 @@ public class TeamsActivity
         try {
             List<Team> teams = Storage.getInstance().getTeams();
             Log.d(LOG_TAG, "refresh()  teams: " + teams.size());
-            for (Team t: Storage.getInstance().getTeams()) {
+            for (Team t : Storage.getInstance().getTeams()) {
                 Log.d(LOG_TAG, " * " + t.getName() + " " + t.getUuid());
             }
 
@@ -166,4 +179,8 @@ public class TeamsActivity
         }
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
 }

@@ -7,9 +7,10 @@
     <string name="record">Record</string>
 
     <string name="description_info">Info</string>
-    <string name="info_media_deletable">Media to delete</string>
+    <string name="info_media_deletable">Media (deletable)</string>
     <string name="info_media_instructional">Instructional media</string>
-    <string name="info_media_local">Media (local)</string>
+    <string name="info_media_downloaded">Media (downloaded)</string>
+    <string name="info_media_uploadable">Media (to upload)</string>
     <string name="info_media_server">Media (server)</string>
     <string name="info_members">Members</string>
     <string name="info_teams">Teams</string>
@@ -82,6 +83,29 @@
     <string name="cancel">Cancel</string>
     <string name="more_info">More information</string>
     <string name="missing_file">Missing file removed from local database</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+
+    <string name="settings_menu">Settings</string>
+    <string name="wifi_sync">Sync on wifi only</string>
+    <string name="wifi_syn_summ">Synchronisation may use a lot of bandwidth. You can limit synchronisation to be done when on wifi only</string>
+    <string name="video_record_text">Time to record training phase videos (sec).</string>
+    <string name="video_record_summ">Set the length, in seconds,to record videos of players performing a training phase.</string>
+    <string name="log_limit_text">Number of log messages to show</string>
+    <string name="log_limit_summ">The number of log entries can become high so you might want to limit how many log entries are shown.</string>
 
 
     <!--

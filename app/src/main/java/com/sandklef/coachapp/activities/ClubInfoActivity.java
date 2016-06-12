@@ -72,10 +72,10 @@ public class ClubInfoActivity extends ActionBarActivity {
                     getResources().getString(R.string.info_members) + "  " + Storage.getInstance().getMembers().size());
 
             setTextViewText(R.id.local_media_info,
-                    getResources().getString(R.string.info_media_server) + "  " + Storage.getInstance().getMedia().size());
+                    getResources().getString(R.string.info_media_uploadable) + "  " + Storage.getInstance().getLocalMedia().size());
 
             setTextViewText(R.id.server_media_info,
-                    getResources().getString(R.string.info_media_local) + "  " +
+                    getResources().getString(R.string.info_media_downloaded) + "  " +
                             MediaFilterEngine.apply(Storage.getInstance().getMedia(),
                                     MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DOWNLOADED)).size());
 
@@ -92,7 +92,7 @@ public class ClubInfoActivity extends ActionBarActivity {
             List<String> teams = new ArrayList<String>();
             for (Team t: Storage.getInstance().getTeams()) {
                 Log.d(LOG_TAG, " " + t.getName());
-                teams.add(t.getName()+ " " + Storage.getInstance().getMembersTeam(t.getUuid()).size());
+                teams.add(t.getName()+ " (" + Storage.getInstance().getMembersTeam(t.getUuid()).size() + ")");
             }
             Log.d(LOG_TAG, "teams : " + teams.size());
             mAdapter = new ArrayAdapter<String>(this,

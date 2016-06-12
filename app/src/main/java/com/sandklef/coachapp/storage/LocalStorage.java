@@ -1,5 +1,6 @@
 package com.sandklef.coachapp.storage;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.*;
@@ -8,6 +9,7 @@ import com.sandklef.coachapp.report.ReportUser;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +35,11 @@ public class LocalStorage {
     private static final String LATEST_USER_TOKEN_KEY     = "latest-user-token";
     private static final String CURRENT_CONNECTION_STATUS = "current-satus";
     private static final String TP_RECORDING_TIME         = "tp-recording-time"; // secs to record a member
-    private static final String INSTR_RECORDING_TIME      = "instructional-recording-time"; // secs to record an instruction
+    private static final String INSTR_RECORDING_TIME      = "instructional-recording-time"; // secs to record a performed tp
+    private static final String VIDEO_RECORDINNG_TIME     = "video-record-time";
+    private static final String LOG_MESSAGE_LIMIT         = "log-message-limit";
+    private static final String SYNC_ON_WIFI_ONLY         = "wifi-sync-only";
+
     private String urlBase;
 
     private Context c;
@@ -298,14 +304,42 @@ public class LocalStorage {
         setKeyValueInt(TP_RECORDING_TIME, value);
     }
 
-    public int getInstructionalRecordingTime(){
-        int ret = getKeyValueInt(INSTR_RECORDING_TIME);
-        if (ret==0) {
-            return VideoCapture.DEFAULT_INSTR_RECORDING_TIME;
-        }
-        return ret;
+
+    private String getDefaultPrefValue(String key, String defaultValue) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CoachAppSession.getInstance().getContext());
+        return sharedPref.getString(key, defaultValue);
     }
 
+    private boolean getDefaultPrefValue(String key, boolean def) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CoachAppSession.getInstance().getContext());
+        return sharedPref.getBoolean(key, def);
+    }
+
+    private int stringToIntDefault(String key, int defaultValue) {
+        try {
+            String value = getDefaultPrefValue(key, ""+defaultValue);
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e ) {
+            return defaultValue;
+        }
+    }
+
+    public int getVideoRecordingTime() {
+        return stringToIntDefault(VIDEO_RECORDINNG_TIME, VideoCapture.DEFAULT_INSTR_RECORDING_TIME);
+    }
+
+    public int getLogMessageLimit() {
+        return stringToIntDefault(LOG_MESSAGE_LIMIT, 100);
+    }
+
+    public boolean getSyncOnWifiOnly() {
+        return getDefaultPrefValue(SYNC_ON_WIFI_ONLY, true);
+    }
+
+
+
+
+/*
     public int getTPRecordingTime(){
         int ret = getKeyValueInt(TP_RECORDING_TIME);
         if (ret==0) {
@@ -313,5 +347,5 @@ public class LocalStorage {
         }
         return ret;
     }
-
+*/
 }

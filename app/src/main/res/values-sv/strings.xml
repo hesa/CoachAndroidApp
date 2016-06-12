@@ -9,6 +9,9 @@
     <string name="menu_check_log_title">Se log</string>
     <string name="menu_info_title">Klubbinformation</string>
     <string name="menu_local_media_manager_title">Hantera filer lokalt</string>
+    <string name="info_teams">Lag</string>
+    <string name="info_trainingphases">Träningsmoment</string>
+
     <string name="menu_training_mode_title">Träningsläge</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="team_list_title">Mina lag</string>
@@ -51,6 +54,19 @@
     <string name="missing_file">Saknad fil borttagen från den lokala databasen</string>
 
     <string name="app_title">Tränarappen</string>
+
+    <string name="settings_menu">Inställningar</string>
+    <string name="wifi_sync">Synka endast med wifi</string>
+    <string name="wifi_syn_summ">Synkronisering kan använda mycket dataöverföring. Du kan begränsa synkronisering till att endast utföras när du är uppkopplad mot ett nätverk.</string>
+    <string name="video_record_text">Hur länge en övning skall spelas in.</string>
+    <string name="video_record_summ">Sätt längden, i sekunder, på hur låmga tid en spelare som utför en träning skall spelas in.</string>
+
+    <string name="info_media_deletable">Media som kan raderas:</string>
+    <string name="info_media_instructional">Instruktionersfilmer: </string>
+    <string name="info_media_downloaded">Nedladdade filmer: </string>
+    <string name="info_media_uploadable">Media som kan laddas upp</string>
+    <string name="log_limit_text">Antal log-poster att visa</string>
+    <string name="log_limit_summ">Antalet log-poster kan bli stort so du vill förmodligen begränsa antalet som visas.</string>
 
 
 </resources>

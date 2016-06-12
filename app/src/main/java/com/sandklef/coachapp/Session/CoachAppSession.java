@@ -324,6 +324,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             ConnectionStatusListener cl) {
 
         Log.d(LOG_TAG, "updateFromServer  serverConnectionStatus:" + serverConnectionStatus);
+        ReportUser.log("Refreshing data", "Getting inormation about training phases, teams and members from server.");
 
         if (serverConnectionStatus == JsonAccessException.ACCESS_ERROR ) {
             ReportUser.warning(activity,
@@ -391,6 +392,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 */
 
+
     private void updateConnectionStatusImpl(int status) {
         Log.d(LOG_TAG, "updateConnectionStatusImpl");
         MenuItem item  =  currentTopMenuItem;
@@ -399,12 +401,12 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
         if (item != null) {
             Log.d(LOG_TAG, "updateConnectionStatusImpl not null");
-            if (!isWifi()) {
+            if (!isSyncAllowed()) {
                 item.setIcon(R.drawable.ic_sync_off_black_24dp);
                 return;
             }
 
-            // We have wifi
+            // We have wifi or allowed to use gprs/3g..
             if (status == JsonAccessException.OK) {
                 item.setIcon(R.drawable.ic_sync_black_24dp);
             } else if (status == JsonAccessException.ACCESS_ERROR) {
@@ -479,8 +481,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public boolean isWifi() {
-        Log.d(LOG_TAG, "Build Product: " + isEmulator());
-        if (isEmulator()) { return true;}
+//        if (isEmulator()) { return true;}
 
         networkCommonCheck();
 
@@ -519,7 +520,16 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public boolean isSyncAllowed() {
-        return isWifi() && (serverConnectionStatus == JsonAccessException.OK) ;
+        boolean wifi       = isWifi();
+        boolean syncNoWifi = (!LocalStorage.getInstance().getSyncOnWifiOnly());
+        boolean online     =  isOnline();
+        boolean allowSync  = ( wifi || (syncNoWifi && online)) && (serverConnectionStatus == JsonAccessException.OK) ;
+
+        Log.d(LOG_TAG, " has wifi:     " + wifi);
+        Log.d(LOG_TAG, " sync no wifi: " + syncNoWifi);
+        Log.d(LOG_TAG, " online:       " + online);
+        Log.d(LOG_TAG, " Allow:        " + allowSync);
+        return allowSync;
     }
 
     public boolean handleTopMenu(MenuItem item, StorageUpdateListener l) {
@@ -554,6 +564,10 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             case R.id.topsync:
                 syncAll();
                 return true;
+            case R.id.menu_settings:
+                com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  goto settings");
+                ActivitySwitcher.startSettingsActivity(currentActivity);
+                return true;
             default:
                 goBackToActivity();
 
@@ -565,7 +579,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
     public void syncAll() {
         com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  sync");
-        if (CoachAppSession.getInstance().isWifi()) {
+        if (isSyncAllowed()) {
             Log.d(LOG_TAG, "Dialog time?" + " activity: " + currentActivity);
             Log.d(LOG_TAG, "----> all sync methods will be called");
 

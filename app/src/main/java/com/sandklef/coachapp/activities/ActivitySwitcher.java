@@ -95,6 +95,10 @@ public class ActivitySwitcher {
         startActivityImpl(a, com.sandklef.coachapp.activities.LogActivity.class);
     }
 
+    public static void startSettingsActivity(Activity a) {
+        startActivityImpl(a, com.sandklef.coachapp.activities.SettingsActivity.class);
+    }
+
     public static void startClubInfoActivity(Activity a) {
 
 /*

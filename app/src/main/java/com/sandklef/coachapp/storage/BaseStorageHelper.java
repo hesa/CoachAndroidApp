@@ -494,7 +494,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         return media;
     }
 
-    public List<LogMessage> getLogMessagesFromDB() {
+    public List<LogMessage> getLogMessagesFromDB(int limit) {
         Log.d(LOG_TAG, "---> Getting log messages");
 
         String[] projectionArray = {LOG_ID, CLUB_COLUMN_NAME, LOG_MSG, LOG_DETAIL, LOG_DATE};
@@ -508,8 +508,12 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(LOG_TABLE,
                 projectionArray,
-                whereClause, new String[]{LocalStorage.getInstance().getCurrentClub()}, null, null,
-                "date DESC");
+                whereClause,
+                new String[]{LocalStorage.getInstance().getCurrentClub()},
+                null,
+                null,
+                "date DESC",
+                "" + limit);
         if (cursor == null) {
             return null;
         }

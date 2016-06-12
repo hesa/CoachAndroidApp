@@ -130,7 +130,7 @@ public class Storage {
         List<Media> media = getMedia();
         for(Media m: media) {
             Log.d(LOG_TAG, "Finding local media, member: '" + m.getMember() + "'");
-            if (!m.getMember().equals("")){
+            if (m!=null && m.getMember()!=null && (!m.getMember().equals(""))){
                 localMedia.add(m);
             }
         }
@@ -142,8 +142,13 @@ public class Storage {
         media = baseStorage.getMediaFromDB();
     }
 
+    public List<LogMessage> getLogMessages(int limit) {
+        logs = baseStorage.getLogMessagesFromDB(limit);
+        return logs;
+    }
+
     public List<LogMessage> getLogMessages() {
-        logs = baseStorage.getLogMessagesFromDB();
+        logs = baseStorage.getLogMessagesFromDB(-1);
         return logs;
     }
 
