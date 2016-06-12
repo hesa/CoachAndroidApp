@@ -41,7 +41,7 @@ public class HttpAccess {
     private static int maxBufferSize = 1 * 1024 * 1024;
 
     private String urlBase;
-  //  private String serverUrl;
+    //  private String serverUrl;
     private String serverUrlShort;
 //    private String clubUri;
 
@@ -62,15 +62,15 @@ public class HttpAccess {
             throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ")", HttpAccessException.NETWORK_ERROR);
         }
         this.urlBase   = baseUrl;
-    //    this.clubUri   = "";
-    //    this.serverUrl = urlBase + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR ;
+        //    this.clubUri   = "";
+        //    this.serverUrl = urlBase + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR ;
     }
 
 
     private String sendHttpPost(String token,
-                               StringEntity data,
-                               String header,
-                               String path)  throws HttpAccessException {
+                                StringEntity data,
+                                String header,
+                                String path)  throws HttpAccessException {
         HttpClient client = new DefaultHttpClient();
         String url = urlBase + path;
         HttpResponse resp = null;
@@ -188,7 +188,7 @@ public class HttpAccess {
 
 
     public void uploadTrainingPhaseVideo(String clubUri, String videoUuid,
-                                            String fileName) throws HttpAccessException, IOException {
+                                         String fileName) throws HttpAccessException, IOException {
 
         //$ curl --data-binary @sample.3gp --insecure --request POST https://localhost/api/0.0.0/clubs/$CLUB_UUID/videos/uuid/$VIDEO_UUID/upload
         HttpURLConnection connection = null;
@@ -210,54 +210,58 @@ public class HttpAccess {
 
 
 
-            FileInputStream fileInputStream = new FileInputStream(new File(pathToOurFile));
+        FileInputStream fileInputStream = new FileInputStream(new File(pathToOurFile));
 
-            URL url    = new URL(urlServer);
-            connection = (HttpURLConnection) url.openConnection();
+        URL url    = new URL(urlServer);
+        connection = (HttpURLConnection) url.openConnection();
 
-            Log.d(LOG_TAG, "connection: " + connection + "  uploading data to video: " + videoUuid);
+        Log.d(LOG_TAG, "connection: " + connection + "  uploading data to video: " + videoUuid);
 
-            // Allow Inputs & Outputs
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-            connection.setUseCaches(false);
-            connection.setRequestMethod(HttpSettings.HTTP_POST);
-
-
-            connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
-            Log.d(LOG_TAG, " upload, token: " + LocalStorage.getInstance().getLatestUserToken());
+        // Allow Inputs & Outputs
+        connection.setDoInput(true);
+        connection.setDoOutput(true);
+        connection.setUseCaches(false);
+        connection.setRequestMethod(HttpSettings.HTTP_POST);
 
 
-            outputStream = new DataOutputStream(connection.getOutputStream());
+        connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
+        Log.d(LOG_TAG, " upload, token: " + LocalStorage.getInstance().getLatestUserToken());
+
+
+        outputStream = new DataOutputStream(connection.getOutputStream());
+        bytesAvailable = fileInputStream.available();
+        bufferSize = Math.min(bytesAvailable, maxBufferSize);
+        buffer = new byte[bufferSize];
+
+        // Read file
+        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+        while (bytesRead > 0) {
+            Log.d(LOG_TAG, " writing data to stream");
+            outputStream.write(buffer, 0, bufferSize);
             bytesAvailable = fileInputStream.available();
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
-            buffer = new byte[bufferSize];
-
-            // Read file
             bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-            while (bytesRead > 0) {
-                Log.d(LOG_TAG, " writing data to stream");
-                outputStream.write(buffer, 0, bufferSize);
-                bytesAvailable = fileInputStream.available();
-                bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-            }
+        }
 
 
-            int serverResponseCode = connection.getResponseCode();
-            String serverResponseMessage = connection.getResponseMessage();
-            Log.d("ServerCode", "" + serverResponseCode);
-            Log.d("serverResponseMessage", "" + serverResponseMessage);
+        int serverResponseCode = connection.getResponseCode();
+        String serverResponseMessage = connection.getResponseMessage();
+        Log.d("ServerCode", "" + serverResponseCode);
+        Log.d("serverResponseMessage", "" + serverResponseMessage);
 
-            // Responses from the server (code and message)
-            fileInputStream.close();
-            outputStream.flush();
-            outputStream.close();
+        // Responses from the server (code and message)
+        fileInputStream.close();
+        outputStream.flush();
+        outputStream.close();
 
-            if (serverResponseCode<500 && serverResponseCode>=400) {
-                throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
-            }
+        if (serverResponseCode>=409) {
+            throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.CONFLICT_ERROR);
+        }
+
+        if (serverResponseCode<500 && serverResponseCode>=400) {
+            throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
+        }
 
 /*        } catch (IOException e) {
             Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());

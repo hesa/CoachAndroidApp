@@ -65,8 +65,7 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
+    <string name="permission_rationale">"Contacts permissions are needed for providing email completions."
     </string>
     <string name="menu_refresh_title">Refresh</string>
     <string name="team_column">Team: </string>
@@ -106,6 +105,15 @@
     <string name="video_record_summ">Set the length, in seconds,to record videos of players performing a training phase.</string>
     <string name="log_limit_text">Number of log messages to show</string>
     <string name="log_limit_summ">The number of log entries can become high so you might want to limit how many log entries are shown.</string>
+    <string name="conflicting_file">Conflicting file while uploading</string>
+    <string name="sync_interrupted">Sync interrupted</string>
+    <string name="sync_interrupted_user_detail">Synchronisation with server interrupted by user</string>
+    <string name="sync_interrupted_exc_detail">Synchronisation with server interrupted by an exceptional incident in the system (e g network failure..)</string>
+    <string name="sync_started_msg">Sync started</string>
+    <string name="sync_started_detail">Synchronisation with server started</string>
+    <string name="video_dload_failed">Video recording failed</string>
+    <string name="video_missing_sync">Video not downloaded. Press sync button</string>
+    <string name="cancel_text">Cancel</string>
 
 
     <!--

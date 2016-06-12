@@ -5,8 +5,9 @@ package com.sandklef.coachapp.http;
  */
 public class HttpAccessException extends Exception {
 
-    public final static int NETWORK_ERROR = 1;  // netowrk down, http problem
-    public final static int ACCESS_ERROR  = 2;  // server responds "not ok"
+    public final static int NETWORK_ERROR   = 1;  // netowrk down, http problem
+    public final static int ACCESS_ERROR    = 2;  // server responds "not ok"
+    public final static int CONFLICT_ERROR  = 2;  // server responds "Conflict"
 
     private int mode  ;
 

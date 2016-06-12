@@ -208,8 +208,9 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
     public void setSyncDialog(int tot, String title) {
         Log.d(LOG_TAG, "setSyncDialog()" + progress);
-        closeDialog();
+       // closeDialog();
         getSyncDialog();
+        Log.d(LOG_TAG, "setSyncDialog()" + progress);
         progress.setMax(tot);
         progress.setTitle(title);
     }
@@ -219,9 +220,18 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         if (progress == null) {
             progress = new ProgressDialog(getContext());
             progress.setIndeterminate(false);
+//            progress.setCanceledOnTouchOutside(true);
+            progress.setCancelable(false);
             progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-
-//            progress.show();
+            progress.setButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // TODO Auto-generated method stub
+                    unsetSyncMode();
+                }
+            });
+            progress.create();
+            progress.show();
         }
         Log.d(LOG_TAG, "get SyncDialog()" + progress + " " + progress.getProgress());
         return progress;
@@ -300,9 +310,10 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         getSyncDialog();
         if (progress != null) {
             progress.setProgress(cnt);
-            if (!progress.isShowing()) {
+/*            if (!progress.isShowing()) {
                 progress.show();
             }
+*/
 
 //            Log.d(LOG_TAG, "setDialogInfo: " + cnt + " " + progress.getMax());
 
@@ -589,7 +600,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             try {
                 new StorageSync(this).execute();
                 // SYNC HERE
-                Dialog dialog = CoachAppSession.getInstance().getSyncDialog();
+                CoachAppSession.getInstance().getSyncDialog();
 
                 Log.d(LOG_TAG, "<---- all sync methods called");
             } catch (StorageNoClubException e) {

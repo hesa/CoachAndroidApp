@@ -68,5 +68,15 @@
     <string name="log_limit_text">Antal log-poster att visa</string>
     <string name="log_limit_summ">Antalet log-poster kan bli stort so du vill förmodligen begränsa antalet som visas.</string>
 
+    <string name="conflicting_file">Konflikt mellan filer under uppladdning.</string>
+    <string name="sync_interrupted">Sync avbruten</string>
+    <string name="sync_interrupted_user_detail">Synkronisering med server avbruten av användaren.</string>
+    <string name="sync_interrupted_exc_detail">Synkronisering med server avbruten på grund av en oförutsedd händelse (t ex nätverksfel).</string>
+    <string name="sync_started_msg">Sync påbörjad</string>
+    <string name="sync_started_detail">Synkronisering med server påbörjad</string>
+    <string name="video_dload_failed">Inspelning av video misslyckades</string>
+    <string name="video_missing_sync">Video inte nedladdad, tryck sync-knappen eller välj Hämta data i menyn</string>
+    <string name="cancel_text">Avbryt</string>
+
 
 </resources>

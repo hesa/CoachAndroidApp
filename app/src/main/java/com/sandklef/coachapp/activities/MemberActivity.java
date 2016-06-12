@@ -40,6 +40,8 @@ import com.sandklef.coachapp.storage.StorageNoClubException;
 import com.sandklef.coachapp.storage.StorageUpdateListener;
 
 import java.io.File;
+import java.net.Inet4Address;
+import java.security.acl.LastOwnerException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -119,6 +121,11 @@ public class MemberActivity extends ActionBarActivity
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
         }
+        if (CoachAppSession.getInstance()==null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+        CoachAppSession.getInstance().setupActivity(this);
+
     }
 
     @Override
@@ -238,14 +245,23 @@ public class MemberActivity extends ActionBarActivity
         try {
 //        VideoCapture vc = (VideoCapture) videoView;
 // BRING BACK?            VideoCapture.getInstance().startRecordTP(file);
-            ActivitySwitcher.startMediaRecorderActivity(this, file);
+//            ActivitySwitcher.startMediaRecorderActivity(this, file);
+
+            Bundle mBundle = new Bundle();
+            mBundle.putString("file",file);
+
+            Intent intent = new Intent(this, com.sandklef.coachapp.activities.MediaRecorderActivity.class);
+            intent.putExtra("file",file);
+
+            startActivityForResult(intent, 0);
+
         } catch (java.lang.RuntimeException e) {
             Log.d(LOG_TAG, "Recording failed....");
             new File(file).delete();
-            ReportUser.log("Video recording failed", e.getMessage());
+            ReportUser.Log(R.string.video_dload_failed, e.getMessage());
             return;
         }
-        saveMedia(Uri.fromFile(new File(file)));
+
 
 
 /*
@@ -272,9 +288,9 @@ public class MemberActivity extends ActionBarActivity
             // TODO: get member name instaed of UUID
             Storage.getInstance().log("Recorded " + memberName,
                     "Recorded video:\n" +
-                            "Team: " + teamName +
+                            "Team: " + teamName + "\n" +
                             "TraingingPhase: " + tpName +"\n" +
-                            "Member: " + memberName + "\n"
+                            "Member: " + memberName
             );
         }
         /*
@@ -353,7 +369,32 @@ public class MemberActivity extends ActionBarActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
-        if (requestCode == VideoCapture.VIDEO_CAPTURE) {
+        String fileName = data.getStringExtra("file");
+        if (fileName==null) {
+            return;
+        }
+        if (resultCode==Activity.RESULT_OK) {
+            saveMedia(Uri.fromFile(new File(fileName)));
+        } else {
+            String club   = LocalStorage.getInstance().getCurrentClub();
+            String team   = LocalStorage.getInstance().getCurrentTeam();
+            String tp     = LocalStorage.getInstance().getCurrentTrainingPhase();
+            String member = LocalStorage.getInstance().getCurrentMember();
+            String memberName = Storage.getInstance().getMemberUUid(member).getName();
+            String teamName   = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
+            String tpName     = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
+
+            Storage.getInstance().log("Cancelled:" + memberName,
+                    "Cancelled video recording:\n" +
+                            "Team: " + teamName + "\n" +
+                            "TraingingPhase: " + tpName +"\n" +
+                            "Member: " + memberName
+            );
+        }
+
+
+/*
+       if (requestCode == VideoCapture.VIDEO_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.d(LOG_TAG, "Video saved to: " +
                         data.getData());
@@ -365,6 +406,7 @@ public class MemberActivity extends ActionBarActivity
                 Log.d(LOG_TAG, "Failed to record video");
             }
         }
+    */
     }
 
 
@@ -427,7 +469,7 @@ public class MemberActivity extends ActionBarActivity
         Media m = getInstructionalMedia();
         if (m==null || m.fileName()==null) {
             Log.d(LOG_TAG, "Nothing to show");
-            ReportUser.inform(this, "Video not download. Press sync button");
+            ReportUser.inform(this, R.string.video_missing_sync);
         } else {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             Log.d(LOG_TAG, "Will show: " + m.fileName());

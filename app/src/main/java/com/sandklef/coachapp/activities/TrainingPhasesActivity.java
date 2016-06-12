@@ -94,6 +94,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
         }
+        CoachAppSession.getInstance().setupActivity(this);
     }
 
     @Override

@@ -87,12 +87,27 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
         Storage.getInstance().reReadMedia();
 
+
+        /*
+
+
+        public StorageSyncBundle(
+                int     mode,
+                int     fileToUpload,
+                int     filesUploaded,
+                int     fileToDownload,
+                int     filesDownloaded,
+                int     errorCode)
+
+
+         */
+
         StorageSync.StorageSyncBundle bundle = new StorageSync.StorageSyncBundle(
                 STORAGE_SYNC_DONE,
-                trainingPhases.size(),
-                downloadedTPs,
                 mediaToUpload.size(),
                 uploadedTPs,
+                trainingPhases.size(),
+                downloadedTPs,
                 OK);
         return bundle;
     }
@@ -144,8 +159,6 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
             updateProgress(STORAGE_SYNC_DOWNLOAD, cnt, uploadedTPs);
 
-
-
             Log.d(LOG_TAG, "Syncing (dload) file: " + cnt + " of " + trainingPhases.size() + " files");
 
             Media m = Storage.getInstance().getInstructionalMedia(tp.getUuid());
@@ -168,20 +181,26 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
             Storage.getInstance().reReadMedia();
             Log.d(LOG_TAG, "syncLocalMediaSync");
             for (Media m: mediaToUpload) {
+
+                if (!CoachAppSession.getInstance().getSyncMode()){
+                    ReportUser.Log(R.string.sync_interrupted, R.string.sync_interrupted_user_detail);
+                    return cnt;
+                }
+
                 cnt++;
                 Log.d(LOG_TAG, "Syncing file: " + cnt + " of " + Storage.getInstance().getMedia().size() + " files");
 //                publishProgress ("Syncing. Uploading local video " + cnt + " of " + Storage.getInstance().getMedia().size());
 
                 updateProgress(STORAGE_SYNC_UPLOAD, 0, cnt);
-                if (CoachAppSession.getInstance().getSyncMode()) {
-                    LocalStorageSync.getInstance().handleMediaSync(m);
-                } else {
-                    Log.d(LOG_TAG, "Sync mode not set, discarding media: " + m);
-                }
+                LocalStorageSync.getInstance().handleMediaSync(m);
 
             }
         } catch (StorageNoClubException e) {
             e.printStackTrace();
+            if (!CoachAppSession.getInstance().getSyncMode()){
+                ReportUser.Log(R.string.sync_interrupted, R.string.sync_interrupted_exc_detail);
+                return cnt;
+            }
         }
         return cnt;
     }
@@ -193,7 +212,7 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
         if (!CoachAppSession.getInstance().isSyncAllowed()) {
             return new StorageSyncBundle(OK);
         }
-        ReportUser.log("Sync started", "Synchronisation with server started");
+        ReportUser.Log(R.string.sync_started_msg, R.string.sync_started_detail);// "Synchronisation with server started");
         try {
 
             int localMediaCount = 0;
@@ -223,24 +242,24 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
 
     protected void onProgressUpdate(StorageSync.StorageSyncBundle ... progress) {
-        StorageSync.StorageSyncBundle bundle = progress[0];
 
-        Log.d(LOG_TAG, "Bundle: " + bundle + "  => " + bundle.getFilesDownloaded()+bundle.getFilesUploaded());
+        if (CoachAppSession.getInstance().getSyncMode()) {
 
-        String info = "";
-        if (bundle.getMode() == STORAGE_SYNC_DOWNLOAD) {
-            info += "Downloading " + bundle.getFilesDownloaded() + " / " + bundle.getFileToDownload() +  "\n";
-        }else {
-            info = "Uploading " + bundle.getFilesUploaded() + " / " + bundle.getFileToUpload() + "\n";
+            StorageSync.StorageSyncBundle bundle = progress[0];
+
+            Log.d(LOG_TAG, "Bundle: " + bundle + "  => " + bundle.getFilesDownloaded() + bundle.getFilesUploaded());
+
+            String info = "";
+            if (bundle.getMode() == STORAGE_SYNC_DOWNLOAD) {
+                info += "Downloading " + bundle.getFilesDownloaded() + " / " + bundle.getFileToDownload() + "\n";
+            } else {
+                info = "Uploading " + bundle.getFilesUploaded() + " / " + bundle.getFileToUpload() + "\n";
+            }
+            Log.d(LOG_TAG, "onProgressUpdate() " + info);
+
+            CoachAppSession.getInstance().setDialogInfo(bundle.getFilesDownloaded() + bundle.getFilesUploaded(),
+                    CoachAppSession.getInstance().getContext().getString(R.string.sync_in_progress));
         }
-
-        Log.d(LOG_TAG, "onProgressUpdate() " + info);
-
-
-        CoachAppSession.getInstance().setDialogInfo(bundle.getFilesDownloaded()+bundle.getFilesUploaded(),
-                CoachAppSession.getInstance().getContext().getString(R.string.sync_in_progress));
-
-
 
     }
 

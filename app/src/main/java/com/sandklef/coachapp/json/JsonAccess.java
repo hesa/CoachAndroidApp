@@ -339,7 +339,18 @@ public class JsonAccess  {
                     "Missing file: " + m.fileName());
             Storage.getInstance().removeMediaFromDb(m);
         } catch (HttpAccessException e) {
-            throw new JsonAccessException("Failed to access http", e, e.getMode());
+
+            if (e.getMode()==HttpAccessException.CONFLICT_ERROR) {
+                Log.d(LOG_TAG, "Conflict uploading file ... deleting Media from db");
+                ReportUser.Log(
+                        CoachAppSession.getInstance().getCurrentActivity().getString(R.string.conflicting_file),
+                        "file conflict, most likely already uploaded: " + m.fileName() + ". You can discard this");
+                Storage.getInstance().removeMediaFromDb(m);
+            } else {
+                e.printStackTrace();
+                Log.d(LOG_TAG, "  exception: " + e.getMessage());
+                throw new JsonAccessException("Failed to access http", e, e.getMode());
+            }
         }
     }
 

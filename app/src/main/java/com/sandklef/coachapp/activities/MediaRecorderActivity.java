@@ -18,6 +18,7 @@ package com.sandklef.coachapp.activities;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -35,6 +36,7 @@ import android.widget.Button;
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.camera.CameraHelper;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.report.ReportUser;
 import com.sandklef.coachapp.storage.LocalStorage;
 
 import java.io.File;
@@ -54,6 +56,8 @@ public class MediaRecorderActivity extends Activity {
     private TextureView mPreview;
     private MediaRecorder mMediaRecorder;
     private File mOutputFile;
+
+    private boolean cancelled ; // defaults to false
 
     private boolean isRecording = false;
  //   private static final String TAG = "Recorder";
@@ -300,6 +304,15 @@ public class MediaRecorderActivity extends Activity {
         return true;
     }
 
+    public void onCancelClick(View view) {
+        cancelled=true;
+        Log.d(LOG_TAG, "   cancelled, file: " + mOutputFile);
+    }
+
+    private void removeFile(File f) {
+        f.delete();
+    }
+
     /**
      * Asynchronous task for preparing the {@link android.media.MediaRecorder} since it's a long blocking
      * operation.
@@ -317,11 +330,23 @@ public class MediaRecorderActivity extends Activity {
                 isRecording = true;
 
                 Log.d(LOG_TAG, "before sleep: " + LocalStorage.getInstance().getVideoRecordingTime());
-                // HESA
+
+                int loopsTodo = LocalStorage.getInstance().getVideoRecordingTime()*10;
+                int loopCnt = 0;
                 try {
-                    Thread.sleep(LocalStorage.getInstance().getVideoRecordingTime()*1000);
-                } catch (Exception e) {
+                    while (loopCnt++ < loopsTodo) {
+                        Thread.sleep(100);
+                        if (cancelled) {
+                            Log.d(LOG_TAG, "User cancelled recording");
+                            releaseMediaRecorder();
+                            return false;
+                        }
+                    }
+                }catch(Exception e){
                     e.getLocalizedMessage();
+                    removeFile(mOutputFile);
+                    releaseMediaRecorder();
+                    return false;
                 }
 
                 Log.d(LOG_TAG, "after sleep");
@@ -336,13 +361,18 @@ public class MediaRecorderActivity extends Activity {
 
         @Override
         protected void onPostExecute(Boolean result) {
+            Intent intent=new Intent();
+            intent.putExtra("file", mOutputFile.getAbsolutePath());
             if (!result) {
+                setResult(Activity.RESULT_CANCELED, intent);
+                intent.putExtra("result", Activity.RESULT_CANCELED);
                 MediaRecorderActivity.this.finish();
             }
             // inform the user that recording has started
             setCaptureButtonText("Stop");
             Log.d(LOG_TAG, "onPostExecute()");
-
+            intent.putExtra("result", Activity.RESULT_OK);
+            setResult(Activity.RESULT_OK, intent);
             finish();
         }
     }
