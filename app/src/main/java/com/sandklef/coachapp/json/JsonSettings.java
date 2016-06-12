@@ -23,6 +23,7 @@ public class JsonSettings {
     public static final String CREATED_TAG = "created";
     public static final String TOKEN_TAG   = "token";
     public static final String VIDEO_TAG   = "videoUuid";
+    public static final String RECORDED_DATE_TAG = "recorded";
 
     // SERVER VIDEO TAGS
     public static final String SERVER_VIDEO_EMPTY_TAG = "empty";

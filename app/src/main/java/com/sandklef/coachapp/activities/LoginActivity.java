@@ -77,7 +77,6 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Log.d(LOG_TAG, "onCreate()");
 
         setContentView(R.layout.activity_login);

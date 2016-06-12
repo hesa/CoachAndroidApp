@@ -353,9 +353,11 @@ public class JsonAccess  {
             throw new JsonAccessException("No TrainingPhase id", JsonAccessException.ACCESS_ERROR);
         }
 
+        Log.d(LOG_TAG, "uploading ... pt II");
 
-
-        String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\"";
+        String dateString = CADateFormat.getDateStringForServer(m.getDate());
+        String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\" , " +
+                "\"" + JsonSettings.RECORDED_DATE_TAG + "\": \"" + dateString + "\"" ;
         if (!m.getMember().equals("")) {
             jsonData = jsonData + " , \"" + JsonSettings.MEMBER_TAG + "\": \"" + m.getMember() + "\"";
         }

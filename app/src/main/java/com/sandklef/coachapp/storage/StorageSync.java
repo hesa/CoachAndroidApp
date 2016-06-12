@@ -236,8 +236,10 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
         Log.d(LOG_TAG, "onProgressUpdate() " + info);
 
+
         CoachAppSession.getInstance().setDialogInfo(bundle.getFilesDownloaded()+bundle.getFilesUploaded(),
                 CoachAppSession.getInstance().getContext().getString(R.string.sync_in_progress));
+
 
 
     }

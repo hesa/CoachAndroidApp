@@ -6,7 +6,7 @@ import com.sandklef.coachapp.storage.Storage;
 public class Log {
 
     /*  RELEASE APP SETTINGS*/
-    static final boolean DISABLE_ALL_LOG = true;
+    static final boolean DISABLE_ALL_LOG = false;
 
     static final  boolean LOG = true;
     static public boolean LOG_CONSTRUCTOR_ONLY = false;
