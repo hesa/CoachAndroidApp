@@ -20,18 +20,22 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.hardware.SensorManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.camera.CameraHelper;
@@ -58,6 +62,13 @@ public class MediaRecorderActivity extends Activity {
     private File mOutputFile;
 
     private boolean cancelled ; // defaults to false
+    private int     cancelCause = CANCEL_CAUSE_UNUSED;
+
+    public static int CANCEL_CAUSE_UNUSED        = 0;
+    public static int CANCEL_CAUSE_USER          = 1;
+    public static int CANCEL_CAUSE_SCREEN_CHANGE = 2;
+    public static int CANCEL_CAUSE_EXCEPTION     = 3 ;
+
 
     private boolean isRecording = false;
  //   private static final String TAG = "Recorder";
@@ -66,6 +77,8 @@ public class MediaRecorderActivity extends Activity {
     private final static String LOG_TAG = MediaRecorderActivity.class.getSimpleName();
 
     private String fileName ;
+
+    OrientationEventListener mOrientationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +90,26 @@ public class MediaRecorderActivity extends Activity {
 
         fileName = getIntent().getExtras().getString("file");
 
+        /*
+        mOrientationListener = new OrientationEventListener(this,
+                SensorManager.SENSOR_DELAY_NORMAL) {
+
+            @Override
+            public void onOrientationChanged(int orientation) {
+                Log.v(LOG_TAG,
+                        "Orientation changed to " + orientation);
+
+            }
+        };
+
+        if (mOrientationListener.canDetectOrientation() == true) {
+            Log.v(LOG_TAG, "Can detect orientation");
+            mOrientationListener.enable();
+        } else {
+            Log.v(LOG_TAG, "Cannot detect orientation");
+            mOrientationListener.disable();
+        }
+        */
 
     }
 
@@ -85,6 +118,7 @@ public class MediaRecorderActivity extends Activity {
         super.onStart();
         startRecording();
     }
+
 
     public void startRecording() {
         onCaptureClick(null);
@@ -306,11 +340,35 @@ public class MediaRecorderActivity extends Activity {
 
     public void onCancelClick(View view) {
         cancelled=true;
+        cancelCause = CANCEL_CAUSE_USER;
         Log.d(LOG_TAG, "   cancelled, file: " + mOutputFile);
     }
 
     private void removeFile(File f) {
         f.delete();
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d(LOG_TAG, "onConfigurationChanged   orientation change");
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            cancelled=true;
+            cancelCause = CANCEL_CAUSE_SCREEN_CHANGE;
+
+//            setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            cancelled=true;
+            cancelCause = CANCEL_CAUSE_SCREEN_CHANGE;
+//            setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
+        /*
+        // Checks the orientation of the screen for landscape and portrait and set portrait mode always
+        */
     }
 
     /**
@@ -363,6 +421,7 @@ public class MediaRecorderActivity extends Activity {
         protected void onPostExecute(Boolean result) {
             Intent intent=new Intent();
             intent.putExtra("file", mOutputFile.getAbsolutePath());
+            intent.putExtra("cancel-cause", cancelCause);
             if (!result) {
                 setResult(Activity.RESULT_CANCELED, intent);
                 intent.putExtra("result", Activity.RESULT_CANCELED);

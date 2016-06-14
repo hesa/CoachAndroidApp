@@ -370,6 +370,8 @@ public class MemberActivity extends ActionBarActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
         String fileName = data.getStringExtra("file");
+        int cancelCause = data.getIntExtra("cancel-cause", MediaRecorderActivity.CANCEL_CAUSE_UNUSED);
+
         if (fileName==null) {
             return;
         }
@@ -384,8 +386,22 @@ public class MemberActivity extends ActionBarActivity
             String teamName   = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
             String tpName     = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
 
+            String cause;
+            if (cancelCause==MediaRecorderActivity.CANCEL_CAUSE_USER) {
+                cause = CoachAppSession.getInstance().getString(R.string.media_rec_cancel_user);
+            } else if (cancelCause==MediaRecorderActivity.CANCEL_CAUSE_EXCEPTION) {
+                cause = CoachAppSession.getInstance().getString(R.string.media_rec_cancel_exception);
+            } else if (cancelCause==MediaRecorderActivity.CANCEL_CAUSE_SCREEN_CHANGE) {
+                cause = CoachAppSession.getInstance().getString(R.string.media_rec_cancel_screen);
+            } else {
+                cause = "unknown";
+            }
+
+
+
             Storage.getInstance().log("Cancelled:" + memberName,
                     "Cancelled video recording:\n" +
+                            "Cause: " + cause + "\n" +
                             "Team: " + teamName + "\n" +
                             "TraingingPhase: " + tpName +"\n" +
                             "Member: " + memberName

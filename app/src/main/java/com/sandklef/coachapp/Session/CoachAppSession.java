@@ -156,6 +156,10 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
 
+    public String getString(int id){
+        return getContext().getResources().getString(id);
+    }
+
     public void handleInvalidToken() {
         Log.d(LOG_TAG, "Dialog time?" + " activity: " + currentActivity);
 

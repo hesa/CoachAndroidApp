@@ -79,4 +79,9 @@
     <string name="cancel_text">Avbryt</string>
 
 
+    <string name="media_rec_cancel_user">Användaren valde det</string>
+    <string name="media_rec_cancel_exception">Oväntad händelse</string>
+    <string name="media_rec_cancel_screen">Skärmen vändes under inspelning</string>
+
+
 </resources>

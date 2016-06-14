@@ -114,6 +114,9 @@
     <string name="video_dload_failed">Video recording failed</string>
     <string name="video_missing_sync">Video not downloaded. Press sync button</string>
     <string name="cancel_text">Cancel</string>
+    <string name="media_rec_cancel_user">User requested it</string>
+    <string name="media_rec_cancel_exception">Due to exception</string>
+    <string name="media_rec_cancel_screen">Screen orientation changed</string>
 
 
     <!--
