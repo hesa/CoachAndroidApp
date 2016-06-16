@@ -275,11 +275,14 @@ public class MemberActivity extends ActionBarActivity
 
 
     private void saveMediaImpl(Uri uri, String member) {
+        Log.d(LOG_TAG, "saveMediaImpl " + uri + " " + member);
         String club = LocalStorage.getInstance().getCurrentClub();
         String team = LocalStorage.getInstance().getCurrentTeam();
         String tp   = LocalStorage.getInstance().getCurrentTrainingPhase();
 
-        String memberName = Storage.getInstance().getMemberUUid(member).getName();
+        Member mem = Storage.getInstance().getMemberUUid(member);
+        String memberName = "";
+        if (mem!=null) { memberName = mem.getName();}
         String teamName   = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
         String tpName     = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
 
@@ -287,6 +290,14 @@ public class MemberActivity extends ActionBarActivity
         if (member!=null) {
             // TODO: get member name instaed of UUID
             Storage.getInstance().log("Recorded " + memberName,
+                    "Recorded video:\n" +
+                            "Team: " + teamName + "\n" +
+                            "TraingingPhase: " + tpName +"\n" +
+                            "Member: " + memberName
+            );
+        } else {
+            // TODO: get member name instaed of UUID
+            Storage.getInstance().log("Recorded instructional video\n" ,
                     "Recorded video:\n" +
                             "Team: " + teamName + "\n" +
                             "TraingingPhase: " + tpName +"\n" +
@@ -369,10 +380,24 @@ public class MemberActivity extends ActionBarActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
-        String fileName = data.getStringExtra("file");
+        Log.d(LOG_TAG, "Video callback: file:" + data.getStringExtra("file"));
+        Log.d(LOG_TAG, "Video callback: file:" + data.getData());
+
+
+        String fileName ;
         int cancelCause = data.getIntExtra("cancel-cause", MediaRecorderActivity.CANCEL_CAUSE_UNUSED);
 
+
+        if (requestCode == VideoCapture.VIDEO_CAPTURE) {
+            // instructional video
+            Uri uri = data.getData();
+            fileName = uri.getPath();
+        } else {
+            fileName = data.getStringExtra("file");
+        }
+
         if (fileName==null) {
+            Log.d(LOG_TAG, "Video callback: fileName null");
             return;
         }
         if (resultCode==Activity.RESULT_OK) {
@@ -407,6 +432,7 @@ public class MemberActivity extends ActionBarActivity
                             "Member: " + memberName
             );
         }
+        Log.d(LOG_TAG, "Video callback <----");
 
 
 /*
@@ -432,7 +458,7 @@ public class MemberActivity extends ActionBarActivity
         List<Media> tpMedia = Storage.getInstance().getMediaTrainingPhase(tpUuid);
         Media mediaToWatch = null;
 
-        // TODO: decide a strategy for choosing between (possibly) meany tp media
+        // TODO: decide a strategy for choosing between (possibly) many tp media
         for (Media m : tpMedia) {
             Log.d(LOG_TAG, " * choosing tp media: " + m.fileName());
             // this means we're choosing the last one

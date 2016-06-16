@@ -445,6 +445,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         updateConnectionStatusImpl(status);
     }
 
+
     public void setupActivity(Activity actiivity, Menu topMenu, int id) {
         currentActivity     = actiivity;
         currentTopMenu      = topMenu;

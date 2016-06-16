@@ -1,5 +1,6 @@
 package com.sandklef.coachapp.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -45,12 +46,26 @@ public class TeamsActivity
 
     private final static String LOG_TAG = TeamsActivity.class.getSimpleName();
 
+    private int backPressCounter;
+
     //    private Club currentClub;
 
     @Override
     public void onBackPressed() {
-        Log.d(LOG_TAG, "onBackPressed(), ignoring back press");
+        if (backPressCounter>0) {
+            Log.d(LOG_TAG, "onBackPressed(), will finish");
+            Intent a = new Intent(Intent.ACTION_MAIN);
+            a.addCategory(Intent.CATEGORY_HOME);
+            a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(a);
+
+        } else {
+            Log.d(LOG_TAG, "onBackPressed(), ignoring back press");
+        }
+        backPressCounter++;
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -62,7 +77,7 @@ public class TeamsActivity
         }
         CoachAppSession.getInstance().setupActivity(this);
 
-        Log.d(LOG_TAG, "video length: " + LocalStorage.getInstance().getVideoRecordingTime());
+        //        Log.d(LOG_TAG, "video length: " + LocalStorage.getInstance().getVideoRecordingTime());
 //        ActivitySwitcher.printDb("TeamsActivity");
 
         Log.d(LOG_TAG, "orientation: " + CoachAppSession.getInstance().getScreenOrientation());
@@ -94,6 +109,7 @@ public class TeamsActivity
         } catch (StorageNoClubException e) {
             e.printStackTrace();
         }
+        backPressCounter=0;
     }
 
     @Override
@@ -103,6 +119,7 @@ public class TeamsActivity
         if (CoachAppSession.getInstance() == null) {
             ActivitySwitcher.startLoginActivity(this);
         }
+        backPressCounter=0;
     }
 
 

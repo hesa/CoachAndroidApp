@@ -322,6 +322,7 @@ public class JsonAccess  {
         try {
             httpAccess.downloadVideo(clubUri, file, videoUuid);
         } catch (HttpAccessException e) {
+            e.printStackTrace();
             throw new JsonAccessException("Failed downloading video: " + videoUuid, e.getMode());
         }
     }
@@ -369,8 +370,10 @@ public class JsonAccess  {
         String dateString = CADateFormat.getDateStringForServer(m.getDate());
         String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\" , " +
                 "\"" + JsonSettings.RECORDED_DATE_TAG + "\": \"" + dateString + "\"" ;
-        if (!m.getMember().equals("")) {
-            jsonData = jsonData + " , \"" + JsonSettings.MEMBER_TAG + "\": \"" + m.getMember() + "\"";
+        if ( m.getMember()!=null ) {
+            if (!m.getMember().equals("")) {
+                jsonData = jsonData + " , \"" + JsonSettings.MEMBER_TAG + "\": \"" + m.getMember() + "\"";
+            }
         }
         jsonData = jsonData + "}";
 

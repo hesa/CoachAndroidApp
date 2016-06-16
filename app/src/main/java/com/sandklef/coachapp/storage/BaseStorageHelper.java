@@ -62,7 +62,8 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     // General
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "coachassistant.db";
-    public static final String SORT_ORDER = NAME_COLUMN_NAME + " ASC";
+    public static final String SORT_ORDER = "";
+//    public static final String SORT_ORDER = NAME_COLUMN_NAME + " ASC";
 
 
     private Context context;
@@ -376,7 +377,8 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
 
         Log.d(LOG_TAG, "Contentvalues: " + values);
 
-        long rowId = db.insertWithOnConflict(MEDIA_TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+//        long rowId = db.insertWithOnConflict(MEDIA_TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        long rowId = db.insertWithOnConflict(MEDIA_TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 //        long rowId = db.insert(MEDIA_TABLE, null, values);
         //  Log.d(LOG_TAG, " * " + rowId + " inserted " + m + " (Storing media)");
         if (rowId < 0) {

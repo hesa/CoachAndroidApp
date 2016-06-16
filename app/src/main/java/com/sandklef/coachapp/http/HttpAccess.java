@@ -15,6 +15,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -336,6 +337,8 @@ public class HttpAccess {
             if (!HttpSettings.isResponseOk(ucon.getResponseCode())) {
                 throw new HttpAccessException("Failed downloading video, response from server " + ucon.getResponseCode(), HttpAccessException.ACCESS_ERROR);
             }
+        } catch (FileNotFoundException e) {
+            throw new HttpAccessException("Failed downloading video", e, HttpAccessException.FILE_NOT_FOUND);
         } catch (Exception e) {
             throw new HttpAccessException("Failed downloading video", e, HttpAccessException.NETWORK_ERROR);
         }

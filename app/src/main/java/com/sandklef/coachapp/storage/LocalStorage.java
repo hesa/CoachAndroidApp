@@ -300,10 +300,10 @@ public class LocalStorage {
         setKeyValueInt(INSTR_RECORDING_TIME, value);
     }
 
-    public void setTPRecordingTime(int value) {
+/*    public void setTPRecordingTime(int value) {
         setKeyValueInt(TP_RECORDING_TIME, value);
     }
-
+*/
 
     private String getDefaultPrefValue(String key, String defaultValue) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CoachAppSession.getInstance().getContext());

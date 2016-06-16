@@ -4,12 +4,15 @@ import android.os.AsyncTask;
 import android.widget.ProgressBar;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.http.HttpAccessException;
 import com.sandklef.coachapp.json.JsonAccessException;
+import com.sandklef.coachapp.json.JsonSettings;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.TrainingPhase;
 import com.sandklef.coachapp.report.ReportUser;
 
+import java.io.File;
 import java.util.List;
 import java.util.Random;
 
@@ -152,6 +155,10 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
         for (TrainingPhase tp : trainingPhases) {
 
             cnt++;
+
+            Log.d(LOG_TAG, "Syncing (dload) file: " + tp);
+            Log.d(LOG_TAG, "Syncing (dload) file: " + tp.getVideoUuid());
+
             if (!CoachAppSession.getInstance().getSyncMode()) {
                 Log.d(LOG_TAG, "Uh oh download tp interrupted");
                 return cnt;
@@ -162,10 +169,29 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
             Log.d(LOG_TAG, "Syncing (dload) file: " + cnt + " of " + trainingPhases.size() + " files");
 
             Media m = Storage.getInstance().getInstructionalMedia(tp.getUuid());
-            if (m == null || m.fileName() == null) {
-                cnt++;
+
+//            String currentMediaUuid = new File(m.fileName()).getName().replace(JsonSettings.SERVER_VIDEO_SUFFIX,"");
+
+            if (m == null || m.fileName() == null ) {
                 Log.d(LOG_TAG, "Syncing (dload) file: " + cnt + " of " + trainingPhases.size() + " files");
-                Storage.getInstance().downloadMediaFromServer(CoachAppSession.getInstance().getContext(), m);
+
+                try {
+//                Storage.getInstance().downloadMediaFromServer(CoachAppSession.getInstance().getContext(), m);
+                    new StorageRemoteWorker().downloadMedia(m);
+                } catch (JsonAccessException e) {
+                    e.printStackTrace();
+                    Log.d(LOG_TAG, "Failed downloading: " + e);
+                    Log.d(LOG_TAG, "Failed downloading: " + e.getMode());
+                    Log.d(LOG_TAG, "Failed downloading: " + e.getMessage());
+                    if (e.getMode()== HttpAccessException.FILE_NOT_FOUND) {
+                        Storage.getInstance().removeMediaFromDb(m);
+                    }
+                } catch (StorageException e) {
+                    e.printStackTrace();
+                    Log.d(LOG_TAG, "Failed downloading: " + e);
+                    Log.d(LOG_TAG, "Failed downloading: " + e.getMessage());
+                }
+
             } else {
                 Log.d(LOG_TAG, "No need to download: " + tp);
                 Log.d(LOG_TAG, "No need to download: " + m.fileName());

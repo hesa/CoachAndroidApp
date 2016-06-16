@@ -134,7 +134,6 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         super.onCreateContextMenu(menu, v, menuInfo);
         Log.d(LOG_TAG, "  onCreateContextMenu()");
 
-
         AdapterView.AdapterContextMenuInfo info =
                 (AdapterView.AdapterContextMenuInfo) menuInfo;
         String word = ((TextView) info.targetView).getText().toString();
@@ -147,8 +146,8 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
             e.printStackTrace();
         }
 
-        menu.add(0, v.getId(), 0, "Create instruction video");
-
+//        menu.add(0, v.getId(), 0, "Create instruction video");
+        menu.add(0, v.getId(), 0, "Show Trainingphase information");
     }
 
 
@@ -176,7 +175,16 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         int position = acmi.position;
 
-        String fileName = LocalStorage.getInstance().getNewMediaDir() + "/tp-" + currentTPId + JsonSettings.SERVER_VIDEO_SUFFIX;
+//        String fileName = LocalStorage.getInstance().getNewMediaDir() + "/tp-" + currentTPId + JsonSettings.SERVER_VIDEO_SUFFIX;
+
+        TrainingPhase tp = Storage.getInstance().getTrainingPhase(currentTPId);
+
+        Log.d(LOG_TAG, "TP:  " + tp);
+        Log.d(LOG_TAG, "TP:  " + tp.getName());
+        Log.d(LOG_TAG, "TP:  " + tp.getVideoUuid());
+
+
+/*
         LocalStorage.getInstance().setCurrentTrainingPhase(currentTPId);
 
         Media m = Media.newInstructionVideo(fileName, currentTPId);
@@ -201,7 +209,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 //            activity.startActivityForResult(intent, com.sandklef.coachapp.fragments.VideoCapture.VIDEO_CAPTURE);
         }
         Log.d(LOG_TAG, "  new instruction video wanted creation: " + fileName);
-
+*/
         return true;
     }
 

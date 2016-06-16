@@ -130,10 +130,15 @@ public class Storage {
         List<Media> media = getMedia();
         for(Media m: media) {
             Log.d(LOG_TAG, "Finding local media, member: '" + m.getMember() + "'");
-            if (m!=null && m.getMember()!=null && (!m.getMember().equals(""))){
+            if (m != null && m.getMember() != null && (!m.getMember().equals(""))) {
+                localMedia.add(m);
+            } else if (m.getStatus() == Media.MEDIA_STATUS_CREATED) {
+                localMedia.add(m);
+            } else if (m.getStatus() == Media.MEDIA_STATUS_NEW) {
                 localMedia.add(m);
             }
         }
+
         return localMedia;
     }
 
@@ -218,17 +223,19 @@ public class Storage {
                 media = getMedia();
             }
             Log.d(LOG_TAG, "Search for media using uuid : " + uuid + "  in sizes media: " + media.size());
+            Media retM = null;
             if (media != null) {
                 for (Media m : media) {
 //                    Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getUuid());
   //                  Log.d(LOG_TAG, "  * search media with: " + uuid + "  media: " + m.getTrainingPhase());
                     if (m.getTrainingPhase().equals(uuid)) {
                         if (m.getMember()==null || m.getMember().equals("")) {
-                            return m;
+                            retM = m;
                         }
                     }
                 }
             }
+            return retM;
         } catch (StorageNoClubException e) {
             e.printStackTrace();
         }
