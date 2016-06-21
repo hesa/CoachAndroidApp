@@ -2,6 +2,7 @@ package com.sandklef.coachapp.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -125,7 +126,6 @@ public class MemberActivity extends ActionBarActivity
             ActivitySwitcher.startLoginActivity(this);
         }
         CoachAppSession.getInstance().setupActivity(this);
-
     }
 
     @Override
@@ -520,5 +520,31 @@ public class MemberActivity extends ActionBarActivity
         }
     }
 
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d(LOG_TAG, "onConfigurationChanged   orientation change");
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            CoachAppSession.getInstance().unsetSyncModeSoft();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            CoachAppSession.getInstance().unsetSyncModeSoft();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        CoachAppSession.getInstance().unsetSyncMode();
+        Log.d(LOG_TAG, "onStop()");
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG_TAG, "onDestroy()");
+
+    }
 
 }

@@ -232,7 +232,10 @@ public class JsonAccess  {
                 String uuid = jo.getString(JsonSettings.UUID_TAG);
                 String name = jo.getString(JsonSettings.NAME_TAG);
                 String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
-                String videoUuid = jo.getString(JsonSettings.VIDEO_TAG);
+                String videoUuid="";
+                if (!jo.isNull(JsonSettings.VIDEO_TAG)) {
+                    videoUuid = jo.getString(JsonSettings.VIDEO_TAG);
+                }
                 TrainingPhase m = new TrainingPhase(uuid, name, clubUuid, videoUuid);
                 tps.add(m);
             }

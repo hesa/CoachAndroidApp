@@ -247,9 +247,10 @@ public class TopActivity extends AppCompatActivity implements
         // Handle item selection
         Log.d(LOG_TAG, "onOptionsItemSelected()");
         switch (item.getItemId()) {
-            case R.id.menu_media_manager:
+            /*case R.id.menu_media_manager:
                 ActivitySwitcher.startLocalMediaManager(this);
                 return true;
+            */
             case android.R.id.home:
                 getSupportFragmentManager().popBackStack();
 //                NavUtils.navigateUpFromSameTask(this);

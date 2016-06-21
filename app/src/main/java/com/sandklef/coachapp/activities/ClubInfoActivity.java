@@ -17,10 +17,12 @@ import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaMemberFilter;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.LocalStorage;
@@ -62,29 +64,44 @@ public class ClubInfoActivity extends ActionBarActivity {
     public void onStart() {
         super.onStart();
         try {
+
+            String clubNames="";
+            List<Club> clubs = CoachAppSession.getInstance().getClubs();
+            if (clubs!=null) {
+                for (Club c : clubs) {
+                    clubNames = clubNames  + "\n * "                         ;
+                    clubNames = clubNames + c;
+                }
+            }
+            setTextViewText(R.id.club_names,
+                    getResources().getString(R.string.club_names) + ":  " + clubNames);
+
+            setTextViewText(R.id.club_name,
+                    getResources().getString(R.string.club_name) + ":  " + LocalStorage.getInstance().getCurrentClubName());
+
             setTextViewText(R.id.teams_info,
-                    getResources().getString(R.string.info_teams) + "  " + Storage.getInstance().getTeams().size());
+                    getResources().getString(R.string.info_teams) + ":  " + Storage.getInstance().getTeams().size());
 
             setTextViewText(R.id.trainingphases_info,
-                    getResources().getString(R.string.info_trainingphases) + "  " + Storage.getInstance().getTrainingPhases().size());
+                    getResources().getString(R.string.info_trainingphases) + ":  " + Storage.getInstance().getTrainingPhases().size());
 
             setTextViewText(R.id.members_info,
                     getResources().getString(R.string.info_members) + "  " + Storage.getInstance().getMembers().size());
 
             setTextViewText(R.id.local_media_info,
-                    getResources().getString(R.string.info_media_uploadable) + "  " + Storage.getInstance().getLocalMedia().size());
+                    getResources().getString(R.string.info_media_uploadable) + ":  " + Storage.getInstance().getLocalMedia().size());
 
             setTextViewText(R.id.server_media_info,
-                    getResources().getString(R.string.info_media_downloaded) + "  " +
+                    getResources().getString(R.string.info_media_downloaded) + ":  " +
                             MediaFilterEngine.apply(Storage.getInstance().getMedia(),
                                     MediaStatusNameFilter.newMediaFilterStatus(Media.MEDIA_STATUS_DOWNLOADED)).size());
 
             setTextViewText(R.id.deletable_media_info,
-                    getResources().getString(R.string.info_media_deletable) + "  " +
+                    getResources().getString(R.string.info_media_deletable) + ":  " +
                             new File(LocalStorage.getInstance().getDeletableMediaDir()).listFiles().length);
 
             setTextViewText(R.id.instructional_media_info,
-                    getResources().getString(R.string.info_media_instructional) + "  " +
+                    getResources().getString(R.string.info_media_instructional) + ":  " +
                             MediaFilterEngine.apply(Storage.getInstance().getMedia(),
                                     new MediaMemberFilter()).size());
 

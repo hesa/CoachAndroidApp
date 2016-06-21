@@ -9,6 +9,7 @@ import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.storage.LocalStorage;
 import com.sandklef.coachapp.storage.Storage;
 
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,26 +40,29 @@ public class Authenticator {
         return true;
     }*/
 
-
-
-
-
     public int verifyToken(String token) {
         Log.d(LOG_TAG, "verifyToken()");
         try {
+
+            CoachAppSession.getInstance().setClubs(null);
             JsonAccess jsa = new JsonAccess();
             List<Club> clubs = jsa.getClubs(token);
+            CoachAppSession.getInstance().setClubs(clubs);
             Log.d(LOG_TAG, "Clubs: " + Arrays.toString(clubs.toArray()));
 
             List<String> clubsStrings = new ArrayList<String>();
             for (Club c : clubs) {
+                Log.d(LOG_TAG, "Club: " + c.getName() + " " + c.getUuid());
                 clubsStrings.add(c.getUuid());
             }
 
             Club primaryClub = clubs.get(0);
-            String s = primaryClub.getUuid();
-          //  Storage.getInstance().setClubUuid(s);
-            LocalStorage.getInstance().setCurrentClub(s);
+
+            LocalStorage.getInstance().setCurrentClub(primaryClub.getClubUuid());
+            LocalStorage.getInstance().setCurrentClubName(primaryClub.getName());
+
+
+
             Log.d(LOG_TAG, "Club set for use in app: " + LocalStorage.getInstance().getCurrentClub());
 
             ActivitySwitcher.printDb("Authenticator");

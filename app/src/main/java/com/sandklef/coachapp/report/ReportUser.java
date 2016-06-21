@@ -15,6 +15,12 @@ public class ReportUser {
         log(text, detail);
     }
 
+    public static void warning(Context context, int id, int detailedId) {
+        String text   = CoachAppSession.getInstance().getContext().getString(id);
+        String detail = CoachAppSession.getInstance().getContext().getString(detailedId);
+        warning(context, text, detail);
+    }
+
     public static void inform(Context context, String text) {
         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
         toast.show();

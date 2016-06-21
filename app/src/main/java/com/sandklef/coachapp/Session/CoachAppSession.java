@@ -21,6 +21,7 @@ import com.sandklef.coachapp.Auth.Authenticator;
 import com.sandklef.coachapp.activities.ActivitySwitcher;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.report.ReportUser;
 import com.sandklef.coachapp.storage.ConnectionStatusListener;
 import com.sandklef.coachapp.storage.LocalStorage;
@@ -36,6 +37,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import coachassistant.sandklef.com.coachapp.R;
 
@@ -50,15 +52,18 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
     private final static String LOG_TAG = CoachAppSession.class.getSimpleName();
 
-    private final static int COACHAPP_SESSION_STATUS_OK = 0;
-    private final static int COACHAPP_SESSION_STATUS_NO_NETWORK = 1;
-    private final static int COACHAPP_SESSION_STATUS_INVALID_TOKEN = 2;
+    public final static int COACHAPP_SESSION_STATUS_UNDEFINED     = 0;
+    public final static int COACHAPP_SESSION_STATUS_OK            = 1;
+    public final static int COACHAPP_SESSION_STATUS_NO_NETWORK    = 2;
+    public final static int COACHAPP_SESSION_STATUS_INVALID_TOKEN = 3;
 
     private Context   context;
     private Activity  currentActivity;
     private Menu      currentTopMenu;
     private MenuItem  currentTopMenuItem;
     private int       serverConnectionStatus;
+
+    private List<Club> clubs;
 
     /**
      *
@@ -124,11 +129,19 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         syncMode = true;
     }
 
+
     public void unsetSyncMode() {
         Log.d(LOG_TAG, " ------------------- UNSET SYNC MODE");
+        if (syncMode) {
+            syncMode = false;
+            closeDialog();
+            //progress=null;
+        }
+    }
+
+    public void unsetSyncModeSoft() {
+        Log.d(LOG_TAG, " ------------------- UNSET SYNC MODE softly");
         syncMode = false;
-        closeDialog();
-        //progress=null;
     }
 
 
@@ -178,8 +191,6 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         dialog.show();
     }
 
-
-
     public void verifyToken(String token) {
         new TokenVerifier().execute(token);
     }
@@ -191,21 +202,25 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         closeDialog();
     }
 
+    public void verifyTokenSync(String token) {
+        int tokenStatus = COACHAPP_SESSION_STATUS_OK;
+        int validToken = Authenticator.getInstance().verifyToken(token);
+
+        if (validToken == Authenticator.NETWORK_ERROR) {
+            LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_NO_NETWORK);
+        } else if (validToken == Authenticator.ACCESS_ERROR) {
+            LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_INVALID_TOKEN);
+        } else {
+            LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_OK);
+        }
+    }
+
     public class TokenVerifier extends AsyncTask<String, Void, Void> {
 
         @Override
         protected Void doInBackground(String... params) {
             String token = params[0];
-            int tokenStatus = COACHAPP_SESSION_STATUS_OK;
-            int validToken = Authenticator.getInstance().verifyToken(token);
-
-            if (validToken == Authenticator.NETWORK_ERROR) {
-                LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_NO_NETWORK);
-            } else if (validToken == Authenticator.ACCESS_ERROR) {
-                LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_INVALID_TOKEN);
-            } else {
-                LocalStorage.getInstance().setConnectionStatus(COACHAPP_SESSION_STATUS_OK);
-            }
+            verifyTokenSync(token);
             return null;
         }
     }
@@ -561,10 +576,11 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  log");
                 ActivitySwitcher.startLogMessageActivity(currentActivity);
                 return true;
-            case R.id.menu_media_manager:
+            /*case R.id.menu_media_manager:
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  media");
                 ActivitySwitcher.startLocalMediaManager(currentActivity);
                 return true;
+            */
             case R.id.menu_club_info:
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  club");
                 ActivitySwitcher.startClubInfoActivity(currentActivity);
@@ -576,6 +592,10 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             case R.id.menu_destroy_token:
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  destroy token");
                 LocalStorage.getInstance().setLatestUserToken("");
+                return true;
+            case R.id.menu_splah:
+                com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  show splash");
+                ActivitySwitcher.startSplashActivity(currentActivity);
                 return true;
             case R.id.topsync:
                 syncAll();
@@ -735,6 +755,14 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         }
 
         return orientation;
+    }
+
+    public void setClubs(List<Club> clubs) {
+        this.clubs=clubs;
+    }
+
+    public List<Club> getClubs() {
+        return clubs;
     }
 
 }

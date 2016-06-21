@@ -123,6 +123,9 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
         Log.d(LOG_TAG, "init : " + context);
     }
 
+
+
+
     @Override
     public void onStart() {
         super.onStart();
@@ -144,9 +147,32 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
             */
 
 
+            LocalStorage.getInstance().setConnectionStatus(CoachAppSession.COACHAPP_SESSION_STATUS_UNDEFINED);
             CoachAppSession.getInstance().verifyToken(token);
-            ActivitySwitcher.startTeamActivity(context);
-            ReportUser.log("User logged in", "User logged in using token");
+            int counter = 0;
+            while (true) {
+                int status = LocalStorage.getInstance().getConnectionStatus();
+                if (status == CoachAppSession.COACHAPP_SESSION_STATUS_UNDEFINED) {
+                    Log.d(LOG_TAG, "Logging in: undefined status: counter: " + counter++);
+                    try {
+                        Thread.sleep(200);
+                    } catch (Exception e) {
+
+                    }
+                } else if (status == CoachAppSession.COACHAPP_SESSION_STATUS_INVALID_TOKEN) {
+                    LocalStorage.getInstance().setLatestUserToken(null);
+                    ReportUser.warning(this, R.string.token_invalid, R.string.token_invalid_detailed);
+                    break;
+                } else if (status == CoachAppSession.COACHAPP_SESSION_STATUS_NO_NETWORK) {
+                    ActivitySwitcher.startTeamActivity(context);
+                    ReportUser.warning(this, "No network", "No network");
+                    break;
+                } else if (status == CoachAppSession.COACHAPP_SESSION_STATUS_OK) {
+                    ActivitySwitcher.startTeamActivity(context);
+                    ReportUser.log("User logged in", "User logged in using token");
+                    break;
+                }
+            }
 
 
         }
@@ -374,15 +400,13 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                     LocalStorage.getInstance().setLatestUserToken(token);
                     Log.d(LOG_TAG, "Token: " + token);
                     if (token==null || token.equals("")){
+                        Log.d(LOG_TAG, "returning false since token seems odd");
                         return false;
                     }
                 }
-
                 CoachAppSession.getInstance().verifyToken(token);
                 CoachAppSession.getInstance().startUp(mEmail, token);
-
                 return true;
-
             } catch (JsonAccessException e) {
                 Log.d(LOG_TAG, "Failed to get token." + e.getMessage());
                 Log.d(LOG_TAG, "Failed to get token." + e.getMode());
@@ -444,6 +468,8 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                 ActivitySwitcher.startTeamActivity(context);
                 ReportUser.log(mEmail + " logged in", "User " + mEmail + " logged in correctly with email and password");
             } else {
+                Log.d(LOG_TAG, "onPostExecute() deleting token");
+                LocalStorage.getInstance().setLatestUserToken(null);
                 mPasswordView.setError(loginFailureMessage);
                 mPasswordView.requestFocus();
             }

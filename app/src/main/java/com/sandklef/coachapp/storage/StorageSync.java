@@ -46,6 +46,8 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
     public StorageSync(StorageSyncListener l) throws StorageNoClubException {
         listener       = l;
+
+
         trainingPhases = Storage.getInstance().getTrainingPhases();
         mediaToUpload  = Storage.getInstance().getLocalMedia();
 

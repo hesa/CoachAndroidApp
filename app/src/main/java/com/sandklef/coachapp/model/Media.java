@@ -44,7 +44,7 @@ public class Media extends CoachAppBase {
                  String memberUuid) {
         super(uuid, name, clubUuid);
 
-        Log.d(LOG_TAG, "--> Constructing new Media with uuid: " + getUuid());
+     //   Log.d(LOG_TAG, "--> Constructing new Media with uuid: " + getUuid());
         this.file = file;
         this.status = status;
         this.date = date;

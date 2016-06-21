@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 
 import com.sandklef.coachapp.fragments.VideoCapture;
+import com.sandklef.coachapp.json.JsonAccess;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Member;
 import com.sandklef.coachapp.model.Team;
@@ -54,6 +55,11 @@ public class ActivitySwitcher {
     // TODO: remove this method. should not be needed
     public static void startTrainingActivity(Activity a) {
         startActivityImpl(a, com.sandklef.coachapp.activities.TeamsActivity.class);
+    }
+
+    public static void startSplashActivity(Activity a) {
+        LocalStorage.getInstance().setSplashDelay(100);
+        startActivityImpl(a, com.sandklef.coachapp.activities.SplashActivity.class);
     }
 
     public static void startLoginActivity(Activity a) {

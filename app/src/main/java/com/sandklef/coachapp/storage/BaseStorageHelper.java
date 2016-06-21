@@ -274,6 +274,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         return teams;
     }
 
+
     private Team cursorToTeam(Cursor cursor) {
         if (cursor == null) {
             Log.d(LOG_TAG, "Cursor is null in team database");
@@ -487,7 +488,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
         while (!cursor.isAfterLast()) {
             Media m = cursorToMedia(cursor);
             media.add(m);
-            Log.d(LOG_TAG, " fetching media: " + m.getStatus() + " | " + m.getUuid() + " | " + m.fileName());
+          //  Log.d(LOG_TAG, " fetching media: " + m.getStatus() + " | " + m.getUuid() + " | " + m.fileName());
             cursor.moveToNext();
         }
         Log.d(LOG_TAG, " fetching media: ---- fini");

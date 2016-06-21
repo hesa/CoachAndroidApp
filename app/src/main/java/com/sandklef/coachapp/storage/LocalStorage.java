@@ -27,6 +27,7 @@ public class LocalStorage {
 
     private static final String SESSION_KEY               = "session-key";
     private static final String CURRENT_CLUB_KEY          = "current-club";
+    private static final String CURRENT_CLUB_NAME_KEY     = "current-club-name";
     private static final String CURRENT_TEAM_KEY          = "current-team";
     private static final String CURRENT_TRAININGPHASE_KEY = "current-trainingphase";
     private static final String CURRENT_MEMBER_KEY        = "current-member";
@@ -39,6 +40,7 @@ public class LocalStorage {
     private static final String VIDEO_RECORDINNG_TIME     = "video-record-time";
     private static final String LOG_MESSAGE_LIMIT         = "log-message-limit";
     private static final String SYNC_ON_WIFI_ONLY         = "wifi-sync-only";
+    private static final String SPLASH_SCREEN_DELAY       = "splash-delay";
 
     private String urlBase;
 
@@ -152,6 +154,7 @@ public class LocalStorage {
         SharedPreferences.Editor editor = settings.edit();
         editor.putInt(key, value);
         editor.commit();
+
     }
 
     public int getKeyValueInt(String key) {
@@ -175,12 +178,27 @@ public class LocalStorage {
     }
     */
 
+    public void setSplashDelay(int delay) {
+        setKeyValueInt(SPLASH_SCREEN_DELAY, delay);
+    }
+    public int  getSplashDelay()          {
+        return getKeyValueInt(SPLASH_SCREEN_DELAY);
+    }
+
     public void setCurrentClub(String t) {
         setKeyValueString(CURRENT_CLUB_KEY, t);
     }
 
     public String getCurrentClub() {
         return getKeyValueString(CURRENT_CLUB_KEY);
+    }
+
+    public void setCurrentClubName(String t) {
+        setKeyValueString(CURRENT_CLUB_NAME_KEY, t);
+    }
+
+    public String getCurrentClubName() {
+        return getKeyValueString(CURRENT_CLUB_NAME_KEY);
     }
 
     public void setCurrentTeam(String t) {
@@ -194,6 +212,7 @@ public class LocalStorage {
     public void setCurrentTrainingPhase(String tp) {
         currentTrainingPhase = tp;
     }
+
 
     public String getCurrentTrainingPhase() {
         return currentTrainingPhase;
@@ -239,6 +258,8 @@ public class LocalStorage {
     public int getConnectionStatus() {
         return getKeyValueInt(CURRENT_CONNECTION_STATUS);
     }
+
+
 
 
     public String getAppDir() {

@@ -2,6 +2,7 @@ package com.sandklef.coachapp.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -19,6 +20,7 @@ import android.widget.ListView;
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.json.JsonAccessException;
 import com.sandklef.coachapp.misc.Log;
+import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.ConnectionStatusListener;
 import com.sandklef.coachapp.storage.LocalStorage;
@@ -52,7 +54,9 @@ public class TeamsActivity
 
     @Override
     public void onBackPressed() {
+
         if (backPressCounter>0) {
+            //TODO: Use this.finishAffinity(); instead?????
             Log.d(LOG_TAG, "onBackPressed(), will finish");
             Intent a = new Intent(Intent.ACTION_MAIN);
             a.addCategory(Intent.CATEGORY_HOME);
@@ -81,6 +85,15 @@ public class TeamsActivity
 //        ActivitySwitcher.printDb("TeamsActivity");
 
         Log.d(LOG_TAG, "orientation: " + CoachAppSession.getInstance().getScreenOrientation());
+
+        Log.d(LOG_TAG, "Current club:   " + LocalStorage.getInstance().getCurrentClub() );
+        Log.d(LOG_TAG, "Available clubs:");
+        List<Club> clubs = CoachAppSession.getInstance().getClubs();
+        if (clubs!=null) {
+            for (Club c : clubs) {
+                Log.d(LOG_TAG, " * " + c);
+            }
+        }
 
         try {
 
@@ -120,6 +133,7 @@ public class TeamsActivity
             ActivitySwitcher.startLoginActivity(this);
         }
         backPressCounter=0;
+        CoachAppSession.getInstance().setupActivity(this);
     }
 
 
@@ -197,7 +211,29 @@ public class TeamsActivity
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d(LOG_TAG, "onConfigurationChanged   orientation change");
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            CoachAppSession.getInstance().unsetSyncModeSoft();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            CoachAppSession.getInstance().unsetSyncModeSoft();
+        }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        CoachAppSession.getInstance().unsetSyncMode();
+        Log.d(LOG_TAG, "onStop()");
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG_TAG, "onDestroy()");
+
+    }
+
 }
