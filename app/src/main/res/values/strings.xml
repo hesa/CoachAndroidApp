@@ -13,6 +13,7 @@
     <string name="info_media_uploadable">Media (to upload)</string>
     <string name="info_media_server">Media (server)</string>
     <string name="info_members">Members</string>
+    <string name="club_name">Current club</string>
     <string name="info_teams">Teams</string>
     <string name="info_trainingphases">Training phases</string>
 
@@ -54,6 +55,7 @@
 
     <string name="login_again_to_get_token">Log in to get a new?</string>
     <string name="token_invalid">Token invalid</string>
+    <string name="token_invalid_detailed">Your session token is invalid. You need to login in again to get a new token.</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -117,6 +119,11 @@
     <string name="media_rec_cancel_user">User requested it</string>
     <string name="media_rec_cancel_exception">Due to exception</string>
     <string name="media_rec_cancel_screen">Screen orientation changed</string>
+
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="club_names">Your clubs</string>
 
 
     <!--

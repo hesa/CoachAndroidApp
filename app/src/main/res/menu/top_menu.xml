@@ -15,13 +15,13 @@
         android:orderInCategory="100"
         android:title="@string/menu_refresh_title"
         />
-
+<!--
     <item
         android:id="@+id/menu_media_manager"
         android:orderInCategory="100"
         android:title="@string/menu_local_media_manager_title"
         />
-
+-->
     <item
         android:id="@+id/menu_log_file"
         android:orderInCategory="100"
@@ -34,11 +34,6 @@
         android:title="@string/menu_info_title"
         />
 
-    <item
-        android:id="@+id/menu_destroy_token"
-        android:orderInCategory="100"
-        android:title="@string/destroy_token"
-        />
 
     <item
         android:id="@+id/menu_settings"
@@ -46,5 +41,16 @@
         android:title="@string/settings_menu"
         />
 
+    <item
+        android:id="@+id/menu_destroy_token"
+        android:orderInCategory="100"
+        android:title="@string/destroy_token"
+        />
+
+    <item
+        android:id="@+id/menu_splah"
+        android:orderInCategory="100"
+        android:title="show long splash"
+        />
 
 </menu><!-- From: file:/home/hesa/AndroidStudioProjects/CoachApp/app/src/main/res/menu/top_menu.xml -->
