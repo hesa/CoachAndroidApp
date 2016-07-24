@@ -429,13 +429,11 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
     }
 
 
-
-
     public List<Member> getMembersTeamFromDB(String teamUuid) {
         try {
             List<Member> filteredMembers    = new ArrayList<Member>();
             List<Member> allMembers = getMembersFromDB();
-            // Log.d(LOG_TAG, " getMembersTeamFromDB()  : " + teamUuid + "  size: " + allMembers.size());
+            Log.d(LOG_TAG, " getMembersTeamFromDB()  : " + teamUuid + "  size: " + allMembers.size());
             for (Member m: allMembers) {
                 if (m.getTeamUuid().equals(teamUuid)) {
                     Log.d(LOG_TAG, " Adding    : " + m + "  team: " + m.getTeamUuid());

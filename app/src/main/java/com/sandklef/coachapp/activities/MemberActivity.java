@@ -75,17 +75,19 @@ public class MemberActivity extends ActionBarActivity
 
         setContentView(R.layout.activity_member);
 
+        Log.d(LOG_TAG, "0. club");
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
         }
         CoachAppSession.getInstance().setupActivity(this);
+        Log.d(LOG_TAG, "1. club: " + LocalStorage.getInstance().getCurrentTeam());
 
-
-
-        String teamUUid = LocalStorage.getInstance().getCurrentTeam();
+        String teamUuid = LocalStorage.getInstance().getCurrentTeam();
         teamMembers = Storage.getInstance().getMembersTeam(LocalStorage.getInstance().getCurrentTeam());
+//getMembersTeamFromDB
+        Log.d(LOG_TAG, "2. club: " + LocalStorage.getInstance().getCurrentTeam());
 
-        Log.d(LOG_TAG, "Members: ");
+        Log.d(LOG_TAG, "Members in club " + teamUuid + ": ");
         for (Member m: teamMembers) {
             Log.d(LOG_TAG, " * " + m);
         }
@@ -126,12 +128,18 @@ public class MemberActivity extends ActionBarActivity
             ActivitySwitcher.startLoginActivity(this);
         }
         CoachAppSession.getInstance().setupActivity(this);
+        LocalStorage.getInstance().setCurrentMember(null);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
+        if (CoachAppSession.getInstance() == null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+        CoachAppSession.getInstance().setupActivity(this);
 
         // Set the adapter
         mListView = (AbsListView) findViewById(R.id.member_list);

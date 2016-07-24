@@ -145,19 +145,29 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
 
-    public void setupActivity(Activity actiivity) {
-        Log.d(LOG_TAG, "setupActivity()     activity name: " + actiivity.getClass().getName());
-        currentActivity = actiivity;
+    public void setupActivity(Activity activity) {
+        Log.d(LOG_TAG, "setupActivity()     activity name: " + activity.getClass().getName());
+        currentActivity = activity;
+
+
+        Log.d(LOG_TAG, "setupActivity()     local storage: "  + LocalStorage.getInstance());
+        if (LocalStorage.getInstance()==null) {
+            Log.d(LOG_TAG, "setupActivity()     start login activity");
+            ActivitySwitcher.startLoginActivity(activity);
+        }
 
         if (LocalStorage.getInstance()==null) {
-            ActivitySwitcher.startLoginActivity(actiivity);
+            Log.d(LOG_TAG, "setupActivity()     fix crashing startup after long time of unuse????");
+            LocalStorage.newInstance(activity);
         }
 
         if (LocalStorage.getInstance()!=null) {
             Log.d(LOG_TAG, "setupActivity() club: " + LocalStorage.getInstance().getCurrentClub());
         }
-        context = actiivity;
+        context = activity;
         //        Storage.getInstance().setClubUuid(LocalStorage.getInstance().getCurrentClub());
+
+        Storage.newInstance(activity);
     }
 
 

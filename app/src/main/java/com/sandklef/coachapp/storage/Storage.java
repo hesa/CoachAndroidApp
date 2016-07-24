@@ -94,10 +94,17 @@ public class Storage {
     }
 
     public TrainingPhase getTrainingPhase(String uuid) {
-        for (TrainingPhase tp: trainingPhases) {
-            if (tp.getUuid().equals(uuid)){
-                return tp;
+        try {
+            if (trainingPhases == null) {
+                getTrainingPhases();
             }
+            for (TrainingPhase tp : trainingPhases) {
+                if (tp.getUuid().equals(uuid)) {
+                    return tp;
+                }
+            }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -293,10 +300,11 @@ public class Storage {
             teamStorage   = new TeamStorageHelper(context);
        */
         //        LocalStorage.getInstance().setCurrentClub(club);
+/*
         LocalStorage.getInstance().setCurrentTeam(null);
         LocalStorage.getInstance().setCurrentTrainingPhase(null);
         LocalStorage.getInstance().setCurrentMember(null);
-
+  */
     }
 
     /*    public void setClubUuid(String club) {

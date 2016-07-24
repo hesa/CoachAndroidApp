@@ -70,6 +70,41 @@ public class JsonAccess  {
     }
 
 
+    public  List<Club> getUserClubs(String token) throws JsonAccessException {
+        Log.d(LOG_TAG, "getUserClubs() ----> ");
+        List<Club> clubs = new ArrayList<Club>();
+        try {
+            String jsonData = httpAccess.getUserInfo(token);
+
+            Log.d(LOG_TAG, "data: " + jsonData);
+            JSONObject json = new JSONObject(jsonData);
+
+//            String clubJson = json.getJSONArray(JsonSettings.ITEMS_TAG);
+            //          Log.d(LOG_TAG, " clubs (json):  " + clubJson);
+
+            JSONArray instancesArray = json.getJSONArray(JsonSettings.INSTANCES_TAG);
+            Log.d(LOG_TAG, " instances (array): " + instancesArray);
+
+            for (int i = 0; i < instancesArray.length(); i++) {
+                JSONObject jo = instancesArray.getJSONObject(i);
+                String uuid = jo.getString(JsonSettings.ID_TAG);
+                String name = jo.getString(JsonSettings.NAME_TAG);
+                Log.d(LOG_TAG, " * " + uuid + " - " + name);
+                clubs.add(new Club(uuid, name));
+            }
+        } catch (JSONException e) {
+            Log.d(LOG_TAG, "getUserClubs() <---- throwing JsonAccessException");
+            throw new JsonAccessException("Failed parsing JSON", e, JsonAccessException.ACCESS_ERROR);
+        } catch (HttpAccessException e) {
+            Log.d(LOG_TAG, "getUserClubs() <---- throwing JsonAccessException");
+            throw new JsonAccessException(e, e.getMode());
+        }
+
+        Log.d(LOG_TAG, "getUserClubs() <---- ");
+        return clubs;
+    }
+
+/*
     public  List<Club> getClubs(String token) throws JsonAccessException  {
         Log.d(LOG_TAG, "getClubs()");
         List<Club> clubs = new ArrayList<Club>();
@@ -99,7 +134,7 @@ public class JsonAccess  {
         }
         return clubs;
     }
-
+*/
     public CompositeBundle update(String clubUri) throws JsonAccessException {
         CompositeBundle bundle = new CompositeBundle();
         try {
@@ -108,7 +143,7 @@ public class JsonAccess  {
                  *  Get data from server
                  *
                  */
-            Log.d(LOG_TAG, "Read entire coach server");
+            Log.d(LOG_TAG, "Read entire coach server for club: " + clubUri);
             jsonString = readEntireCoachServer(clubUri);
             JSONObject json = new JSONObject(jsonString);
 
@@ -191,9 +226,15 @@ public class JsonAccess  {
                 JSONObject jo = memberArray.getJSONObject(i);
                 String uuid = jo.getString(JsonSettings.UUID_TAG);
                 String name = jo.getString(JsonSettings.NAME_TAG);
-                String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
-                String teamUuid = jo.getString(JsonSettings.TEAM_TAG);
-                Member m = new Member(uuid, name, clubUuid, teamUuid);
+//                String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
+                String teamUuid = "";
+                if (jo.has(JsonSettings.TEAM_TAG)) {
+                    teamUuid = jo.getString(JsonSettings.TEAM_TAG);
+                } else {
+                    Log.d(LOG_TAG, " NEW MEMEBER: no team");
+                }
+                Log.d(LOG_TAG, " NEW MEMEBER: club: " + LocalStorage.getInstance().getCurrentClub());
+                Member m = new Member(uuid, name, LocalStorage.getInstance().getCurrentClub(), teamUuid);
                 members.add(m);
             }
         } catch (Exception e) {
@@ -211,7 +252,7 @@ public class JsonAccess  {
                 JSONObject jo = memberArray.getJSONObject(i);
                 String uuid = jo.getString(JsonSettings.UUID_TAG);
                 String name = jo.getString(JsonSettings.NAME_TAG);
-                String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
+                String clubUuid = LocalStorage.getInstance().getCurrentClub(); //jo.getString(JsonSettings.CLUB_TAG);
                 Team m = new Team(uuid, name, clubUuid);
                 teams.add(m);
             }
@@ -231,7 +272,8 @@ public class JsonAccess  {
                 JSONObject jo = tpArray.getJSONObject(i);
                 String uuid = jo.getString(JsonSettings.UUID_TAG);
                 String name = jo.getString(JsonSettings.NAME_TAG);
-                String clubUuid = jo.getString(JsonSettings.CLUB_TAG);
+                String clubUuid = LocalStorage.getInstance().getCurrentClub();
+                        //jo.getString(JsonSettings.CLUB_TAG);
                 String videoUuid="";
                 if (!jo.isNull(JsonSettings.VIDEO_TAG)) {
                     videoUuid = jo.getString(JsonSettings.VIDEO_TAG);

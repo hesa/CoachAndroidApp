@@ -125,6 +125,7 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="club_names">Your clubs</string>
 
+    <string name="more_information">More information</string>
 
     <!--
         <string name="PATH_SEPARATOR">/"</string>

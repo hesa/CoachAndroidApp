@@ -14,6 +14,7 @@ public class HttpSettings {
     public static final String COMPOSITE_PATH = "composite";
     public static final String DOWNLOAD_PATH  = "download";
     public static final String CONTENT_STATUS = "Content-Type";
+    public static final String USER_PATH      = "user-info" ;
     public static final String API_VERSION    = "0.0.0" + PATH_SEPARATOR;
 
     public static final String HTTP_POST      = "POST";

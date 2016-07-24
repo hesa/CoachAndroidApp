@@ -63,8 +63,12 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
+            Log.d(LOG_TAG, " onCreate clicked, current team: " + LocalStorage.getInstance().getCurrentTeam());
         }
         CoachAppSession.getInstance().setupActivity(this);
+
+        Log.d(LOG_TAG, " onCreate clicked, current club: " + LocalStorage.getInstance().getCurrentClub());
+        Log.d(LOG_TAG, " onCreate clicked, current team: " + LocalStorage.getInstance().getCurrentTeam());
 
         Log.d(LOG_TAG, "onCreate() storage:" + Storage.getInstance());
 
@@ -96,6 +100,10 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
             ActivitySwitcher.startLoginActivity(this);
         }
         CoachAppSession.getInstance().setupActivity(this);
+
+        LocalStorage.getInstance().setCurrentTrainingPhase(null);
+        LocalStorage.getInstance().setCurrentMember(null);
+
     }
 
     @Override
@@ -116,11 +124,18 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         super.onStart();
 
         Log.d(LOG_TAG, "onStart()");
+        if (CoachAppSession.getInstance() == null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+        CoachAppSession.getInstance().setupActivity(this);
 
         // Set the adapter
         mListView = (AbsListView) findViewById(R.id.tp_list);
         Log.d(LOG_TAG, "onStart() listview: " + mListView);
         ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+
+        Log.d(LOG_TAG, " onStart, current club: " + LocalStorage.getInstance().getCurrentClub());
+        Log.d(LOG_TAG, " onStart, current team: " + LocalStorage.getInstance().getCurrentTeam());
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
@@ -162,6 +177,8 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         try {
             TrainingPhase tp = Storage.getInstance().getTrainingPhases().get((int)id);
             Log.d(LOG_TAG, " training phase clicked: " + tp.getUuid() + "  " + tp);
+            Log.d(LOG_TAG, " training phase clicked, current club: " + LocalStorage.getInstance().getCurrentClub());
+            Log.d(LOG_TAG, " training phase clicked, current team: " + LocalStorage.getInstance().getCurrentTeam());
 
             LocalStorage.getInstance().setCurrentTrainingPhase(tp.getUuid());
             ActivitySwitcher.startMemberActivity(this);

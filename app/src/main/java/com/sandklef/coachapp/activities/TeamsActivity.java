@@ -76,17 +76,21 @@ public class TeamsActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teams);
 
+        Log.d(LOG_TAG, "onCreate, checking storage");
         if (CoachAppSession.getInstance() == null) {
+            Log.d(LOG_TAG, "onCreate, checking storage, start login");
             ActivitySwitcher.startLoginActivity(this);
         }
+        Log.d(LOG_TAG, "onCreate, checking storage, setup activity");
         CoachAppSession.getInstance().setupActivity(this);
+        Log.d(LOG_TAG, "onCreate, checking storage, setup activity done");
 
         //        Log.d(LOG_TAG, "video length: " + LocalStorage.getInstance().getVideoRecordingTime());
 //        ActivitySwitcher.printDb("TeamsActivity");
 
         Log.d(LOG_TAG, "orientation: " + CoachAppSession.getInstance().getScreenOrientation());
-
         Log.d(LOG_TAG, "Current club:   " + LocalStorage.getInstance().getCurrentClub() );
+
         Log.d(LOG_TAG, "Available clubs:");
         List<Club> clubs = CoachAppSession.getInstance().getClubs();
         if (clubs!=null) {
@@ -125,16 +129,6 @@ public class TeamsActivity
         backPressCounter=0;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(LOG_TAG, "onResume()");
-        if (CoachAppSession.getInstance() == null) {
-            ActivitySwitcher.startLoginActivity(this);
-        }
-        backPressCounter=0;
-        CoachAppSession.getInstance().setupActivity(this);
-    }
 
 
     @Override
@@ -154,6 +148,16 @@ public class TeamsActivity
         super.onStart();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
+
+        backPressCounter=0;
+        if (CoachAppSession.getInstance() == null) {
+            ActivitySwitcher.startLoginActivity(this);
+        }
+        CoachAppSession.getInstance().setupActivity(this);
+
+        LocalStorage.getInstance().setCurrentTeam(null);
+        LocalStorage.getInstance().setCurrentTrainingPhase(null);
+        LocalStorage.getInstance().setCurrentMember(null);
 
         Log.d(LOG_TAG, "onStart()");
         Log.d(LOG_TAG, "onStart() " + LocalStorage.getInstance().getCurrentClub());
@@ -176,6 +180,8 @@ public class TeamsActivity
             Log.d(LOG_TAG, " team clicked: " + t.getUuid() + "  " + t);
 
             LocalStorage.getInstance().setCurrentTeam(t.getUuid());
+            Log.d(LOG_TAG, " team clicked, current club: " + LocalStorage.getInstance().getCurrentClub());
+            Log.d(LOG_TAG, " team clicked, current team: " + LocalStorage.getInstance().getCurrentTeam());
             ActivitySwitcher.startTrainingPhaseActivity(this);
         } catch (StorageNoClubException e) {
             e.printStackTrace();

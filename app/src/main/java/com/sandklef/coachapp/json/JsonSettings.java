@@ -13,10 +13,12 @@ public class JsonSettings {
 
     // SERVER JSON TAGS
     public static final String UUID_TAG  = "uuid";
+    public static final String ID_TAG    = "id";
     public static final String NAME_TAG  = "name";
     public static final String CLUB_TAG  = "clubUuid";
     public static final String TEAM_TAG  = "teamUuid";
     public static final String ITEMS_TAG = "items";
+    public static final String INSTANCES_TAG = "instances";
     public static final String TRAININGPHASE_TAG = "trainingPhaseUuid";
     public static final String MEMBER_TAG = "memberUuid";
     public static final String STATUS_TAG = "status";

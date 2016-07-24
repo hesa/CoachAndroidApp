@@ -47,7 +47,7 @@ public class LocalStorage {
     private Context c;
 
     //    private static String currentClub;
-    private String currentTeam;
+    //private String currentTeam;
     private String currentTrainingPhase;
     private String currentMember;
 
@@ -202,11 +202,15 @@ public class LocalStorage {
     }
 
     public void setCurrentTeam(String t) {
-        currentTeam = t;
+      //  currentTeam = t;
+        Log.d(LOG_TAG, "Storing team: " + t);
+        setKeyValueString(CURRENT_TEAM_KEY, t);
+        Log.d(LOG_TAG, "Storing team: " + getKeyValueString(CURRENT_TEAM_KEY));
     }
 
     public String getCurrentTeam() {
-        return currentTeam;
+        //return currentTeam;
+        return getKeyValueString(CURRENT_TEAM_KEY);
     }
 
     public void setCurrentTrainingPhase(String tp) {

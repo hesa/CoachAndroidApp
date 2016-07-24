@@ -43,10 +43,11 @@ public class Authenticator {
     public int verifyToken(String token) {
         Log.d(LOG_TAG, "verifyToken()");
         try {
-
             CoachAppSession.getInstance().setClubs(null);
             JsonAccess jsa = new JsonAccess();
-            List<Club> clubs = jsa.getClubs(token);
+
+            List<Club> clubs = jsa.getUserClubs(token);
+
             CoachAppSession.getInstance().setClubs(clubs);
             Log.d(LOG_TAG, "Clubs: " + Arrays.toString(clubs.toArray()));
 
@@ -60,8 +61,6 @@ public class Authenticator {
 
             LocalStorage.getInstance().setCurrentClub(primaryClub.getClubUuid());
             LocalStorage.getInstance().setCurrentClubName(primaryClub.getName());
-
-
 
             Log.d(LOG_TAG, "Club set for use in app: " + LocalStorage.getInstance().getCurrentClub());
 

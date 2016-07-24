@@ -124,6 +124,11 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
     }
 
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        CoachAppSession.getInstance().init(context);
+    }
 
 
     @Override

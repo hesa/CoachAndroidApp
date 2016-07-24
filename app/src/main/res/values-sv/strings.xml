@@ -83,5 +83,7 @@
     <string name="media_rec_cancel_exception">Oväntad händelse</string>
     <string name="media_rec_cancel_screen">Skärmen vändes under inspelning</string>
 
+    <string name="more_information">Mer information</string>
+
 
 </resources>

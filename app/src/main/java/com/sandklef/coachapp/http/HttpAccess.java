@@ -1,8 +1,10 @@
 package com.sandklef.coachapp.http;
 
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.misc.*;
 import com.sandklef.coachapp.storage.LocalStorage;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -76,9 +78,10 @@ public class HttpAccess {
         String url = urlBase + path;
         HttpResponse resp = null;
         String response=null;
-        Log.d(LOG_TAG, "sendHttpPost()  url:    " + urlBase);
-        Log.d(LOG_TAG, "sendHttpPost()  path:   " + path);
-        Log.d(LOG_TAG, "sendHttpPost()  url:    " + url);
+        Log.d(LOG_TAG, "sendHttpPost()  url:     " + urlBase);
+        Log.d(LOG_TAG, "sendHttpPost()  path:    " + path);
+        Log.d(LOG_TAG, "sendHttpPost()  url:     " + url);
+        Log.d(LOG_TAG, "sendHttpPost()  club:    " + LocalStorage.getInstance().getCurrentClub());
         Log.d(LOG_TAG, "sendHttpPost()  header: " + header);
         try {
             Log.d(LOG_TAG, "sendHttpPost()  data:   " + data.getContent().toString());
@@ -89,7 +92,8 @@ public class HttpAccess {
             httpPost.setHeader(HttpSettings.CONTENT_STATUS, header);
             httpPost.setEntity(data);
             if (token!=null) {
-                httpPost.setHeader("X-Token", token);
+                httpPost.setHeader("X-Token",    token);
+                httpPost.setHeader("X-instance", LocalStorage.getInstance().getCurrentClub());
                 Log.d(LOG_TAG, "Using token: " + token);
             } else {
                 Log.d(LOG_TAG, "Not using token");
@@ -114,15 +118,32 @@ public class HttpAccess {
 
 
 
-    private String getFromServer(String token, String path) throws HttpAccessException {
+    private String getFromServer(String token, String path, String clubUri) throws HttpAccessException {
         StringBuilder builder = new StringBuilder();
         HttpClient client     = new DefaultHttpClient();
+
+
         String url            = urlBase + HttpSettings.API_VERSION + path;
+        if (clubUri==null) {
+            url               = urlBase + path;
+        }
 
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader("X-Token", token);
-        Log.d(LOG_TAG, "Server url:   " + url + "  in readEntireCoachServer()");
+        if (clubUri!=null) {
+            Log.d(LOG_TAG, "Server instance: " +  clubUri + " ");
+            httpGet.addHeader("X-Instance", clubUri);
+        } else {
+            Log.d(LOG_TAG, "Server instance not set in header");
+        }
+        Log.d(LOG_TAG, "Server url:   " + url + "  in getFromServer()");
         Log.d(LOG_TAG, "Server token: " + token + " ");
+
+        Log.d(LOG_TAG, "Headers:");
+        for (Header h : httpGet.getAllHeaders() ){
+            Log.d(LOG_TAG, " * header: " + h);
+        }
+
         try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
@@ -152,13 +173,21 @@ public class HttpAccess {
     }
 
     public String readEntireCoachServer(String token, String clubUri) throws HttpAccessException {
-        return getFromServer(token, HttpSettings.PATH_SEPARATOR +
+        return getFromServer(token, HttpSettings.PATH_SEPARATOR + HttpSettings.COMPOSITE_PATH, clubUri);
+/*        return getFromServer(token, HttpSettings.PATH_SEPARATOR +
                 HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR +
                 clubUri + HttpSettings.PATH_SEPARATOR +  HttpSettings.COMPOSITE_PATH);
+  */
     }
 
+    /*
     public String getClubs(String token) throws HttpAccessException {
         return getFromServer(token, HttpSettings.PATH_SEPARATOR + HttpSettings.CLUB_PATH);
+    }
+    */
+
+    public String getUserInfo(String token) throws HttpAccessException {
+        return getFromServer(token, HttpSettings.USER_PATH, null);
     }
 
     public String getToken(String header, String data) throws HttpAccessException{
@@ -180,7 +209,8 @@ public class HttpAccess {
         //$ curl --data "{ \"trainingPhaseUuid\": \"$TRAINING_PHASE_UUID\" }" --header "Content-Type: application/json" --request POST localhost:3000/0.0.0/clubs/$CLUB_UUID/videos
         try {
             Log.d(LOG_TAG, "createVideo(" + data + ", " + header + ")");
-            return sendHttpPost(token, new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
+            return sendHttpPost(token, new StringEntity(data), header, HttpSettings.API_VERSION +  HttpSettings.VIDEO_URL_PATH);
+//            return sendHttpPost(token, new StringEntity(data), header, HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH);
         } catch (UnsupportedEncodingException e) {
             throw new HttpAccessException("Failed encoding", e, HttpAccessException.NETWORK_ERROR);
         }
@@ -199,10 +229,13 @@ public class HttpAccess {
 
 
         String pathToOurFile = fileName;
-        String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
+        String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
                 HttpSettings.UUID_PATH + videoUuid + HttpSettings.PATH_SEPARATOR +
                 HttpSettings.UPLOAD_PATH;
-
+/*        String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
+                HttpSettings.UUID_PATH + videoUuid + HttpSettings.PATH_SEPARATOR +
+                HttpSettings.UPLOAD_PATH;
+*/
         Log.d(LOG_TAG, "Upload server url: " + urlServer);
         Log.d(LOG_TAG, "Upload file:       " + fileName);
 
@@ -226,6 +259,7 @@ public class HttpAccess {
 
 
         connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
+        connection.addRequestProperty("X-Instance", LocalStorage.getInstance().getCurrentClub());
         Log.d(LOG_TAG, " upload, token: " + LocalStorage.getInstance().getLatestUserToken());
 
 
@@ -238,18 +272,20 @@ public class HttpAccess {
         bytesRead = fileInputStream.read(buffer, 0, bufferSize);
 
         while (bytesRead > 0) {
-            Log.d(LOG_TAG, " writing data to stream");
+            Log.d(LOG_TAG, " writing data to stream  (" + bytesRead + " / " + bytesAvailable + ")");
             outputStream.write(buffer, 0, bufferSize);
+            Log.d(LOG_TAG, " writing data to stream  -");
             bytesAvailable = fileInputStream.available();
+            Log.d(LOG_TAG, " writing data to stream  -");
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
             bytesRead = fileInputStream.read(buffer, 0, bufferSize);
         }
-
-
+        Log.d(LOG_TAG, " ... writing done, getting response code");
         int serverResponseCode = connection.getResponseCode();
+        Log.d(LOG_TAG, " ... writing done, getting response message");
         String serverResponseMessage = connection.getResponseMessage();
-        Log.d("ServerCode", "" + serverResponseCode);
-        Log.d("serverResponseMessage", "" + serverResponseMessage);
+        Log.d(LOG_TAG, "ServerCode:" + serverResponseCode);
+        Log.d(LOG_TAG, "serverResponseMessage:" + serverResponseMessage);
 
         // Responses from the server (code and message)
         fileInputStream.close();
@@ -285,10 +321,13 @@ public class HttpAccess {
 //            String file = LocalStorage.getInstance().getDownloadMediaDir() + "/" + videoUuid + SERVER_VIDEO_SUFFIX;
             int TIMEOUT_CONNECTION = 5000;//5sec
             int TIMEOUT_SOCKET = 30000;//30sec
-            String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
+            String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
                     HttpSettings.UUID_PATH  + videoUuid +
                     HttpSettings.PATH_SEPARATOR + HttpSettings.DOWNLOAD_PATH ;
-
+/*            String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
+                    HttpSettings.UUID_PATH  + videoUuid +
+                    HttpSettings.PATH_SEPARATOR + HttpSettings.DOWNLOAD_PATH ;
+*/
             URL url = new URL(urlServer);
             long startTime = System.currentTimeMillis();
             Log.i(LOG_TAG, "video download beginning: " + urlServer);
@@ -297,6 +336,7 @@ public class HttpAccess {
             HttpURLConnection ucon = (HttpURLConnection) url.openConnection();
 
             ucon.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
+            ucon.addRequestProperty("X-Instance", LocalStorage.getInstance().getCurrentClub());
             ucon.setRequestMethod(HttpSettings.HTTP_GET);
 
             //this timeout affects how long it takes for the app to realize there's a connection problem
@@ -329,7 +369,7 @@ public class HttpAccess {
             outStream.close();
             inStream.close();
 
-            System.err.println("For those about to ...");
+            Log.d(LOG_TAG, "For those about to ...");
 
             Log.d(LOG_TAG, "download completed in "
                     + ((System.currentTimeMillis() - startTime) / 1000)
@@ -338,8 +378,10 @@ public class HttpAccess {
                 throw new HttpAccessException("Failed downloading video, response from server " + ucon.getResponseCode(), HttpAccessException.ACCESS_ERROR);
             }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
             throw new HttpAccessException("Failed downloading video", e, HttpAccessException.FILE_NOT_FOUND);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new HttpAccessException("Failed downloading video", e, HttpAccessException.NETWORK_ERROR);
         }
     }
