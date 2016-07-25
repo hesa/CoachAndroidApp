@@ -25,7 +25,7 @@
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical">
 
 
@@ -36,6 +36,24 @@
                     android:background="#00000000" />
 
 
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:id="@+id/team_text" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:textStyle="bold"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/trainingphase_text" />
+
+                </LinearLayout>
             </LinearLayout>
 
             <GridView
