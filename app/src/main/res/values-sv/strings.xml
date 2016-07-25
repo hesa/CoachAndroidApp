@@ -1,4 +1,7 @@
 <resources>
+    <string name="app_name">Tränarappen</string>
+    <string name="app_title">Tränarappen</string>
+
     <string name="team_list_header">Mina lag</string>
 
     <string name="title_activity_club_info">Klubbnformation</string>
@@ -52,8 +55,6 @@
     <string name="ok">Ok</string>
     <string name="cancel">Avbryt</string>
     <string name="missing_file">Saknad fil borttagen från den lokala databasen</string>
-
-    <string name="app_title">Tränarappen</string>
 
     <string name="settings_menu">Inställningar</string>
     <string name="wifi_sync">Synka endast med wifi</string>
