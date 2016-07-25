@@ -140,11 +140,11 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
 
-        registerForContextMenu(mListView);
+       // registerForContextMenu(mListView);
     }
 
 
-
+/*
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -165,7 +165,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 //        menu.add(0, v.getId(), 0, "Create instruction video");
         menu.add(0, v.getId(), 0, "Show Trainingphase information");
     }
-
+*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -188,6 +188,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
     }
 
 
+/*
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -227,11 +228,12 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
 //            activity.startActivityForResult(intent, com.sandklef.coachapp.fragments.VideoCapture.VIDEO_CAPTURE);
         }
         Log.d(LOG_TAG, "  new instruction video wanted creation: " + fileName);
-*/
+
         return true;
     }
+*/
 
-    private void saveMedia(Uri uri) {
+private void saveMedia(Uri uri) {
         Log.d(LOG_TAG, "saveMedia()");
         String club   = LocalStorage.getInstance().getCurrentClub();
         String team   = LocalStorage.getInstance().getCurrentTeam();
