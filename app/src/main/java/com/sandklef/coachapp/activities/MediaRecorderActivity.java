@@ -245,14 +245,13 @@ public class MediaRecorderActivity extends Activity {
 
         // BEGIN_INCLUDE (configure_preview)
         mCamera = CameraHelper.getDefaultCameraInstance();
+
+
         int orientation = CoachAppSession.getInstance().getScreenOrientation();
         int orientationDegrees = CoachAppSession.getInstance().orientationDegrees(orientation);
         mCamera.setDisplayOrientation(orientationDegrees);
 
-        Log.d(LOG_TAG, "deg: orientation: " + orientationDegrees);
-
-
-        Log.d(LOG_TAG, "deg: orientation: " + orientationDegrees);
+        Log.d(LOG_TAG, "deg: orientation: " + orientation + "  ===> hint: " + orientationDegrees);
      //   orientationDegrees = 90;
 
 

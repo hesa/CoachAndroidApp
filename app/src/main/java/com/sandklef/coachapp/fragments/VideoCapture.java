@@ -441,7 +441,23 @@ Start MediaRecorder - Start recording video by calling MediaRecorder.start().
             result = (info.orientation - degrees + 360) % 360;
         }
         Camera.Parameters parameters = mCamera.getParameters();
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+     //   parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+
+        Camera.Size bestSize = null;
+
+        List<Camera.Size> sizeList = mCamera.getParameters().getSupportedPreviewSizes();
+        bestSize = sizeList.get(0);
+
+        for(int i = 1; i < sizeList.size(); i++){
+            Log.d(LOG_TAG, "Preview size:"  + sizeList.get(i).width + " x " + sizeList.get(i).height);
+            if((sizeList.get(i).width * sizeList.get(i).height) >
+                    (bestSize.width * bestSize.height)){
+                bestSize = sizeList.get(i);
+            }
+        }
+
+
+        Log.d(LOG_TAG, "Setting Preview size: " + mPreviewSize.width + " " + mPreviewSize.height);
         mCamera.setParameters(parameters);
 //        mCamera.setDisplayOrientation(result);
         degrees = CoachAppSession.getInstance().orientationDegrees();
