@@ -21,6 +21,7 @@ package com.sandklef.coachapp.misc;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class CADateFormat {
 
@@ -30,9 +31,13 @@ public class CADateFormat {
     public static SimpleDateFormat sdfTime;
 
     static {
-        sdf      = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        sdf      = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdfDay   = new SimpleDateFormat("yyyy-MM-dd");
-        sdfTime  = new SimpleDateFormat("hh:mm:ss");
+        sdfTime  = new SimpleDateFormat("HH:mm:ss");
+
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdfDay.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdfTime.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
 //    public static String DATE_FORMAT = "yyyyMMdd-HHmmss";

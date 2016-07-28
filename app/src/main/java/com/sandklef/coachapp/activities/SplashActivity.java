@@ -35,7 +35,7 @@ import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class SplashActivity extends AppCompatActivity {
 

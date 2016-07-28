@@ -34,7 +34,6 @@ public class MemberFilterEngine {
             if (bf.check(b)) {
                 filteredList.add(b);
             }
-
         }
         return filteredList;
     }

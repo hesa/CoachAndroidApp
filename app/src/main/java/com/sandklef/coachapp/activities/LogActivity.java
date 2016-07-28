@@ -51,7 +51,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class LogActivity extends ActionBarActivity implements AbsListView.OnItemClickListener {
 

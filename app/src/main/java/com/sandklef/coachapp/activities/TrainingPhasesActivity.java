@@ -54,7 +54,7 @@ import com.sandklef.coachapp.storage.StorageNoClubException;
 import java.io.File;
 import java.util.ArrayList;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class TrainingPhasesActivity extends ActionBarActivity implements AbsListView.OnItemClickListener{
 

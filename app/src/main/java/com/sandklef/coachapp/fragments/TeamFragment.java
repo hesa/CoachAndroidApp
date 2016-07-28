@@ -42,7 +42,7 @@ import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.util.ArrayList;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class TeamFragment extends Fragment implements AbsListView.OnItemClickListener {
 

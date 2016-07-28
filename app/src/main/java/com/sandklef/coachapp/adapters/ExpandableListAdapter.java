@@ -35,7 +35,7 @@ import com.sandklef.coachapp.model.LogMessage;
 import java.util.HashMap;
 import java.util.List;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 /**
  * Created by hesa on 2016-06-12.

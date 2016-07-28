@@ -29,7 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class Camera2Fragment extends Fragment implements SurfaceHolder.Callback {
 

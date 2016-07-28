@@ -6,11 +6,11 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        applicationId "coachassistant.sandklef.com.coachapp"
+        applicationId "com.sandklef.coachapp"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "0.1"
     }
     buildTypes {
         release {

@@ -31,7 +31,7 @@ import android.widget.Button;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Media;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class SimpleVideoFragment extends Fragment {
 

@@ -36,7 +36,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaMemberFilter;

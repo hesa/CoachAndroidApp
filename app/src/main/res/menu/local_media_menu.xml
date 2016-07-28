@@ -21,9 +21,8 @@
         android:id="@+id/menu_media"
         android:orderInCategory="100"
         android:title="Filters > ">
-<!--
+
         <menu>
--->
             <item
                 android:id="@+id/menu_all_media"
                 android:orderInCategory="200"
@@ -47,10 +46,7 @@
                 android:id="@+id/menu_deletable_media"
                 android:orderInCategory="400"
                 android:title="Only deletable media" />
-
-<!--
         </menu>
--->
 
     </item>
 

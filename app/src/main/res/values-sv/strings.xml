@@ -87,4 +87,41 @@
     <string name="more_information">Mer information</string>
 
 
+    <string name="record">Spela in</string>
+    <string name="description_info">Info</string>
+    <string name="info_media_server">Media (server)</string>
+    <string name="club_name">Vald klubb</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="camera_error">Denna enhet har inte stöd för Camera2 API.</string>
+    <string name="intro_message">
+        <![CDATA[
+
+
+            This sample demonstrates the basic use of Camera2 API. Check the source code to see how
+            you can display camera preview and take pictures.
+
+
+        ]]>
+    </string>
+    <string name="stop">Stop</string>
+    <string name="NEW_MEDIA_DIR">/new</string>;
+    <string name="DOWNLOAD_MEDIA_DIR">/downloaded</string>;
+    <string name="DELETABLE_MEDIA_DIR">/deletable</string>;
+    <string name="token_invalid_detailed">Din sessionsnyckel (token) ör ogiltig. Du måste logga in igen för att skapa en ny.</string>
+    <string name="title_activity_settings">Inställningar</string>
+    <string name="pref_header_general">Generella</string>
+
+    <string name="pref_title_social_recommendations">Slå på sociala rekommendationer</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+    <string name="pref_title_display_name">Visa namn</string>
+    <string name="pref_default_display_name">John Smith</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="club_names">Dina klubbar</string>
+    <string name="info_members">Medlemmar</string>
+    <string name="more_info">Mer information</string>
+
 </resources>

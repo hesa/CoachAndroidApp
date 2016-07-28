@@ -52,7 +52,7 @@ import com.sandklef.coachapp.storage.StorageNoClubException;
 
 import java.io.File;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 
 public class TrainingPhasesFragment extends Fragment implements AbsListView.OnItemClickListener {

@@ -22,7 +22,7 @@ package com.sandklef.coachapp.misc;
 import android.app.Activity;
 import android.widget.TextView;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class ViewSetter {
     private final static String LOG_TAG = ViewSetter.class.getSimpleName();

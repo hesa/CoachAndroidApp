@@ -70,7 +70,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<Cursor> {
 

@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Random;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 /**
  * Created by hesa on 2016-05-30.

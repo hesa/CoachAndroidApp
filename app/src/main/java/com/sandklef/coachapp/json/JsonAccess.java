@@ -41,7 +41,7 @@ import java.util.TimeZone;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 
 public class JsonAccess  {
@@ -404,7 +404,6 @@ public class JsonAccess  {
                     "Missing file: " + m.fileName());
             Storage.getInstance().removeMediaFromDb(m);
         } catch (HttpAccessException e) {
-
             if (e.getMode()==HttpAccessException.CONFLICT_ERROR) {
                 Log.d(LOG_TAG, "Conflict uploading file ... deleting Media from db");
                 ReportUser.Log(
@@ -429,7 +428,6 @@ public class JsonAccess  {
             throw new JsonAccessException("No TrainingPhase id", JsonAccessException.ACCESS_ERROR);
         }
 
-        Log.d(LOG_TAG, "uploading ... pt II");
 
         String dateString = CADateFormat.getDateStringForServer(m.getDate());
         String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\" , " +
@@ -440,6 +438,8 @@ public class JsonAccess  {
             }
         }
         jsonData = jsonData + "}";
+
+        Log.d(LOG_TAG, "createVideoOnServer(), m.time (milliseconds): " + dateString);
 
         Log.d(LOG_TAG, "DEBUG upload: " + jsonData);
 

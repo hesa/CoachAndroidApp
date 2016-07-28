@@ -32,7 +32,7 @@ import android.widget.TextView;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.storage.LocalStorage;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 /**
  * A simple {@link Fragment} subclass.

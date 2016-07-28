@@ -34,7 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.acl.LastOwnerException;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class LocalStorage {
 

@@ -73,7 +73,7 @@ import java.util.Date;
 import java.util.List;
 */
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 
 public class TopActivity extends AppCompatActivity implements

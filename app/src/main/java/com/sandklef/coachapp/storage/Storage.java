@@ -353,7 +353,12 @@ public class Storage {
     public boolean updateMediaState(Media m, int state) {
         Log.d(LOG_TAG, "updateMediaState(" + m + ", " + Media.statusToString(state));
         if (state==Media.MEDIA_STATUS_UPLOADED) {
-            Log.d(LOG_TAG, "File: " + m + " uploaded. Will delete   size: " + media.size());
+
+            try {
+                reReadMedia();
+            } catch (StorageNoClubException e) {
+                e.printStackTrace();
+            }
             String fileName = m.fileName();
 
 

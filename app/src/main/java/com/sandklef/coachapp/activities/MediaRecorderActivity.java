@@ -47,7 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 /**
  *  This activity uses the camera/camcorder as the A/V source for the {@link android.media.MediaRecorder} API.

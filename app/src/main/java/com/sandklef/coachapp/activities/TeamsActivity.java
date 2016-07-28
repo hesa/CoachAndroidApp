@@ -39,6 +39,7 @@ import android.widget.ListView;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.json.JsonAccessException;
+import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Club;
 import com.sandklef.coachapp.model.Team;
@@ -49,10 +50,12 @@ import com.sandklef.coachapp.storage.StorageNoClubException;
 import com.sandklef.coachapp.storage.StorageUpdateListener;
 
 import java.security.acl.LastOwnerException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 public class TeamsActivity
         extends AppCompatActivity
@@ -168,6 +171,16 @@ public class TeamsActivity
         super.onStart();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
+
+        long t = System.currentTimeMillis() ;
+        //new Date().getDate();
+
+        Log.d(LOG_TAG, "Date with CADate:  " + CADateFormat.getDateStringForServer(t));
+        Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateInstance(DateFormat.LONG).format(t));
+        Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG).format(t));
+        Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG).format(t));
+
+
 
         backPressCounter=0;
         if (CoachAppSession.getInstance() == null) {

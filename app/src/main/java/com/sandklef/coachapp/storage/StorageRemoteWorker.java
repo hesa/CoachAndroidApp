@@ -39,7 +39,7 @@ import java.util.List;
 
 import com.sandklef.coachapp.json.JsonSettings;
 
-import coachassistant.sandklef.com.coachapp.R;
+import com.sandklef.coachapp.R;
 
 /**
  * Created by hesa on 2016-02-25.
