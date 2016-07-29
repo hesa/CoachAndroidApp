@@ -150,15 +150,7 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
 
     private void updateProgress(int mode, int downloadCnt, int uploadCnt) {
-                        /*
-                        public StorageSyncBundle(
-                int     mode,
-                int     fileToUpload,
-                int     filesUploaded,
-                int     fileToDownload,
-                int     filesDownloaded,
-                int     errorCode) {
-                 */
+
         StorageSync.StorageSyncBundle bundle = new StorageSync.StorageSyncBundle(
                 mode,
                 trainingPhases.size(),
