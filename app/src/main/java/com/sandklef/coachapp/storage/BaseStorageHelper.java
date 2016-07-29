@@ -318,15 +318,7 @@ public class BaseStorageHelper extends SQLiteOpenHelper {
             if (rowId < 0) {
                 Log.e(LOG_TAG, "ERROR inserting (" + rowId + "): " + t);
             }
-/*    public Media(String uuid,
-                 String name,
-                 String clubUuid,
-                 String file,
-                 int status,
-                 long date,
-                 String teamUuid,
-                 String trainingPhaseUuid,
-                 String memberUuid)*/
+
             if (t.getVideoUuid().length()>5) {
                 Log.d(LOG_TAG, "Storing media " + t.getVideoUuid() + " based on TP: " + t.getUuid() );
                 Media m = new Media(t.getVideoUuid(),
