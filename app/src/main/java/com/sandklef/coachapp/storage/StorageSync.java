@@ -84,6 +84,18 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
         int toDo = bundle.fileToDownload + bundle.fileToUpload;
         int done = bundle.getFilesDownloaded() + bundle.getFilesUploaded();
 
+        if (bundle.getErrorCode()!=OK) {
+            String msg = bundle.getErrorMessage();
+            if (msg!=null) {
+                msg = ": " + msg;
+            }
+            String errMsg = CoachAppSession.getInstance().getString(R.string.error) + " " +
+                    CoachAppSession.getInstance().getString(R.string.sync_interrupted);
+            ReportUser.inform(CoachAppSession.getInstance().getContext(), errMsg + msg);
+            ReportUser.log(errMsg,errMsg + msg);
+        }
+
+
         ReportUser.log(done + " of " + toDo + " synced",
                 "Synchronisation with server finished. " +
                         "Downloaded:"  + bundle.getFilesDownloaded() + "/" + bundle.fileToDownload +
@@ -240,7 +252,6 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
                 updateProgress(STORAGE_SYNC_UPLOAD, 0, cnt);
                 LocalStorageSync.getInstance().handleMediaSync(m);
-
             }
         } catch (StorageNoClubException e) {
             e.printStackTrace();
@@ -282,7 +293,10 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
 
         } catch (StorageException e) {
-            return new StorageSyncBundle(STORAGE_ERR);
+            if (!CoachAppSession.getInstance().getSyncMode()){
+                ReportUser.Log(R.string.sync_interrupted, R.string.sync_interrupted_exc_detail);
+            }
+            return new StorageSyncBundle(STORAGE_ERR, e.getMessage());
         }
         return bundle;
     }
@@ -312,13 +326,13 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
     public class StorageSyncBundle {
 
-
         private int     mode;
         private int     fileToUpload;
         private int     filesUploaded;
         private int     fileToDownload;
         private int     filesDownloaded;
         private int     errorCode;
+        private String  errorMsg;
 
         public StorageSyncBundle(
                 int     mode,
@@ -337,6 +351,12 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
         public StorageSyncBundle(int     errorCode) {
             this.errorCode        = errorCode;
+            this.errorMsg         = "";
+        }
+
+        public StorageSyncBundle(int     errorCode, String errorMsg) {
+            this.errorCode        = errorCode;
+            this.errorMsg         = errorMsg;
         }
 
         public int     getMode()            {return mode;}
@@ -345,6 +365,8 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
         public int     getFileToDownload()  {return fileToDownload;}
         public int     getFilesDownloaded() {return filesDownloaded;}
         public int     getErrorCode()       {return errorCode;}
+        public String  getErrorMessage()    {return errorMsg;}
+
         public boolean getSuccess()         {return filesDownloaded==fileToDownload && filesUploaded==fileToDownload; }
 
         public String toString() {

@@ -60,6 +60,7 @@ public class LocalStorage {
     private static final String LOG_MESSAGE_LIMIT         = "log-message-limit";
     private static final String SYNC_ON_WIFI_ONLY         = "wifi-sync-only";
     private static final String SPLASH_SCREEN_DELAY       = "splash-delay";
+    private static final String NETWORK_TIMEOUT           = "network_timeout";
 
     private String urlBase;
 
@@ -249,6 +250,8 @@ public class LocalStorage {
         return currentMember;
     }
 
+
+
 /*
     public void setCurrentMember(String uuid) {
         setKeyValueString(CURRENT_MEMBER_KEY, uuid);
@@ -374,6 +377,10 @@ public class LocalStorage {
 
     public int getLogMessageLimit() {
         return stringToIntDefault(LOG_MESSAGE_LIMIT, 100);
+    }
+
+    public int getnetworkTimeout() {
+        return stringToIntDefault(NETWORK_TIMEOUT, 5000);
     }
 
     public boolean getSyncOnWifiOnly() {

@@ -21,4 +21,11 @@
         android:numeric="integer"
         android:defaultValue="100" />
 
+    <EditTextPreference
+        android:key="network_timeout"
+        android:title="@string/network_timeout"
+        android:summary="@string/network_timeout_summ"
+        android:numeric="integer"
+        android:defaultValue="5000" />
+
 </PreferenceScreen>

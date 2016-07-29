@@ -22,6 +22,7 @@ package com.sandklef.coachapp.http;
 import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.misc.*;
 import com.sandklef.coachapp.storage.LocalStorage;
+import com.sandklef.coachapp.storage.Storage;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -122,6 +123,17 @@ public class HttpAccess {
         } catch (IOException e) {
             throw new HttpAccessException("sendHttpPost failed", e, HttpAccessException.NETWORK_ERROR);
         }
+
+
+        try {
+            Log.d(LOG_TAG, " consuming entity");
+            if (resp.getEntity()!=null) {
+                resp.getEntity().consumeContent();
+            }
+        } catch (IOException ex) {
+            throw new HttpAccessException("sendHttpPost failed", ex, HttpAccessException.NETWORK_ERROR);
+        }
+
         return response;
     }
 
@@ -249,8 +261,15 @@ public class HttpAccess {
         connection.setUseCaches(false);
         connection.setRequestMethod(HttpSettings.HTTP_POST);
 
+        //
+        int timeout = LocalStorage.getInstance().getnetworkTimeout();
+        Log.d(LOG_TAG, "timeout: " + timeout);
+        connection.setConnectTimeout(timeout);
+        connection.setReadTimeout(timeout);
+
         connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
         connection.addRequestProperty("X-Instance", LocalStorage.getInstance().getCurrentClub());
+        connection.setRequestProperty("Connection", "close");
 
         Log.d(LOG_TAG, " upload propoerties: " + connection.getRequestProperties());
 
@@ -273,23 +292,32 @@ public class HttpAccess {
         }
         outputStream.flush();
         outputStream.close();
-/*
-    try {
-        connection.disconnect();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-  */
-        Log.d(LOG_TAG, " ... writing done, getting response code");
-        int serverResponseCode = connection.getResponseCode();
-        Log.d(LOG_TAG, " ... writing done, getting response message");
-        String serverResponseMessage = connection.getResponseMessage();
-        Log.d(LOG_TAG, "ServerCode:" + serverResponseCode);
-        Log.d(LOG_TAG, "serverResponseMessage:" + serverResponseMessage);
-
 
         // Responses from the server (code and message)
         fileInputStream.close();
+
+        int serverResponseCode = 0 ;
+
+        long before = System.currentTimeMillis();
+        try {
+            Log.d(LOG_TAG, " ... writing done, getting response code");
+            serverResponseCode = connection.getResponseCode();
+            Log.d(LOG_TAG, " ... writing done, getting response message");
+            String serverResponseMessage = connection.getResponseMessage();
+            Log.d(LOG_TAG, "ServerCode:" + serverResponseCode);
+            Log.d(LOG_TAG, "serverResponseMessage:" + serverResponseMessage);
+        } catch (java.net.SocketTimeoutException e) {
+            Log.d(LOG_TAG, " ... getting response code, got an exception, print stacktrace");
+            e.printStackTrace();
+            throw new HttpAccessException("Network timeout reached", e, HttpAccessException.NETWORK_SLOW);
+        }
+        long after = System.currentTimeMillis();
+        long diff = after - before;
+        Log.d(LOG_TAG, "diff: " + diff  + "ms   " + diff/1000 + "s" );
+
+        if (diff > LocalStorage.getInstance().getnetworkTimeout()) {
+            throw new HttpAccessException("Network timeout reached", HttpAccessException.NETWORK_SLOW);
+        }
 
         if (serverResponseCode>=409) {
             throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.CONFLICT_ERROR);
@@ -299,8 +327,13 @@ public class HttpAccess {
             throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
         }
 
-        //TODO: read manual about connection closing
-
+        try {
+            Log.d(LOG_TAG, " ... disconnecting");
+            connection.disconnect();
+        } catch (Exception e) {
+            Log.d(LOG_TAG, " ... disconnecting, got an exception, print stacktrace");
+            e.printStackTrace();
+        }
     }
 
 

@@ -70,6 +70,7 @@
     <string name="log_limit_summ">Antalet log-poster kan bli stort so du vill förmodligen begränsa antalet som visas.</string>
 
     <string name="conflicting_file">Konflikt mellan filer under uppladdning.</string>
+    <string name="network_timed_out">Timeout för nätverket nådd</string>
     <string name="sync_interrupted">Sync avbruten</string>
     <string name="sync_interrupted_user_detail">Synkronisering med server avbruten av användaren.</string>
     <string name="sync_interrupted_exc_detail">Synkronisering med server avbruten på grund av en oförutsedd händelse (t ex nätverksfel).</string>
@@ -79,6 +80,7 @@
     <string name="video_missing_sync">Video inte nedladdad, tryck sync-knappen eller välj Hämta data i menyn</string>
     <string name="cancel_text">Avbryt</string>
 
+    <string name="network_time">Timeout för nätverket</string>
 
     <string name="media_rec_cancel_user">Användaren valde det</string>
     <string name="media_rec_cancel_exception">Oväntad händelse</string>
@@ -125,5 +127,7 @@
     <string name="more_info">Mer information</string>
 
     <string name="no_players">(Inga spelare)</string>
+    <string name="network_timeout_summ">Sätt värdet för timeout för nätverket. Standardvärdet är 5000</string>
+    <string name="error">Fel</string>
 
 </resources>

@@ -25,6 +25,7 @@ public class HttpAccessException extends Exception {
     public final static int ACCESS_ERROR    = 2;  // server responds "not ok"
     public final static int CONFLICT_ERROR  = 3;  // server responds "Conflict"
     public final static int FILE_NOT_FOUND  = 4;  //
+    public final static int NETWORK_SLOW    = 5;  // network connects alright but is slow uploading
 
     private int mode  ;
 

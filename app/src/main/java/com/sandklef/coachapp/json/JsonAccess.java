@@ -301,6 +301,13 @@ public class JsonAccess  {
             if (e.getMode()==HttpAccessException.CONFLICT_ERROR) {
                 Log.d(LOG_TAG, "Conflict uploading file ... deleting Media from db");
                 ReportUser.Log(
+                        CoachAppSession.getInstance().getCurrentActivity().getString(R.string.network_timed_out),
+                        "Network timed out, upload of " + m.fileName() + " may have worked. We will retry." +
+                " Perhaps increase the timeout in settings.");
+                Storage.getInstance().removeMediaFromDb(m);
+            } else if (e.getMode()==HttpAccessException.CONFLICT_ERROR) {
+                Log.d(LOG_TAG, "Conflict uploading file ... deleting Media from db");
+                ReportUser.Log(
                         CoachAppSession.getInstance().getCurrentActivity().getString(R.string.conflicting_file),
                         "file conflict, most likely already uploaded: " + m.fileName() + ". You can discard this");
                 Storage.getInstance().removeMediaFromDb(m);

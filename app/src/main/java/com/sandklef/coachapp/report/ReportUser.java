@@ -57,6 +57,7 @@ public class ReportUser {
 
     // TODO: remove me
     public static void Log(String msg, String detail) {
+     //   Storage.getInstance().log(msg, detail);
         Storage.getInstance().log(msg, detail);
     }
 
