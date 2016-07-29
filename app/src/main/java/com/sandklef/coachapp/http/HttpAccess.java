@@ -221,28 +221,20 @@ public class HttpAccess {
     public void uploadTrainingPhaseVideo(String clubUri, String videoUuid,
                                          String fileName) throws HttpAccessException, IOException {
 
-        //$ curl --data-binary @sample.3gp --insecure --request POST https://localhost/api/0.0.0/clubs/$CLUB_UUID/videos/uuid/$VIDEO_UUID/upload
         HttpURLConnection connection = null;
         DataOutputStream outputStream = null;
         DataInputStream inputStream = null;
-
-
 
         String pathToOurFile = fileName;
         String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
                 HttpSettings.UUID_PATH + videoUuid + HttpSettings.PATH_SEPARATOR +
                 HttpSettings.UPLOAD_PATH;
-/*        String urlServer = urlBase + HttpSettings.API_VERSION + HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR + clubUri + HttpSettings.PATH_SEPARATOR + HttpSettings.VIDEO_URL_PATH +
-                HttpSettings.UUID_PATH + videoUuid + HttpSettings.PATH_SEPARATOR +
-                HttpSettings.UPLOAD_PATH;
-*/
+
         Log.d(LOG_TAG, "Upload server url: " + urlServer);
         Log.d(LOG_TAG, "Upload file:       " + fileName);
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
-
-
 
         FileInputStream fileInputStream = new FileInputStream(new File(pathToOurFile));
 
@@ -257,11 +249,10 @@ public class HttpAccess {
         connection.setUseCaches(false);
         connection.setRequestMethod(HttpSettings.HTTP_POST);
 
-
         connection.setRequestProperty("X-Token", LocalStorage.getInstance().getLatestUserToken());
         connection.addRequestProperty("X-Instance", LocalStorage.getInstance().getCurrentClub());
-        Log.d(LOG_TAG, " upload, token: " + LocalStorage.getInstance().getLatestUserToken());
 
+        Log.d(LOG_TAG, " upload propoerties: " + connection.getRequestProperties());
 
         outputStream = new DataOutputStream(connection.getOutputStream());
         bytesAvailable = fileInputStream.available();
@@ -280,6 +271,15 @@ public class HttpAccess {
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
             bytesRead = fileInputStream.read(buffer, 0, bufferSize);
         }
+        outputStream.flush();
+        outputStream.close();
+/*
+    try {
+        connection.disconnect();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+  */
         Log.d(LOG_TAG, " ... writing done, getting response code");
         int serverResponseCode = connection.getResponseCode();
         Log.d(LOG_TAG, " ... writing done, getting response message");
@@ -287,10 +287,9 @@ public class HttpAccess {
         Log.d(LOG_TAG, "ServerCode:" + serverResponseCode);
         Log.d(LOG_TAG, "serverResponseMessage:" + serverResponseMessage);
 
+
         // Responses from the server (code and message)
         fileInputStream.close();
-        outputStream.flush();
-        outputStream.close();
 
         if (serverResponseCode>=409) {
             throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.CONFLICT_ERROR);
@@ -300,6 +299,7 @@ public class HttpAccess {
             throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
         }
 
+        //TODO: read manual about connection closing
 
     }
 

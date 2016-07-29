@@ -73,7 +73,7 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
     private static final int RELEASE_MODE = 0;
     private static final int DEBUG_MODE   = 1;
-    private static final int currentMode  = RELEASE_MODE;
+    private static final int currentMode  = DEBUG_MODE;
 
     public final static int COACHAPP_SESSION_STATUS_UNDEFINED     = 0;
     public final static int COACHAPP_SESSION_STATUS_OK            = 1;
