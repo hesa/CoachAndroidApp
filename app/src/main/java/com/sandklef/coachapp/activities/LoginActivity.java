@@ -158,18 +158,6 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
         Log.d(LOG_TAG, "  saved token=? " + LocalStorage.getInstance().getLatestUserToken());
         final String token = LocalStorage.getInstance().getLatestUserToken();
         if (token != null && token.length()>8) {
-/*            Button b = (Button) findViewById(R.id.token_sign_in_button);
-            b.setVisibility(View.VISIBLE);
-            b.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.d(LOG_TAG, " checking saved token: " + token);
-                    CoachAppSession.getInstance().verifyToken(token);
-                    ActivitySwitcher.startTeamActivity(context);
-                }
-            });
-            */
-
 
             LocalStorage.getInstance().setConnectionStatus(CoachAppSession.COACHAPP_SESSION_STATUS_UNDEFINED);
             CoachAppSession.getInstance().verifyToken(token);
@@ -400,19 +388,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                 String token = LocalStorage.getInstance().getLatestUserToken();
                 Log.d(LOG_TAG, "LatestUser token: " + token) ;
 
-//                LocalUser lu  = Storage.getInstance().getLocalUser(userId);
-                //              Log.d(LOG_TAG, "LatestUser:   " + lu) ;
 
-
-/*                String token      = null;
-
-                if (lu!=null) {
-                    token      = lu.getToken();
-                    Log.d(LOG_TAG, "Latest User not null, token: " + token);
-                } else {
-                    Log.d(LOG_TAG, "Latest User null, token still null");
-                }
-*/
                 JsonAccess jsa    = new JsonAccess();
 
                 if (token!=null && !token.equals("")) {
@@ -447,36 +423,7 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
                 e.printStackTrace();
             }
 
-
-
-
-            /*
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Log.d(LOG_TAG, "doInBackground()  false, since timeout");
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    Log.d(LOG_TAG, "doInBackground() return: " + pieces[1] + " " + mPassword);
-                    Log.d(LOG_TAG, "doInBackground() return: " + pieces[1].equals(mPassword));
-                    return pieces[1].equals(mPassword);
-                }
-            }
-*/
-            /*
-            Log.d(LOG_TAG, "doInBackground() return true");
-
-            // TODO: register the new account here.
-            return true;
-            */
-
+            
             return false;
         }
 
