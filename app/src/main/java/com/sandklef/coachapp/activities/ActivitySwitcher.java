@@ -125,25 +125,9 @@ public class ActivitySwitcher {
     }
 
     public static void startClubInfoActivity(Activity a) {
-
-/*
-        // TODO: REMOVE THIS ... REALLY REALLY
-        android.util.Log.d(LOG_TAG, "updateConnectionStatusImpl reset token");
-       LocalStorage.getInstance().setLatestUserToken("");
-*/
-
         startActivityImpl(a, com.sandklef.coachapp.activities.ClubInfoActivity.class);
     }
 
-    /*    public static void startVideoRecordActivity(Activity a) {
-            startActivityImpl(a, com.sandklef.coachapp.activities.CameraActivity.class);
-        }
-    */
-/*    public static boolean startRecording(Activity a) {
-        startVideoRecordActivity(a);
-        return true;
-    }
-*/
     public static boolean startRecording(Activity a) {
 
         DateFormat df = new SimpleDateFormat(VIDEO_FILE_DATE_FORMAT);
