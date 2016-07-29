@@ -32,18 +32,21 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.adapters.CoachappExpandableList;
 import com.sandklef.coachapp.adapters.ExpandableListAdapter;
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaMemberFilter;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.Club;
+import com.sandklef.coachapp.model.CoachAppBase;
 import com.sandklef.coachapp.model.Media;
 import com.sandklef.coachapp.model.Team;
 import com.sandklef.coachapp.storage.LocalStorage;
@@ -63,8 +66,8 @@ public class ClubInfoActivity extends ActionBarActivity {
     private final static String LOG_TAG = ClubInfoActivity.class.getSimpleName();
 
 
-    private AbsListView           mListView;
-    private ExpandableListAdapter mAdapter;
+    private ExpandableListView     mListView;
+    private CoachappExpandableList mAdapter;
 
 
 
@@ -72,9 +75,7 @@ public class ClubInfoActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_club_info);
-        mListView = (AbsListView) findViewById(R.id.club_info_team_list);
-
-
+        mListView = (ExpandableListView) findViewById(R.id.club_info_team_list);
     }
 
     private void setTextViewText(int id, String text) {
@@ -126,18 +127,22 @@ public class ClubInfoActivity extends ActionBarActivity {
                             MediaFilterEngine.apply(Storage.getInstance().getMedia(),
                                     new MediaMemberFilter()).size());
 
-
+            /*
             List<String> teams = new ArrayList<String>();
             for (Team t: Storage.getInstance().getTeams()) {
                 Log.d(LOG_TAG, " " + t.getName());
                 teams.add(t.getName()+ " (" + Storage.getInstance().getMembersTeam(t.getUuid()).size() + ")");
             }
             Log.d(LOG_TAG, "teams : " + teams.size());
-            mAdapter = new ExpandableListAdapter(this,
-                    android.R.layout.simple_list_item_1,
-                    android.R.id.text1,
-                    teams);
-            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+*/
+
+
+            Log.d(LOG_TAG, "Adding " + Storage.getInstance().getTeams().size() + " teams");
+            mAdapter = new CoachappExpandableList(this, (List<CoachAppBase>) (List<? extends CoachAppBase>)Storage.getInstance().getTeams());
+            mListView.setAdapter(mAdapter);
+            registerForContextMenu(mListView);
+
+//            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         } catch (StorageNoClubException e) {
             e.printStackTrace();

@@ -77,11 +77,11 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 
-        <ListView
+        <ExpandableListView
             android:id="@+id/club_info_team_list"
             android:layout_height="wrap_content"
             android:layout_width="match_parent">
-        </ListView>
+        </ExpandableListView>
 
     </LinearLayout>
 

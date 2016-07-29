@@ -75,8 +75,6 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
         }
         CoachAppSession.getInstance().setupActivity(this);
 
-
-
         logs = Storage.getInstance().getLogMessages(LocalStorage.getInstance().getLogMessageLimit());
 
         // Set the adapter
