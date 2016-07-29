@@ -68,17 +68,7 @@ public class HttpAccess {
 //    private String clubUri;
 
 
-    /*
-    public HttpAccess(String baseUrl, String clubUrl)throws HttpAccessException  {
-        if (baseUrl==null || clubUrl==null) {
-            throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ", " + clubUrl + ")");
-        }
-        this.urlBase   = baseUrl;
-  //      this.clubUri   = clubUrl;
-//        this.serverUrl = urlBase ;
-    }
 
-*/
     public HttpAccess(String baseUrl)throws HttpAccessException  {
         if (baseUrl==null ) {
             throw new HttpAccessException("NULL pointer passed to constructor (" + baseUrl + ")", HttpAccessException.NETWORK_ERROR);
@@ -193,17 +183,8 @@ public class HttpAccess {
 
     public String readEntireCoachServer(String token, String clubUri) throws HttpAccessException {
         return getFromServer(token, HttpSettings.PATH_SEPARATOR + HttpSettings.COMPOSITE_PATH, clubUri);
-/*        return getFromServer(token, HttpSettings.PATH_SEPARATOR +
-                HttpSettings.CLUB_PATH + HttpSettings.PATH_SEPARATOR +
-                clubUri + HttpSettings.PATH_SEPARATOR +  HttpSettings.COMPOSITE_PATH);
-  */
     }
 
-    /*
-    public String getClubs(String token) throws HttpAccessException {
-        return getFromServer(token, HttpSettings.PATH_SEPARATOR + HttpSettings.CLUB_PATH);
-    }
-    */
 
     public String getUserInfo(String token) throws HttpAccessException {
         return getFromServer(token, HttpSettings.USER_PATH, null);
@@ -319,18 +300,7 @@ public class HttpAccess {
             throw new HttpAccessException("Failed uploading trainingphase video, access denied", HttpAccessException.ACCESS_ERROR);
         }
 
-/*        } catch (IOException e) {
-            Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
-            e.printStackTrace();
-            throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
-*/
-        /*
-        } catch (Exception e) {
-            Log.d(LOG_TAG, " uploading, exception: " + e.getMessage());
-            e.printStackTrace();
-            throw new HttpAccessException("Failed uploading trainingphase video", e, HttpAccessException.NETWORK_ERROR);
-        }
-        */
+
     }
 
 
