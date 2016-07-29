@@ -110,7 +110,7 @@
     <string name="log_limit_summ">The number of log entries can become high so you might want to limit how many log entries are shown.</string>
     <string name="conflicting_file">Conflicting file while uploading</string>
     <string name="network_timed_out">Network timed out</string>
-    <string name="sync_interrupted">Sync interrupted</string>
+    <string name="sync_interrupted">Synchronisation with server interrupted</string>
     <string name="sync_interrupted_user_detail">Synchronisation with server interrupted by user</string>
     <string name="sync_interrupted_exc_detail">Synchronisation with server interrupted by an exceptional incident in the system (e g network failure..)</string>
     <string name="sync_started_msg">Sync started</string>

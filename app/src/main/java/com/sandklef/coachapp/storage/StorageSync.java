@@ -86,13 +86,17 @@ public class StorageSync extends AsyncTask<Void, StorageSync.StorageSyncBundle, 
 
         if (bundle.getErrorCode()!=OK) {
             String msg = bundle.getErrorMessage();
-            if (msg!=null) {
-                msg = ": " + msg;
+            if (msg==null) {
+                msg = " ";
             }
-            String errMsg = CoachAppSession.getInstance().getString(R.string.error) + " " +
-                    CoachAppSession.getInstance().getString(R.string.sync_interrupted);
-            ReportUser.inform(CoachAppSession.getInstance().getContext(), errMsg + msg);
-            ReportUser.log(errMsg,errMsg + msg);
+
+            String errMsg = CoachAppSession.getInstance().getString(R.string.sync_interrupted);
+
+            Log.d(LOG_TAG, "error: '" + errMsg + "´");
+            Log.d(LOG_TAG, "msgr:  '" + msg    + "´");
+
+            ReportUser.informError(CoachAppSession.getInstance().getContext(), errMsg + " (" + msg + ")");
+            ReportUser.log("Error:" + errMsg,msg);
         }
 
 

@@ -71,7 +71,7 @@
 
     <string name="conflicting_file">Konflikt mellan filer under uppladdning.</string>
     <string name="network_timed_out">Timeout för nätverket nådd</string>
-    <string name="sync_interrupted">Sync avbruten</string>
+    <string name="sync_interrupted">Synkronisering med servern avbruten</string>
     <string name="sync_interrupted_user_detail">Synkronisering med server avbruten av användaren.</string>
     <string name="sync_interrupted_exc_detail">Synkronisering med server avbruten på grund av en oförutsedd händelse (t ex nätverksfel).</string>
     <string name="sync_started_msg">Sync påbörjad</string>

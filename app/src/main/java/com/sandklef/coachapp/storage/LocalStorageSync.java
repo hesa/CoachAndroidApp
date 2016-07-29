@@ -106,7 +106,7 @@ public class LocalStorageSync {
             //    Storage.getInstance().uploadMediaToServer(context, m);
             }
         } catch (JsonAccessException e) {
-            Log.d(LOG_TAG, "handleMediaSync, got an exception... handle me better:" + e.getMessage());
+            Log.d(LOG_TAG, "handleMediaSync, got an exception... handle me better: ´" + e.getMessage() + "´");
             e.printStackTrace();
             throw new StorageException(e.getMessage());
         }

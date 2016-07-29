@@ -45,6 +45,11 @@ public class ReportUser {
         toast.show();
     }
 
+    public static void informError(Context context, String text) {
+        Toast toast = Toast.makeText(context, "Error: " + text, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
     public static void inform(Context context, int textId) {
         String text = CoachAppSession.getInstance().getContext().getString(textId);
         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
