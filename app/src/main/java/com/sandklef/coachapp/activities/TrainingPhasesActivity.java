@@ -168,28 +168,6 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
     }
 
 
-/*
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        Log.d(LOG_TAG, "  onCreateContextMenu()");
-
-        AdapterView.AdapterContextMenuInfo info =
-                (AdapterView.AdapterContextMenuInfo) menuInfo;
-        String word = ((TextView) info.targetView).getText().toString();
-        long id = info.id;
-
-        try {
-            menu.setHeaderTitle("Select");
-            currentTPId = Storage.getInstance().getTrainingPhases().get((int) id).getUuid();
-        } catch (StorageNoClubException e) {
-            e.printStackTrace();
-        }
-
-//        menu.add(0, v.getId(), 0, "Create instruction video");
-        menu.add(0, v.getId(), 0, "Show Trainingphase information");
-    }
-*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -211,98 +189,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         }
     }
 
-/*
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        int position = acmi.position;
 
-//        String fileName = LocalStorage.getInstance().getNewMediaDir() + "/tp-" + currentTPId + JsonSettings.SERVER_VIDEO_SUFFIX;
-
-        TrainingPhase tp = Storage.getInstance().getTrainingPhase(currentTPId);
-
-        Log.d(LOG_TAG, "TP:  " + tp);
-        Log.d(LOG_TAG, "TP:  " + tp.getName());
-        Log.d(LOG_TAG, "TP:  " + tp.getVideoUuid());
-
-
-/*
-        LocalStorage.getInstance().setCurrentTrainingPhase(currentTPId);
-
-        Media m = Media.newInstructionVideo(fileName, currentTPId);
-        currentTPId = null;
-        Uri uri = Uri.fromFile(new File(fileName));
-
-        if (m!=null) {
-            Log.d(LOG_TAG, "   instruction video item: " + fileName);
-            Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-
-            Log.d(LOG_TAG, "  file: " + fileName + " uri: " + uri);
-
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-            intent.putExtra("android.intent.extra.durationLimit", 5);
-            intent.putExtra(MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
-            intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
-            intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1); // set the video image quality to high
-            // start the image capture Intent
-            //context.startActivity(intent);
-//            activity.startActivityForResult(intent, com.sandklef.coachapp.fragments.VideoCapture.VIDEO_CAPTURE);
-            startActivityForResult(intent, VideoCapture.VIDEO_CAPTURE);
-//            activity.startActivityForResult(intent, com.sandklef.coachapp.fragments.VideoCapture.VIDEO_CAPTURE);
-        }
-        Log.d(LOG_TAG, "  new instruction video wanted creation: " + fileName);
-
-        return true;
-    }
-*/
-/*
-private void saveMedia(Uri uri) {
-        Log.d(LOG_TAG, "saveMedia()");
-        String club   = LocalStorage.getInstance().getCurrentClub();
-        String team   = LocalStorage.getInstance().getCurrentTeam();
-        String member = null;
-        String tp     = LocalStorage.getInstance().getCurrentTrainingPhase();
-
-        Log.d(LOG_TAG, "savemedia(" + uri + ")");
-        Log.d(LOG_TAG, "savemedia: " + Storage.getInstance().getTrainingPhase(tp));
-
-        // TODO: get member name instaed of UUID
-        Storage.getInstance().log("Video (instr) recorded", "Recorded instructional video for" + Storage.getInstance().getTrainingPhase(tp).getName());
-        Log.d(LOG_TAG, "Recorded instructional video for" + Storage.getInstance().getTrainingPhase(tp).getName());
-        Media m = new Media(null,
-                "",
-                club,
-                uri.getPath(),
-                Media.MEDIA_STATUS_NEW,
-                System.currentTimeMillis(),
-                team,
-                tp,
-                member);
-
-        Log.d(LOG_TAG, "Calling storage to store Media.  File: " + uri.getPath());
-        Storage.getInstance().saveMedia(m);
-    }
-*/
-/*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
-
-        if (requestCode == VideoCapture.VIDEO_CAPTURE) {
-            if (resultCode == Activity.RESULT_OK) {
-                Log.d(LOG_TAG, "Video saved to: " +
-                        data.getData());
-                Log.d(LOG_TAG, "Saving media object...");
-                saveMedia(data.getData());
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                Log.d(LOG_TAG, "Video recording cancelled.");
-            } else {
-                Log.d(LOG_TAG, "Failed to record video");
-            }
-        }
-
-    }
-*/
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
