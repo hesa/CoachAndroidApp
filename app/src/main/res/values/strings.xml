@@ -9,12 +9,12 @@
 
     <string name="description_info">Info</string>
     <string name="info_media_deletable">Media (deletable)</string>
-    <string name="info_media_instructional">Instructional media</string>
+    <string name="info_media_instructional">Instructional media (to upload)</string>
     <string name="info_media_downloaded">Media (downloaded)</string>
     <string name="info_media_uploadable">Media (to upload)</string>
     <string name="info_media_server">Media (server)</string>
     <string name="info_members">Members</string>
-    <string name="club_name">Current club</string>
+    <string name="club_name">Club</string>
     <string name="info_teams">Teams</string>
     <string name="info_trainingphases">Training phases</string>
 

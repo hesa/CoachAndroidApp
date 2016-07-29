@@ -46,6 +46,7 @@ import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.fragments.TrainingPhasesFragment;
 import com.sandklef.coachapp.fragments.VideoCapture;
 import com.sandklef.coachapp.json.JsonAccess;
+import com.sandklef.coachapp.misc.CADateFormat;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.misc.ViewSetter;
 import com.sandklef.coachapp.model.Media;
@@ -314,6 +315,15 @@ public class MemberActivity extends ActionBarActivity
         String teamName   = Storage.getInstance().getTeam(LocalStorage.getInstance().getCurrentTeam()).getName();
         String tpName     = Storage.getInstance().getTrainingPhase(LocalStorage.getInstance().getCurrentTrainingPhase()).getName();
 
+        Media m = new Media("temp-uuid-"+System.currentTimeMillis(),
+                "",
+                club,
+                uri.getPath(),
+                Media.MEDIA_STATUS_NEW,
+                System.currentTimeMillis(),
+                team,
+                tp,
+                member);
 
         if (member!=null) {
             // TODO: get member name instaed of UUID
@@ -321,15 +331,17 @@ public class MemberActivity extends ActionBarActivity
                     "Recorded video:\n" +
                             "Team: " + teamName + "\n" +
                             "TraingingPhase: " + tpName +"\n" +
-                            "Member: " + memberName
+                            "Member: " + memberName + "\n" +
+                            "Time: " + CADateFormat.getDateString(m.getDate())
             );
         } else {
             // TODO: get member name instaed of UUID
-            Storage.getInstance().log("Recorded instructional video\n" ,
+            Storage.getInstance().log("Recorded instructional video" ,
                     "Recorded video:\n" +
                             "Team: " + teamName + "\n" +
                             "TraingingPhase: " + tpName +"\n" +
-                            "Member: " + memberName
+                            "Member: " + memberName+ "\n" +
+                            "Time: " + CADateFormat.getDateString(m.getDate())
             );
         }
         /*
@@ -344,15 +356,6 @@ public class MemberActivity extends ActionBarActivity
                  String memberUuid) {
         super(uuid, name, clubUuid);
          */
-        Media m = new Media("temp-uuid-"+System.currentTimeMillis(),
-                "",
-                club,
-                uri.getPath(),
-                Media.MEDIA_STATUS_NEW,
-                System.currentTimeMillis(),
-                team,
-                tp,
-                member);
 
         Log.d(LOG_TAG, "Calling store: Media:  File: " + uri.getPath());
         Storage.getInstance().saveMedia(m);

@@ -77,7 +77,10 @@ public class Authenticator {
                 clubsStrings.add(c.getUuid());
             }
 
+            // Currently one club per account so chose first (and only)
             Club primaryClub = clubs.get(0);
+            Log.d(LOG_TAG, "Setting club name: " + primaryClub.getName());
+            Log.d(LOG_TAG, "Setting club uuid: " + primaryClub.getClass());
 
             LocalStorage.getInstance().setCurrentClub(primaryClub.getClubUuid());
             LocalStorage.getInstance().setCurrentClubName(primaryClub.getName());

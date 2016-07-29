@@ -157,7 +157,7 @@ public class TeamsActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.top_menu, menu);
+        getMenuInflater().inflate(CoachAppSession.getInstance().getTopMenuId(), menu);
 
         Log.d(LOG_TAG, " find menu: " + menu);
 
@@ -175,7 +175,7 @@ public class TeamsActivity
         long t = System.currentTimeMillis() ;
         //new Date().getDate();
 
-        Log.d(LOG_TAG, "Date with CADate:  " + CADateFormat.getDateStringForServer(t));
+        Log.d(LOG_TAG, "Date with CADate:  " + CADateFormat.getDateStringForServerUTC(t));
         Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateInstance(DateFormat.LONG).format(t));
         Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG).format(t));
         Log.d(LOG_TAG, "Date with :        " + DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG).format(t));

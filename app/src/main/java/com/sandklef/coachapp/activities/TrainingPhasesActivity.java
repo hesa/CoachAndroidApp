@@ -130,7 +130,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.top_menu, menu);
+        getMenuInflater().inflate(CoachAppSession.getInstance().getTopMenuId(), menu);
 
         Log.d(LOG_TAG, " find menu: " + menu);
 
@@ -211,7 +211,6 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         }
     }
 
-
 /*
     @Override
     public boolean onContextItemSelected(MenuItem item) {
@@ -256,7 +255,7 @@ public class TrainingPhasesActivity extends ActionBarActivity implements AbsList
         return true;
     }
 */
-
+/*
 private void saveMedia(Uri uri) {
         Log.d(LOG_TAG, "saveMedia()");
         String club   = LocalStorage.getInstance().getCurrentClub();
@@ -283,8 +282,8 @@ private void saveMedia(Uri uri) {
         Log.d(LOG_TAG, "Calling storage to store Media.  File: " + uri.getPath());
         Storage.getInstance().saveMedia(m);
     }
-
-
+*/
+/*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LOG_TAG, "Video callback: " + requestCode + " " + resultCode + " " + data);
@@ -303,7 +302,7 @@ private void saveMedia(Uri uri) {
         }
 
     }
-
+*/
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);

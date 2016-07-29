@@ -71,6 +71,10 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
     private final static String LOG_TAG = CoachAppSession.class.getSimpleName();
 
+    private static final int RELEASE_MODE = 0;
+    private static final int DEBUG_MODE   = 1;
+    private static final int currentMode  = RELEASE_MODE;
+
     public final static int COACHAPP_SESSION_STATUS_UNDEFINED     = 0;
     public final static int COACHAPP_SESSION_STATUS_OK            = 1;
     public final static int COACHAPP_SESSION_STATUS_NO_NETWORK    = 2;
@@ -527,6 +531,17 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     private void networkCommonCheck() {
         cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         activeNetwork = cm.getActiveNetworkInfo();
+    }
+
+    public boolean releaseMode(){
+        return currentMode == RELEASE_MODE;
+    }
+
+    public int getTopMenuId() {
+        if (!releaseMode() ) {
+            return R.menu.top_menu_debug;
+        }
+        return R.menu.top_menu;
     }
 
     public static boolean isEmulator() {

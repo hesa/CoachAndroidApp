@@ -429,7 +429,7 @@ public class JsonAccess  {
         }
 
 
-        String dateString = CADateFormat.getDateStringForServer(m.getDate());
+        String dateString = CADateFormat.getDateStringForServerUTC(m.getDate());
         String jsonData = "{ \"" + JsonSettings.TRAININGPHASE_TAG + "\": \"" + trainingPhaseUuid + "\" , " +
                 "\"" + JsonSettings.RECORDED_DATE_TAG + "\": \"" + dateString + "\"" ;
         if ( m.getMember()!=null ) {

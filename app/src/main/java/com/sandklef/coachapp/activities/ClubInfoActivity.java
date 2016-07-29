@@ -93,9 +93,9 @@ public class ClubInfoActivity extends ActionBarActivity {
                     clubNames = clubNames + c;
                 }
             }
-            setTextViewText(R.id.club_names,
+/*            setTextViewText(R.id.club_names,
                     getResources().getString(R.string.club_names) + ":  " + clubNames);
-
+*/
             setTextViewText(R.id.club_name,
                     getResources().getString(R.string.club_name) + ":  " + LocalStorage.getInstance().getCurrentClubName());
 
@@ -106,7 +106,7 @@ public class ClubInfoActivity extends ActionBarActivity {
                     getResources().getString(R.string.info_trainingphases) + ":  " + Storage.getInstance().getTrainingPhases().size());
 
             setTextViewText(R.id.members_info,
-                    getResources().getString(R.string.info_members) + "  " + Storage.getInstance().getMembers().size());
+                    getResources().getString(R.string.info_members) + ":  " + Storage.getInstance().getMembers().size());
 
             setTextViewText(R.id.local_media_info,
                     getResources().getString(R.string.info_media_uploadable) + ":  " + Storage.getInstance().getLocalMedia().size());

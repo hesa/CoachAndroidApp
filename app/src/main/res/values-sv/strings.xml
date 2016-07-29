@@ -63,7 +63,7 @@
     <string name="video_record_summ">Sätt längden, i sekunder, på hur låmga tid en spelare som utför en träning skall spelas in.</string>
 
     <string name="info_media_deletable">Media som kan raderas:</string>
-    <string name="info_media_instructional">Instruktionersfilmer: </string>
+    <string name="info_media_instructional">Instruktionersfilmer som kan laddas upp: </string>
     <string name="info_media_downloaded">Nedladdade filmer: </string>
     <string name="info_media_uploadable">Media som kan laddas upp</string>
     <string name="log_limit_text">Antal log-poster att visa</string>
@@ -90,7 +90,7 @@
     <string name="record">Spela in</string>
     <string name="description_info">Info</string>
     <string name="info_media_server">Media (server)</string>
-    <string name="club_name">Vald klubb</string>
+    <string name="club_name">Klubb</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="camera_error">Denna enhet har inte stöd för Camera2 API.</string>
     <string name="intro_message">

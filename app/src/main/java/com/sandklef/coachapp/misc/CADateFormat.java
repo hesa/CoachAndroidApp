@@ -25,19 +25,21 @@ import java.util.TimeZone;
 
 public class CADateFormat {
 
-    public static SimpleDateFormat serverDf;
     public static SimpleDateFormat sdf;
     public static SimpleDateFormat sdfDay;
     public static SimpleDateFormat sdfTime;
+    public static SimpleDateFormat sdfDayUTC;
+    public static SimpleDateFormat sdfTimeUTC;
 
     static {
-        sdf      = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        sdfDay   = new SimpleDateFormat("yyyy-MM-dd");
-        sdfTime  = new SimpleDateFormat("HH:mm:ss");
+        sdf        = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdfDay     = new SimpleDateFormat("yyyy-MM-dd");
+        sdfTime    = new SimpleDateFormat("HH:mm:ss");
+        sdfDayUTC  = new SimpleDateFormat("yyyy-MM-dd");
+        sdfTimeUTC = new SimpleDateFormat("HH:mm:ss");
 
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        sdfDay.setTimeZone(TimeZone.getTimeZone("UTC"));
-        sdfTime.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdfDayUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdfTimeUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
 //    public static String DATE_FORMAT = "yyyyMMdd-HHmmss";
@@ -46,12 +48,11 @@ public class CADateFormat {
         return new Date(time);
     }
 
-    public static String getDateStringForServer(long time) {
+    public static String getDateStringForServerUTC(long time) {
 //        Goal: 2016-06-11T23:29:12.935412Z
-//
         Date d     = new Date(time);
-        String ds   = getDayString(d);
-        String ts   = getTimeString(d);
+        String ds   = sdfDayUTC.format(d);
+        String ts   = sdfTimeUTC.format(d);
         return ds + "T" + ts + ".000000Z";
     }
 
