@@ -143,5 +143,6 @@
         <string name="HTTP_GET">GET"</string>
     -->
 
+    <string name="no_players">(No players)</string>
 
 </resources>

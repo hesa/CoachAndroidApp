@@ -124,4 +124,6 @@
     <string name="info_members">Medlemmar</string>
     <string name="more_info">Mer information</string>
 
+    <string name="no_players">(Inga spelare)</string>
+
 </resources>

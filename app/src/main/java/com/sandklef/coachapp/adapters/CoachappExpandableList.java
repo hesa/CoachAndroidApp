@@ -29,9 +29,16 @@ import android.widget.CheckedTextView;
 import android.widget.TextView;
 
 import com.sandklef.coachapp.R;
+import com.sandklef.coachapp.Session.CoachAppSession;
 import com.sandklef.coachapp.misc.Log;
 import com.sandklef.coachapp.model.CoachAppBase;
+import com.sandklef.coachapp.model.Member;
+import com.sandklef.coachapp.model.Team;
+import com.sandklef.coachapp.storage.Storage;
+import com.sandklef.coachapp.storage.StorageNoClubException;
 
+import java.security.acl.LastOwnerException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,13 +58,31 @@ public class CoachappExpandableList extends BaseExpandableListAdapter {
         inflater      = activity.getLayoutInflater();
 
         Log.d(LOG_TAG, "Adding elements: " + elements.size());
-
     }
 
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return elements.get(groupPosition).getName();
+        Log.d(LOG_TAG, "getChild " + groupPosition + " " + childPosition);
+        StringBuilder sb      = new StringBuilder();
+        String        players = "";
+        try {
+            String teamUuid = Storage.getInstance().getTeamUuid(elements.get(groupPosition).getName());
+            List<Member> members = Storage.getInstance().getMembersTeam(teamUuid);
+            if (members.size()>0) {
+                for (Member m : members) {
+                    sb.append(m.getName() + "\n");
+                }
+                players = sb.toString();
+            } else {
+                players = CoachAppSession.getInstance().getString(R.string.no_players);
+            }
+        } catch (StorageNoClubException e) {
+            e.printStackTrace();
+        }
+
+        return players;
+        //return elements.get(groupPosition).getName();
     }
 
     @Override
@@ -124,6 +149,7 @@ public class CoachappExpandableList extends BaseExpandableListAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.coachapp_list_group, null);
         }
+
         CoachAppBase element = (CoachAppBase) getGroup(groupPosition);
         ((CheckedTextView) convertView).setText(element.toString());
         ((CheckedTextView) convertView).setChecked(isExpanded);

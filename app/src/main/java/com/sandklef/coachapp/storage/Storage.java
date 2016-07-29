@@ -106,6 +106,18 @@ public class Storage {
         return teams;
     }
 
+    public String getTeamUuid(String name) throws StorageNoClubException {
+        if (teams==null) {
+            teams = baseStorage.getTeamsFromDB();
+        }
+        for (Team t: teams) {
+            if (t.getName().equals(name)) {
+                return t.getUuid();
+            }
+        }
+        return null;
+    }
+
     //   public  List<TrainingPhase> getTrainingPhasesFromDB()
     public List<TrainingPhase> getTrainingPhases() throws StorageNoClubException {
         trainingPhases = baseStorage.getTrainingPhasesFromDB();

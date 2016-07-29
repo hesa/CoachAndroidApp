@@ -54,7 +54,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         inflater      = activity.getLayoutInflater();
 
         Log.d(LOG_TAG, "Adding messages: " + messages.size());
-
     }
 
 
