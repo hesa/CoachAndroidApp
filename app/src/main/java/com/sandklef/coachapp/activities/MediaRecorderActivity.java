@@ -90,27 +90,6 @@ public class MediaRecorderActivity extends Activity {
 
         fileName = getIntent().getExtras().getString("file");
 
-        /*
-        mOrientationListener = new OrientationEventListener(this,
-                SensorManager.SENSOR_DELAY_NORMAL) {
-
-            @Override
-            public void onOrientationChanged(int orientation) {
-                Log.v(LOG_TAG,
-                        "Orientation changed to " + orientation);
-
-            }
-        };
-
-        if (mOrientationListener.canDetectOrientation() == true) {
-            Log.v(LOG_TAG, "Can detect orientation");
-            mOrientationListener.enable();
-        } else {
-            Log.v(LOG_TAG, "Cannot detect orientation");
-            mOrientationListener.disable();
-        }
-        */
-
     }
 
     @Override
@@ -122,15 +101,6 @@ public class MediaRecorderActivity extends Activity {
 
     public void startRecording() {
         onCaptureClick(null);
-
-/*        try {
-            Thread.sleep(3*1000);
-        } catch (Exception e) {
-            e.getLocalizedMessage();
-        }
-
-        onPause();
-*/
     }
 
 
