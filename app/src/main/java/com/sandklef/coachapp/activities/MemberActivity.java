@@ -171,51 +171,14 @@ public class MemberActivity extends ActionBarActivity
 
     }
 
-/*
-    private void findInstructionalVideo(Menu menu) {
-        String tpUuid    = LocalStorage.getInstance().getCurrentTrainingPhase();
-        Log.d(LOG_TAG, "findInstructionalVideo() tp:    " + tpUuid);
-        Media media= Storage.getInstance().getInstructionalMedia(tpUuid);
-        MenuItem item = (MenuItem) menu.findItem(R.id.instructionalAction);
 
-        if (media!=null) {
-            item.setIcon(R.drawable.ic_play_arrow_black_24dp);
-            Log.d(LOG_TAG, "findInstructionalVideo() media: " + media.getUuid());
-
-        } else {
-            item.setIcon(R.drawable.ic_videocam_black_24dp);
-            Log.d(LOG_TAG, "findInstructionalVideo() media: null");
-        }
-        instructionalVideo = media;
-    }
-*/
     private Uri newFileUri() {
         File f = new File(CoachAppSession.getInstance().newFileName());
         return  Uri.fromFile(f);
     }
 
-    /*
-
-    public void recordVideo2(View v) {
-        Log.d(LOG_TAG, "recordVideo()");
-
-        View videoView = findViewById(R.id.videoView);
-        Log.d(LOG_TAG, "VideoView: " + videoView);
 
 
-        String file = CoachAppSession.getInstance().newFileName();
-//        VideoCapture vc = (VideoCapture) videoView;
-        VideoCapture.getInstance().startRecordTP(file);
-
-        saveMedia(Uri.fromFile(new File(file)));
-    }
-    */
-/*
-    public void recordVideo(View v) {
-        Log.d(LOG_TAG, "recordVideo()");
-        ActivitySwitcher.startMediaRecorderActivity(this, null);
-    }
-*/
 
     @Override
     public void onBackPressed(){
@@ -250,15 +213,7 @@ public class MemberActivity extends ActionBarActivity
     }
 
 
-/*
-    public void recordInstructionalVideo_OLD(View v) {
-        Log.d(LOG_TAG, "recordInstructionalVideo()");
-        View videoView = findViewById(R.id.videoView);
-        String file = CoachAppSession.getInstance().newFileName();
-        VideoCapture.getInstance().startRecordInstructional(file);
-        saveinstructionMedia(Uri.fromFile(new File(file)));
-    }
-*/
+
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -292,14 +247,6 @@ public class MemberActivity extends ActionBarActivity
         }
 
 
-
-/*
-
-        LocalStorage.getInstance().setCurrentMember(m.getUuid());
-        showVideo();
-
-        recordVideo();
- */
     }
 
 
@@ -344,18 +291,7 @@ public class MemberActivity extends ActionBarActivity
                             "Time: " + CADateFormat.getDateString(m.getDate())
             );
         }
-        /*
-            public Media(String uuid,
-                 String name,
-                 String clubUuid,
-                 String file,
-                 int status,
-                 long date,
-                 String teamUuid,
-                 String trainingPhaseUuid,
-                 String memberUuid) {
-        super(uuid, name, clubUuid);
-         */
+
 
         Log.d(LOG_TAG, "Calling store: Media:  File: " + uri.getPath());
         Storage.getInstance().saveMedia(m);
@@ -466,20 +402,7 @@ public class MemberActivity extends ActionBarActivity
         Log.d(LOG_TAG, "Video callback <----");
 
 
-/*
-       if (requestCode == VideoCapture.VIDEO_CAPTURE) {
-            if (resultCode == Activity.RESULT_OK) {
-                Log.d(LOG_TAG, "Video saved to: " +
-                        data.getData());
-                Log.d(LOG_TAG, "Calling SaveMedia media object...");
-                saveMedia(data.getData());
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                Log.d(LOG_TAG, "Video recording cancelled.");
-            } else {
-                Log.d(LOG_TAG, "Failed to record video");
-            }
-        }
-    */
+
     }
 
 

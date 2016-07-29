@@ -132,18 +132,11 @@ public class TeamsActivity
                     Storage.getInstance().getTeams());
             Log.d(LOG_TAG, "onCreate()  adapter:" + mAdapter);
 
-//            CoachAppSession.getInstance().updateFromServer(this, this, CoachAppSession.getInstance());
 
             Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
             setSupportActionBar(myToolbar);
-//        myToolbar.setTitle(getString(R.string.team_list_header));
             getSupportActionBar().setTitle(getResources().getString(R.string.team_list_header));
-//            getSupportActionBar().setIcon(android.R.drawable.arrow_up_float);
 
-
-/*        ActionBar ab = getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
-        */
 
 
         } catch (StorageNoClubException e) {
