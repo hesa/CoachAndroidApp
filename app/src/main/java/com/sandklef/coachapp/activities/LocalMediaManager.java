@@ -194,21 +194,6 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
             case CONTEXT_MENU_DOWNLOAD:
                 Log.d(LOG_TAG, "Download media (file): " + media.get(position).fileName());
                 Storage.getInstance().downloadMediaFromServer(getApplicationContext(), m);
-
-/*                bundle =
-                        new JsonAccess.SimpleAsyncBundle(JsonAccess.MODE_DOWNLOAD, 0, m);
-                jsend = new JsonAccess(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
-                jsend.execute(bundle);
-*/
-
-    /*                JsonAccess js = new JsonAccess(LocalStorage.getInstance().getCurrentClub(), getApplicationContext());
-                try {
-                    String uuid = js.createVideoOnServer(media.get(position));
-
-                } catch (JsonAccessException jse) {
-                    Log.d(LOG_TAG, "Failed to create file");
-                }*/
-
             default:
                 return false;
         }
@@ -228,16 +213,7 @@ public class LocalMediaManager extends AppCompatActivity implements AdapterView.
         return true;
     }
 
-    /*    private void showTrainingMode() {
-    /*        Intent intent = new Intent(this, com.sandklef.coachapp.activities.TopActivity.class);
-            startActivity(intent);
 
-        }
-    */
-/*    private void showLogMessageMode() {
-        ActivitySwitcher.startLogMessageActivity(this);
-    }
-*/
     private void filteredUpdatedList(MediaStatusNameFilter mf) {
         try {
             Log.d(LOG_TAG, "  filter " + mf + "on deletable media " + media.size());
