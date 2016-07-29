@@ -345,16 +345,6 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
 
         progress.setProgress(progress.getProgress()+1);
         progress.show(getContext(), "Syncing", s);
-
-        /*
-        TextView tv = new TextView(currentActivity);
-        tv.setText(s);
-        if (dialog!=null) {
-            dialog.setMessage(s);
-        } else {
-            Log.d(LOG_TAG, "setDialogText  from onProgressUpdate dialog null, text: " + s);
-        }
-        */
     }
 
     public void setDialogInfo(int cnt, String text) {
@@ -362,22 +352,6 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
         getSyncDialog();
         if (progress != null) {
             progress.setProgress(cnt);
-/*            if (!progress.isShowing()) {
-                progress.show();
-            }
-*/
-
-//            Log.d(LOG_TAG, "setDialogInfo: " + cnt + " " + progress.getMax());
-
-        /*
-        TextView tv = new TextView(currentActivity);
-        tv.setText(s);
-        if (dialog!=null) {
-            dialog.setMessage(s);
-        } else {
-            Log.d(LOG_TAG, "setDialogText  from onProgressUpdate dialog null, text: " + s);
-        }
-        */
         }
     }
 
@@ -446,14 +420,6 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
             Log.d(LOG_TAG, "No network, will not sync");
         }
     }
-
-/*
-    public void updateConnectionStatusTopMenu(
-            Activity activity,
-            MenuItem item) {
-        updateConnectionStatusTopMenu(activity, item, serverConnectionStatus);
-    }
-*/
 
 
     private void updateConnectionStatusImpl(int status) {
@@ -556,20 +522,12 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
     }
 
     public boolean isWifi() {
-//        if (isEmulator()) { return true;}
-
         networkCommonCheck();
 
         if (activeNetwork==null) {
             return false;
         }
 
-        /*
-        Log.d(LOG_TAG, "iwWifi() " + isOnline());
-        Log.d(LOG_TAG, "iwWifi() " + activeNetwork.getType());
-        Log.d(LOG_TAG, "iwWifi() " + ConnectivityManager.TYPE_WIFI);
-        Log.d(LOG_TAG, "iwWifi() " + (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI));
-*/
         return isOnline() && (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI);
     }
 
@@ -620,11 +578,6 @@ public class CoachAppSession  implements ConnectionStatusListener, StorageSyncLi
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  log");
                 ActivitySwitcher.startLogMessageActivity(currentActivity);
                 return true;
-            /*case R.id.menu_media_manager:
-                com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  media");
-                ActivitySwitcher.startLocalMediaManager(currentActivity);
-                return true;
-            */
             case R.id.menu_club_info:
                 com.sandklef.coachapp.misc.Log.d(LOG_TAG, "  club");
                 ActivitySwitcher.startClubInfoActivity(currentActivity);
