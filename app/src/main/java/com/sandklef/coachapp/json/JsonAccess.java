@@ -56,22 +56,6 @@ public class JsonAccess  {
 
     private String jsonString;
 
-    /*
-    public JsonAccess(String club ) throws JsonAccessException {
-        if (club == null ) {
-            throw new JsonAccessException(
-                    "NULL pointer passed to constructor (" + club + ")");
-        }
-//        this.context = context;
-        try {
-            this.httpAccess =
-                    new HttpAccess(LocalStorage.getInstance().getServerUrl(), club);
-        } catch (HttpAccessException e) {
-            throw new JsonAccessException("Could not access Http", e);
-        }
-    }
-*/
-
     public JsonAccess() throws JsonAccessException {
         try {
             this.httpAccess =
@@ -123,37 +107,6 @@ public class JsonAccess  {
         return clubs;
     }
 
-/*
-    public  List<Club> getClubs(String token) throws JsonAccessException  {
-        Log.d(LOG_TAG, "getClubs()");
-        List<Club> clubs = new ArrayList<Club>();
-        try {
-            String jsonData = httpAccess.getClubs(token);
-
-            Log.d(LOG_TAG, "data: " + jsonData);
-            JSONObject json = new JSONObject(jsonData);
-
-//            String clubJson = json.getJSONArray(JsonSettings.ITEMS_TAG);
-  //          Log.d(LOG_TAG, " clubs (json):  " + clubJson);
-
-            JSONArray clubsArray = json.getJSONArray(JsonSettings.ITEMS_TAG);
-            Log.d(LOG_TAG, " clubs (array): " + clubsArray);
-
-            for (int i = 0; i < clubsArray.length(); i++) {
-                JSONObject jo = clubsArray.getJSONObject(i);
-                String uuid = jo.getString(JsonSettings.UUID_TAG);
-                String name = jo.getString(JsonSettings.NAME_TAG);
-                Log.d(LOG_TAG, " * " + uuid + " - " + name);
-                clubs.add(new Club(uuid, name));
-            }
-        } catch (JSONException e) {
-            throw new JsonAccessException("Failed parsing JSON", e, JsonAccessException.ACCESS_ERROR);
-        } catch (HttpAccessException e) {
-            throw new JsonAccessException(e, e.getMode());
-        }
-        return clubs;
-    }
-*/
     public CompositeBundle update(String clubUri) throws JsonAccessException {
         CompositeBundle bundle = new CompositeBundle();
         try {
@@ -322,65 +275,6 @@ public class JsonAccess  {
         return Media.MEDIA_STATUS_UPLOAD_FAILED;
     }
 
-/*    public List<Media> extractVideos(JSONObject json) {
-        List<Media> media = new ArrayList<Media>();
-
-        try {
-            JSONArray videoArray = json.getJSONArray(JsonSettings.VIDEOS_TAG);
-
-            for (int i = 0; i < videoArray.length(); i++) {
-                JSONObject jo = videoArray.getJSONObject(i);
-                String status = jo.getString(JsonSettings.STATUS_TAG);
-                String uuid = jo.getString(JsonSettings.UUID_TAG);
-                String tp = jo.getString(JsonSettings.TRAININGPHASE_TAG);
-                String club = jo.getString(JsonSettings.CLUB_TAG);
-                String member = null;
-                try {
-                    member = jo.getString(JsonSettings.MEMBER_TAG);
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "JsonException while parsing member in video. Assuming instructional");
-                }
-                String team = null;
-                String date = null;
-
-                // HESA HESA HESA - THERE BE DRAGONS HERE
-                try {
-                    date = jo.getString(JsonSettings.CREATED_TAG);
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "JsonException while parsing date in video. CONTINUING SINCE WE*re testing");
-                }
-                // HESA HESA HESA - THERE BE DRAGONS HERE
-                try {
-                    team = jo.getString(JsonSettings.TEAM_TAG);
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "JsonException while parsing team in video. CONTINUING SINCE WE*re testing");
-                }
-
-
-                Log.d(LOG_TAG, "Creating media from: " + uuid + " " + club + " " + status + " " + jsonStatusToMediaStatus(status) + " " + team + " " + tp + " " + member);
-                Log.d(LOG_TAG, "  media: " + media.size());
-
-                Log.d(LOG_TAG, "  date:  '" + date + "'");
-
-//                "2016-02-25T23:16:24.74447Z"
-                date = date.replaceFirst("(\\d\\d[\\.,]\\d{3})\\d+", "$1");
-
-                Date d = new Date(date);
-                Log.d(LOG_TAG, "  date:  " + d);
-                Log.d(LOG_TAG, "  date:  " + d.getTime());
-
-                Media m = new Media(uuid, "", club,
-                        null, jsonStatusToMediaStatus(status),
-                        d.getTime(),
-                        team, tp, member);
-                media.add(m);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return media;
-    }
-*/
 
     public void downloadVideo(String clubUri, String file, String videoUuid) throws JsonAccessException {
         try {
