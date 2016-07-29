@@ -38,6 +38,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.sandklef.coachapp.Session.CoachAppSession;
+import com.sandklef.coachapp.adapters.ExpandableListAdapter;
 import com.sandklef.coachapp.filters.MediaFilterEngine;
 import com.sandklef.coachapp.filters.MediaMemberFilter;
 import com.sandklef.coachapp.filters.MediaStatusNameFilter;
@@ -62,8 +63,8 @@ public class ClubInfoActivity extends ActionBarActivity {
     private final static String LOG_TAG = ClubInfoActivity.class.getSimpleName();
 
 
-    private AbsListView mListView;
-    private ListAdapter mAdapter;
+    private AbsListView           mListView;
+    private ExpandableListAdapter mAdapter;
 
 
 
@@ -132,7 +133,7 @@ public class ClubInfoActivity extends ActionBarActivity {
                 teams.add(t.getName()+ " (" + Storage.getInstance().getMembersTeam(t.getUuid()).size() + ")");
             }
             Log.d(LOG_TAG, "teams : " + teams.size());
-            mAdapter = new ArrayAdapter<String>(this,
+            mAdapter = new ExpandableListAdapter(this,
                     android.R.layout.simple_list_item_1,
                     android.R.id.text1,
                     teams);

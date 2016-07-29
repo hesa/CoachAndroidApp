@@ -67,11 +67,8 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_log);
-//        logStrings = new ArrayList<>();
 
-        //List<LogMessage> logs;
-//        Storage.getInstance().log("onCreate in LogMessage");
+        setContentView(R.layout.activity_log);
 
         if (CoachAppSession.getInstance()==null) {
             ActivitySwitcher.startLoginActivity(this);
@@ -81,44 +78,12 @@ public class LogActivity extends ActionBarActivity implements AbsListView.OnItem
 
 
         logs = Storage.getInstance().getLogMessages(LocalStorage.getInstance().getLogMessageLimit());
-/*        String lastDayString = null;
-
-
-        for (LogMessage l: logs) {
-            Date ld = l.getDate();
-            String dayString = CADateFormat.getDayString(ld);
-
-            Log.d(LOG_TAG, " d: " + ld);
-
-            if (lastDayString==null || (!lastDayString.equals(dayString))) {
-                logStrings.add(dayString);
-            }
-            logStrings.add(l.toString());
-
-            lastDayString = dayString;
-        }
-*/
-
-        /*
-        mAdapter = new ExpandableListAdapter(this,
-                android.R.layout.simple_list_item_1, android.R.id.text1, logs);
-*/
-
-
-        //        public MediaListAdapter(Context context, int textViewResourceId, List<Media> media)
-/*
-        mAdapter = new MediaListAdapter(getApplicationContext(),
-                R.layout.media_list, media);
-*/
-//        ExpandableListView listView = (ExpandableListView) findViewById(R.id.local_log_list);
 
         // Set the adapter
         mListView = (ExpandableListView) findViewById(R.id.local_log_list);
         mAdapter = new ExpandableListAdapter(this,logs);
 
         mListView.setAdapter(mAdapter);
-
-//        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         registerForContextMenu(mListView);
 
