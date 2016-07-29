@@ -33,7 +33,7 @@
                 <com.sandklef.coachapp.fragments.VideoCapture
                     android:id="@+id/videoView"
                     android:layout_width="400dp"
-                    android:layout_height="400dp"
+                    android:layout_height="fill_parent"
                     android:background="#00000000" />
 
                 <LinearLayout
